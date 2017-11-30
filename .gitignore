@@ -3,3 +3,4 @@ old/
 docs/
 data/
 .ipynb_checkpoints
+.ropeproject
