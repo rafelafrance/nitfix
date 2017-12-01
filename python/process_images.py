@@ -4,9 +4,13 @@ from os.path import join
 from glob import glob
 import argparse
 import sqlite3
-from PIL import Image
+from collections import namedtuple
+from PIL import Image, ImageFilter
 import exifread
 import zbarlight
+
+
+Dimensions = namedtuple('Dimensions', 'width height')
 
 
 def parse_command_line():
@@ -24,8 +28,58 @@ def parse_command_line():
                         help="""Drop and recreate the images table in the
                             SQL database.""")
 
+    parser.add_argument('-d', '--dry-run', action='store_true',
+                        help="""Don't output to the database.""")
+
     args = parser.parse_args()
     return args
+
+
+def window_slider(image_size, window=None, stride=None):
+    """Slide a window over the image to help with feature extraction."""
+    window = window if window else Dimensions(400, 400)
+    stride = stride if stride else Dimensions(200, 200)
+
+    for top in range(0, image_size.height, stride.height):
+        bottom = top + window.height
+        bottom = image_size.height if bottom > image_size.height else bottom
+
+        for left in range(0, image_size.width, stride.width):
+            right = left + window.width
+            right = image_size.width if right > image_size.width else right
+
+            box = (left, top, right, bottom)
+
+            yield box
+
+
+def get_qr_code(image):
+    """Handle the case where the QR code is difficult to extract."""
+    qr_code = zbarlight.scan_codes('qrcode', image)
+    if qr_code:
+        return qr_code[0].decode('utf-8')
+
+    # Try a slider
+    for box in window_slider(image):
+        cropped = image.crop(box)
+        qr_code = zbarlight.scan_codes('qrcode', cropped)
+        if qr_code:
+            return qr_code[0].decode('utf-8')
+
+    # Try rotating the image *sigh*
+    for degrees in range(5, 85, 5):
+        rotated = image.rotate(degrees)
+        qr_code = zbarlight.scan_codes('qrcode', rotated)
+        if qr_code:
+            return qr_code[0].decode('utf-8')
+
+    # Try to sharpen the image
+    sharpened = image.filter(ImageFilter.SHARPEN)
+    qr_code = zbarlight.scan_codes('qrcode', sharpened)
+    if qr_code:
+        return qr_code[0].decode('utf-8')
+
+    return None
 
 
 def get_image_data(file_name):
@@ -35,23 +89,49 @@ def get_image_data(file_name):
         image = Image.open(image_file)
         image.load()
 
-    qr_code = zbarlight.scan_codes('qrcode', image)
-    qr_code = qr_code[0].decode('utf-8') if qr_code else None
+    qr_code = get_qr_code(image)
 
     return str(exif['Image DateTime']), qr_code
 
 
-def create_tables(db_conn):
+def create_tables(args, db_conn):
     """Reset the images table."""
+    if not args.create_table or args.dry_run:
+        return
+
     db_conn.execute('DROP TABLE IF EXISTS images')
     db_conn.execute("""
                     CREATE TABLE images (
-                      id            TEXT PRIMARY KEY,
-                      file_name     TEXT UNIQUE,
+                      id            TEXT PRIMARY KEY NOT NULL,
+                      file_name     TEXT NOT NULL UNIQUE,
                       image_created TEXT)
                      """)
     db_conn.execute('DROP TABLE IF EXISTS errors')
     db_conn.execute("""CREATE TABLE errors (msg TEXT)""")
+
+
+def insert_error(args, db_conn, msg):
+    """Insert into the errors table."""
+    insert = """INSERT INTO errors (msg) VALUES (?)"""
+
+    print(msg)
+
+    if not args.dry_run:
+        db_conn.execute(insert, (msg, ))
+        db_conn.commit()
+
+
+def insert_image(args, db_conn, uuid, file_name, image_created):
+    """Insert into the images table."""
+    insert = """
+        INSERT INTO images (id, file_name, image_created) VALUES (?, ?, ?)
+        """
+
+    print(file_name, uuid)
+
+    if not args.dry_run:
+        db_conn.execute(insert, (uuid, file_name, image_created))
+        db_conn.commit()
 
 
 def main():
@@ -59,35 +139,25 @@ def main():
     uuids = {}
 
     args = parse_command_line()
-
     db_name = join('data', 'nitfix.sqlite.db')
-    insert = """
-        INSERT INTO images (id, file_name, image_created) VALUES (?, ?, ?)
-        """
-    error = """INSERT INTO errors (msg) VALUES (?)"""
 
     with sqlite3.connect(db_name) as db_conn:
-        if args.create_table:
-            create_tables(db_conn)
+        create_tables(args, db_conn)
 
         for pattern in args.files:
             for file_name in sorted(glob(pattern)):
                 image_created, uuid = get_image_data(file_name)
-                print(file_name, uuid)
 
                 if not uuid:
                     msg = 'MISSING: QR code missing in {}'.format(file_name)
-                    print(msg)
-                    db_conn.execute(error, (msg, ))
+                    insert_error(args, db_conn, msg)
                 elif uuids.get(uuid):
                     msg = ('DUPLICATES: Files {} and {} have the same '
                            'QR code').format(uuids[uuid], file_name)
-                    print(msg)
-                    db_conn.execute(error, (msg, ))
+                    insert_error(args, db_conn, msg)
                 else:
                     uuids[uuid] = file_name
-                    db_conn.execute(insert, (uuid, file_name, image_created))
-                db_conn.commit()
+                    insert_image(args, db_conn, uuid, file_name, image_created)
 
 
 if __name__ == '__main__':
