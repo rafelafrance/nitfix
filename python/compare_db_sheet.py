@@ -1,5 +1,7 @@
 """Compare the UUIDs in the google sheet with what is in the database."""
 
+# pylint: disable=no-member
+
 import os
 from os.path import join
 import csv
@@ -64,12 +66,13 @@ def get_sheet_guids():
     guids = {}
     for row in values:
         if len(row) > 5:
-            guid = row[5]
-            try:
-                uuid.UUID(guid)
-                guids[guid] = row
-            except ValueError:
-                pass
+            for guid in row[5].split(';'):
+                guid = guid.strip()
+                try:
+                    uuid.UUID(guid)
+                    guids[guid] = row
+                except ValueError:
+                    pass
 
     return guids
 
@@ -88,12 +91,7 @@ def get_db_guids():
 
 
 def main():
-    """
-    Show basic usage of the Sheets API.
-
-    Creates a Sheets API service object and prints the names and majors of
-    students in a sample spreadsheet:
-    """
+    """Show basic usage of the Sheets API."""
     db_guids = get_db_guids()
     sheet_guids = get_sheet_guids()
 
@@ -108,14 +106,14 @@ def main():
     print('DB UUIDs not in sheet', len(db_minus_sheet))
     print('Sheet UUIDs not in DB', len(sheet_minus_db))
 
-    path = join('data', 'db_uuids_not_in_sheet.csv')
+    path = join('data', 'db_uuids_not_in_sheet_2.csv')
     with open(path, 'w') as csv_file:
         writer = csv.writer(csv_file)
         writer.writerow(['uuid', 'file_name'])
         for guid in db_minus_sheet:
             writer.writerow([db_guids[guid][0], db_guids[guid][1]])
 
-    path = join('data', 'sheet_uuids_not_in_db.csv')
+    path = join('data', 'sheet_uuids_not_in_db_2.csv')
     with open(path, 'w') as csv_file:
         writer = csv.writer(csv_file)
         writer.writerow(['uuid', 'scientificName'])
