@@ -31,6 +31,9 @@ def parse_command_line():
     parser.add_argument('-d', '--dry-run', action='store_true',
                         help="""Don't output to the database.""")
 
+    parser.add_argument('--set-uuid', metavar='UUID',
+                        help="""Set the UUID to this value.""")
+
     args = parser.parse_args()
     return args
 
@@ -53,8 +56,13 @@ def window_slider(image_size, window=None, stride=None):
             yield box
 
 
-def get_qr_code(image):
-    """Handle the case where the QR code is difficult to extract."""
+def get_qr_code(image, args):
+    """Get the QR code from the image."""
+    # If the UUID argument is set return that
+    if args.set_uuid:
+        return args.set_uuid
+
+    # Try a direct extraction
     qr_code = zbarlight.scan_codes('qrcode', image)
     if qr_code:
         return qr_code[0].decode('utf-8')
@@ -82,14 +90,14 @@ def get_qr_code(image):
     return None
 
 
-def get_image_data(file_name):
+def get_image_data(file_name, args):
     """Get the image data."""
     with open(file_name, 'rb') as image_file:
         exif = exifread.process_file(image_file)
         image = Image.open(image_file)
         image.load()
 
-    qr_code = get_qr_code(image)
+    qr_code = get_qr_code(image, args)
 
     return str(exif['Image DateTime']), qr_code
 
@@ -127,7 +135,7 @@ def insert_image(args, db_conn, uuid, file_name, image_created):
         INSERT INTO images (id, file_name, image_created) VALUES (?, ?, ?)
         """
 
-    print(file_name, uuid)
+    print(file_name, uuid, image_created)
 
     if not args.dry_run:
         db_conn.execute(insert, (uuid, file_name, image_created))
@@ -146,7 +154,7 @@ def main():
 
         for pattern in args.files:
             for file_name in sorted(glob(pattern)):
-                image_created, uuid = get_image_data(file_name)
+                image_created, uuid = get_image_data(file_name, args)
 
                 if not uuid:
                     msg = 'MISSING: QR code missing in {}'.format(file_name)
