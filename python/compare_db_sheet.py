@@ -58,7 +58,7 @@ def get_sheet_guids():
     service = discovery.build(
         'sheets', 'v4', http=http, discoveryServiceUrl=url)
     spreadsheet_id = '14J1_gHf4g4BHfG-qVJTx3Z296xyXPIXWNAGRx0uReWk'
-    range_name = 'NitFixList!A2:F'
+    range_name = 'NitFixList!A2:I'
     result = service.spreadsheets().values().get(
         spreadsheetId=spreadsheet_id, range=range_name).execute()
     values = result.get('values', [])
@@ -80,9 +80,9 @@ def get_sheet_guids():
 def get_db_guids():
     """Get UUIDs from the database."""
     guids = {}
-    db_name = join('data', 'nitfix.sqlite.db')
+    db_path = join('data', 'nitfix.sqlite.db')
     select = 'SELECT * FROM images'
-    with sqlite3.connect(db_name) as db_conn:
+    with sqlite3.connect(db_path) as db_conn:
         cursor = db_conn.cursor()
         cursor.execute(select)
         guids = {g[0]: g for g in cursor.fetchall()}
@@ -105,20 +105,27 @@ def main():
     print('Sheet UUIDs', len(sheet_guids))
     print('DB UUIDs not in sheet', len(db_minus_sheet))
     print('Sheet UUIDs not in DB', len(sheet_minus_db))
+    # print()
 
-    path = join('data', 'db_uuids_not_in_sheet_2.csv')
+    path = join('data', 'uuids_in_db_not_in_sheet.csv')
     with open(path, 'w') as csv_file:
         writer = csv.writer(csv_file)
         writer.writerow(['uuid', 'file_name'])
         for guid in db_minus_sheet:
-            writer.writerow([db_guids[guid][0], db_guids[guid][1]])
+            writer.writerow([guid, db_guids[guid][1]])
+    # for guid in db_minus_sheet:
+    #     print(guid, db_guids[guid])
+    # print()
 
-    path = join('data', 'sheet_uuids_not_in_db_2.csv')
+    path = join('data', 'uuids_in_sheet_not_in_db.csv')
     with open(path, 'w') as csv_file:
         writer = csv.writer(csv_file)
         writer.writerow(['uuid', 'scientificName'])
         for guid in sheet_minus_db:
-            writer.writerow([sheet_guids[guid][5], sheet_guids[guid][2]])
+            writer.writerow([guid, sheet_guids[guid][2]])
+    # for guid in sheet_minus_db:
+    #     print(guid, sheet_guids[guid])
+    # print()
 
 
 if __name__ == '__main__':
