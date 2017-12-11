@@ -4,3 +4,4 @@ docs/
 data/
 .ipynb_checkpoints
 .ropeproject
+__pycache__

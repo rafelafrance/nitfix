@@ -5,7 +5,7 @@
 from os.path import join
 import csv
 import uuid
-import lib.sql as sql
+import lib.db as db
 import lib.google_sheet as google_sheet
 
 
@@ -35,7 +35,7 @@ def get_db_guids():
     """Get UUIDs from the database."""
     guids = {}
     select = 'SELECT * FROM images'
-    with sql.connect() as db_conn:
+    with db.connect() as db_conn:
         cursor = db_conn.cursor()
         cursor.execute(select)
         guids = {g[0]: g for g in cursor.fetchall()}

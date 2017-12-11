@@ -8,6 +8,7 @@ from collections import namedtuple
 from PIL import Image, ImageFilter
 import exifread
 import zbarlight
+import lib.db as db
 
 
 Dimensions = namedtuple('Dimensions', 'width height')
@@ -107,15 +108,8 @@ def create_tables(args, db_conn):
     if not args.create_table or args.dry_run:
         return
 
-    db_conn.execute('DROP TABLE IF EXISTS images')
-    db_conn.execute("""
-                    CREATE TABLE images (
-                      id            TEXT PRIMARY KEY NOT NULL,
-                      file_name     TEXT NOT NULL UNIQUE,
-                      image_created TEXT)
-                     """)
-    db_conn.execute('DROP TABLE IF EXISTS errors')
-    db_conn.execute("""CREATE TABLE errors (msg TEXT)""")
+    db.create_images_table(db_conn)
+    db.create_errors_table(db_conn)
 
 
 def insert_error(args, db_conn, msg):
@@ -131,15 +125,10 @@ def insert_error(args, db_conn, msg):
 
 def insert_image(args, db_conn, uuid, file_name, image_created):
     """Insert into the images table."""
-    insert = """
-        INSERT INTO images (id, file_name, image_created) VALUES (?, ?, ?)
-        """
-
     print(file_name, uuid, image_created)
 
     if not args.dry_run:
-        db_conn.execute(insert, (uuid, file_name, image_created))
-        db_conn.commit()
+        db.insert_image(db_conn, uuid, file_name, image_created)
 
 
 def main():
