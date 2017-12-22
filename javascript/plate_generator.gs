@@ -1,6 +1,7 @@
 var ROW_COUNT = 8;
 var COL_COUNT = 12;
 var LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+var BACKGROUND = '#fdffa8';
 
 
 function setup() {
@@ -82,8 +83,17 @@ function plateIdInSheet(plateId) {
 
 function cellsAreEmpty(row, col) {
   const sheet = SpreadsheetApp.getActiveSheet();
+  const grid = sheet.getRange(row + 1, col + 1, ROW_COUNT, COL_COUNT);
+  const bgColors = grid.getBackgrounds();
+
+  for (var r = 0; r < bgColors.length; r++) {
+    for (var c = 0; c < bgColors[r].length; c++) {
+      if (bgColors[r][c] == BACKGROUND) { return false; }
+    }
+  }
+
   return sheet.getRange(row + 1, col, ROW_COUNT, 1).isBlank()
-      && sheet.getRange(row + 1, col + 1, ROW_COUNT, COL_COUNT).isBlank();
+      && grid.isBlank();
 }
 
 
@@ -101,6 +111,6 @@ function addRowLabels(row, col) {
 function addBody(row, col) {
   SpreadsheetApp.getActiveSheet()
     .getRange(row + 1, col + 1, ROW_COUNT, COL_COUNT)
-    .setBackground('#fdffa8')
+    .setBackground(BACKGROUND)
     .setBorder(true, true, true, true, true, true);
 }
