@@ -64,7 +64,7 @@ def create_taxonomies_table(db_conn):
     db_conn.execute('DROP TABLE IF EXISTS taxonomies')
     db_conn.execute("""
                     CREATE TABLE taxonomies (
-                        taxonmy_key         TEXT PRIMARY KEY NOT NULL,
+                        taxonomy_key        TEXT PRIMARY KEY NOT NULL,
                         family              TEXT,
                         scientific_name     TEXT,
                         taxonomic_authority TEXT,
@@ -74,7 +74,7 @@ def create_taxonomies_table(db_conn):
                         provider_id         TEXT,
                         quality_notes       TEXT
                     )""")
-    db_conn.execute('CREATE INDEX taxonomies_key ON taxonomies (taxonmy_key)')
+    db_conn.execute('CREATE INDEX taxonomies_key ON taxonomies (taxonomy_key)')
     db_conn.execute("""CREATE INDEX taxonomies_provider_acronym ON taxonomies
                        (provider_acronym)""")
     db_conn.execute("""CREATE INDEX taxonomies_provider_id ON taxonomies
@@ -85,7 +85,7 @@ def insert_taxonomy(db_conn, record):
     """Insert a record into the taxonomies table."""
     sql = """
         INSERT INTO taxonomies (
-                        key,
+                        taxonomy_key,
                         family,
                         scientific_name,
                         taxonomic_authority,

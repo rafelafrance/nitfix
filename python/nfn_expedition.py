@@ -7,8 +7,8 @@ from shutil import copyfile
 import lib.db as db
 
 
-EXPEDITION_DIR = join('data', 'nybg_expedition')
-PROVIDER = 'NYBG'
+EXPEDITION_DIR = join('data', 'osu_expedition')
+PROVIDER = 'OSU'
 
 
 def get_absent_data(db_conn):

@@ -1,4 +1,4 @@
-"""Compare the UUIDs in the google sheet with what is in the database."""
+"""Compare the UUIDs in the Google sheet with what is in the database."""
 
 # pylint: disable=no-member
 

@@ -2,7 +2,6 @@
 
 # pylint: disable=no-member
 
-# from os.path import join
 import lib.db as db
 import lib.google_sheet as google_sheet
 
