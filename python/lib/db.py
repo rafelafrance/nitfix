@@ -43,7 +43,20 @@ def get_image(db_conn, image_ids):
 def create_errors_table(db_conn):
     """Create errors table for persisting errors."""
     db_conn.execute('DROP TABLE IF EXISTS errors')
-    db_conn.execute("""CREATE TABLE errors (msg TEXT)""")
+    db_conn.execute("""
+                    CREATE TABLE errors (
+                        error_key   TEXT NOT NULL,
+                        msg         TEXT,
+                        resolution  TEXT
+                    )""")
+    db_conn.execute('CREATE INDEX error_idx ON errors(error_key)')
+
+
+def insert_error(db_conn, error_key, msg):
+    """Insert a record into the errors table."""
+    insert = """INSERT INTO errors (error_key, msg) VALUES (?, ?)"""
+    db_conn.execute(insert, (error_key, msg))
+    db_conn.commit()
 
 
 def create_taxonomies_table(db_conn):
