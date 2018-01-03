@@ -1,13 +1,33 @@
 """Utilities for SQL functions."""
 
 from os.path import join
+import re
+import uuid
 import sqlite3
 
 
 def connect():
     """Connect to the SQLite3 DB."""
     db_path = join('data', 'nitfix.sqlite.db')
-    return sqlite3.connect(db_path)
+    db_conn = sqlite3.connect(db_path)
+    # db_conn.create_function('REGEXP', 2, regexp)
+    db_conn.create_function('IS_UUID', 1, is_uuid)
+    return db_conn
+
+
+def regexp(expression, item):
+    """Create a user function for regular expressions."""
+    regex = re.compile(expression, re.IGNORECASE | re.VERBOSE)
+    return regex.search(item) is not None
+
+
+def is_uuid(guid):
+    """Create a function to determine if a string is a valid UUID."""
+    try:
+        uuid.UUID(guid)
+        return True
+    except ValueError:
+        return False
 
 
 def create_images_table(db_conn):
@@ -21,13 +41,13 @@ def create_images_table(db_conn):
                     )""")
 
 
-def insert_image(db_conn, uuid, file_name, image_created):
+def insert_image(db_conn, guid, file_name, image_created):
     """Insert a record into the images table."""
     sql = """
         INSERT INTO images (image_id, file_name, image_created)
              VALUES (?, ?, ?)
         """
-    db_conn.execute(sql, (uuid, file_name, image_created))
+    db_conn.execute(sql, (guid, file_name, image_created))
     db_conn.commit()
 
 
@@ -107,6 +127,33 @@ def get_taxonomy_by_provider(db_conn, provider_acronym, provider_id):
               FROM taxonomies
              WHERE provider_acronym = ?
                AND provider_id = ?
-          """
+        """
     result = db_conn.execute(sql, (provider_acronym, provider_id))
     return result.fetchone()
+
+
+def get_taxonomies(db_conn):
+    """Get taxonomies where the tissue sample ID is a valid UUID."""
+    sql = """SELECT * FROM taxonomies WHERE IS_UUID(tissue_sample_id)"""
+    db_conn.row_factory = sqlite3.Row
+    return db_conn.execute(sql)
+
+
+def get_taxonomy_image_mismatches(db_conn):
+    """Taxonomies and images where the two are not in each other's table."""
+    sql = """
+          WITH taxos AS (
+            SELECT * FROM taxonomies WHERE IS_UUID(tissue_sample_id))
+        SELECT images.*, taxos.*
+          FROM images
+     LEFT JOIN taxos ON images.image_id = taxos.tissue_sample_id
+         WHERE taxos.tissue_sample_id IS NULL
+     UNION
+        SELECT images.*, taxos.*
+          FROM taxos
+     LEFT JOIN images ON images.image_id = taxos.tissue_sample_id
+         WHERE images.image_id IS NULL
+      ORDER BY taxos.scientific_name, images.file_name
+        """
+    db_conn.row_factory = sqlite3.Row
+    return db_conn.execute(sql)
