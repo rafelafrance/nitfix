@@ -12,6 +12,7 @@ def connect():
     db_conn = sqlite3.connect(db_path)
     # db_conn.create_function('REGEXP', 2, regexp)
     db_conn.create_function('IS_UUID', 1, is_uuid)
+    db_conn.row_factory = sqlite3.Row
     return db_conn
 
 
@@ -55,9 +56,16 @@ def get_image(db_conn, image_ids):
     """Get an image by its primary key."""
     image_ids = ', '.join(
         ["'{}'".format(i.strip()) for i in image_ids.split(';')])
-    sql = """SELECT * FROM images WHERE id IN ({})""".format(image_ids)
+    sql = """SELECT * FROM images WHERE image_id IN ({})""".format(image_ids)
     result = db_conn.execute(sql)
-    return result.fetchone()
+    return result.fetchall()
+
+
+def get_images(db_conn):
+    """Get an image by its primary key."""
+    sql = """SELECT * FROM images"""
+    result = db_conn.execute(sql)
+    return result.fetchall()
 
 
 def create_errors_table(db_conn):
@@ -142,11 +150,30 @@ def get_taxonomy_by_provider(db_conn, provider_acronym, provider_id):
 def get_taxonomies(db_conn):
     """Get taxonomies where the tissue sample ID is a valid UUID."""
     sql = """SELECT * FROM taxonomies WHERE IS_UUID(tissue_sample_id)"""
-    db_conn.row_factory = sqlite3.Row
     return db_conn.execute(sql)
 
 
-def get_taxonomy_image_mismatches(db_conn):
+def get_images_taxonomies(db_conn, file_pattern):
+    """Get images joind with their matching taxonomies."""
+    sql = """
+            SELECT images.*, taxonomies.*
+              FROM images
+              JOIN taxonomies ON images.image_id = taxonomies.tissue_sample_id
+              WHERE file_name LIKE ?
+           ORDER BY images.file_name
+        """
+    return db_conn.execute(sql, (file_pattern, ))
+
+
+def get_taxonomy_by_image_id(db_conn, file_id):
+    """Look for a taxonomy with the given file ID."""
+    pattern = '%{}%'.format(file_id)
+    sql = """SELECT * FROM taxonomies WHERE tissue_sample_id LIKE ?"""
+    result = db_conn.execute(sql, (pattern, ))
+    return result.fetchall()
+
+
+def old_taxonomy_image_mismatches(db_conn):
     """Taxonomies and images where the two are not in each other's table."""
     sql = """
           WITH taxos AS (
@@ -162,5 +189,4 @@ def get_taxonomy_image_mismatches(db_conn):
          WHERE images.image_id IS NULL
       ORDER BY taxos.scientific_name, images.file_name
         """
-    db_conn.row_factory = sqlite3.Row
     return db_conn.execute(sql)

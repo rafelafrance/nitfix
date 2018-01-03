@@ -8,63 +8,42 @@ import lib.db as db
 
 
 EXPEDITION_DIR = join('data', 'osu_expedition')
-PROVIDER = 'OSU'
+PROVIDER = ''
 MANIFEST = 'osu_expedition.csv'
+FILE_PATTERN = 'data/OS_DOE-nitfix_specimen_photos/%'
 
 
-def get_absent_data(db_conn):
-    """Get absent data."""
-    absent = []
-    no_image = []
-    csv_path = join('data', 'NYBarcodeSummary.csv')
-    with open(csv_path) as csv_file:
-        reader = csv.reader(csv_file)
-        next(reader)
-        for row in reader:
-            if row[2] != 'Present':
-                record = get_image_info(db_conn, row, no_image)
-                if record:
-                    absent.append(record)
-    return absent, no_image
-
-
-def get_image_info(db_conn, row, no_image):
-    """Get the image info from the taxonomies and images tables."""
-    taxonomy = db.get_taxonomy_by_provider(db_conn, PROVIDER, row[1])
-    image = db.get_image(db_conn, taxonomy[5])
-    if not image:
-        no_image.append(('{} {}'.format(PROVIDER, row[1]), taxonomy[2]))
-        return None
-    return (image[1], '{} {}'.format(PROVIDER, row[1]), image[0], taxonomy[2])
-
-
-def copy_images(absent):
+def copy_images(images):
     """Copy images to the expedition repository."""
-    for image in absent:
-        _, file_name = split(image[0])
+    for image in images:
+        _, file_name = split(image['file_name'])
         path = join(EXPEDITION_DIR, file_name)
-        copyfile(image[0], path)
+        copyfile(image['file_name'], path)
 
 
-def create_manifest(absent):
+def create_manifest(images):
     """Create expedition manifest."""
-    csv_path = join(EXPEDITION_DIR, 'nybg_expedition.csv')
+    csv_path = join(EXPEDITION_DIR, MANIFEST)
     with open(csv_path, 'w') as csv_file:
         writer = csv.writer(csv_file)
         writer.writerow(
             ['image_name', 'provider_id', 'qr_code', 'resolved_name'])
-        for image in absent:
+        for image in images:
             _, file_name = split(image[0])
-            writer.writerow([file_name, image[1], image[2], image[3]])
+            writer.writerow([
+                file_name,
+                image['provider_id'],
+                image['image_id'],
+                image['scientific_name']])
 
 
 def main():
     """Create expedition."""
     with db.connect() as db_conn:
-        absent, no_image = get_absent_data(db_conn)
+        images = db.get_images_taxonomies(db_conn, FILE_PATTERN)
     os.makedirs(EXPEDITION_DIR, exist_ok=True)
-    copy_images(absent)
-    create_manifest(absent)
+    copy_images(images)
+    create_manifest(images)
 
 
 if __name__ == '__main__':
