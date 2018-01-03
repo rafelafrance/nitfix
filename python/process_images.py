@@ -1,9 +1,7 @@
 """Extract QR codes and image exif data from pictures of museum specimens."""
 
-from os.path import join
 from glob import glob
 import argparse
-import sqlite3
 from collections import namedtuple
 from PIL import Image, ImageFilter
 import exifread
@@ -131,11 +129,9 @@ def insert_image(args, db_conn, uuid, file_name, image_created):
 def main():
     """Run the program loop."""
     uuids = {}
-
     args = parse_command_line()
-    db_name = join('data', 'nitfix.sqlite.db')
 
-    with sqlite3.connect(db_name) as db_conn:
+    with db.connect() as db_conn:
         create_tables(args, db_conn)
 
         for pattern in args.files:

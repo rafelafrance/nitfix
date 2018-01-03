@@ -74,8 +74,15 @@ def create_errors_table(db_conn):
 
 def insert_error(db_conn, error_key, msg):
     """Insert a record into the errors table."""
-    insert = """INSERT INTO errors (error_key, msg) VALUES (?, ?)"""
-    db_conn.execute(insert, (error_key, msg))
+    sql = """INSERT INTO errors (error_key, msg) VALUES (?, ?)"""
+    db_conn.execute(sql, (error_key, msg))
+    db_conn.commit()
+
+
+def resolve_error(db_conn, error_key, resolution):
+    """Resolve an error."""
+    sql = """UPDATE errors SET resolution = ? WHERE error_key = ?"""
+    db_conn.execute(sql, (resolution, error_key))
     db_conn.commit()
 
 
