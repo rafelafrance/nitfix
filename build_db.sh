@@ -3,6 +3,7 @@ python python/process_images.py -f 'data/HUH_DOE-nitfix_specimen_photos/*.JPG'
 python python/process_images.py -f 'data/OS_DOE-nitfix_specimen_photos/*.JPG'
 
 python python/get_master_taxonomy.py
+python python/get_uuids.py
 
 # Manually fix UUID
 # python python/process_images.py -f 'data/DOE-nitfix_specimen_photos/R0000674.JPG' --set-uuid 3d83f5f0-419f-4aaf-be4d-2773f2683412

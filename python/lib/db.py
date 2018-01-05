@@ -190,3 +190,17 @@ def old_taxonomy_image_mismatches(db_conn):
       ORDER BY taxos.scientific_name, images.file_name
         """
     return db_conn.execute(sql)
+
+
+def create_uuids_table(db_conn):
+    """Create a table for the UUIDs."""
+    db_conn.execute('DROP TABLE IF EXISTS uuids')
+    db_conn.execute("""CREATE TABLE uuids (uuid TEXT PRIMARY KEY NOT NULL)""")
+
+
+def insert_uuid_batch(db_conn, batch):
+    """Insert a batch of UUIDs."""
+    if batch:
+        sql = 'INSERT INTO uuids (uuid) VALUES (?)'
+        db_conn.executemany(sql, batch)
+        db_conn.commit()
