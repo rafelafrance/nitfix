@@ -4,19 +4,48 @@ var ERROR_BG = '#ff5555';
 var OK_BG = '#ffffff';
 
 
-function onEdit() {
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('Checks')
+    .addItem('Find duplicate tissue IDs', 'markDuplicates')
+    .addToUi();
+}
+
+function markDuplicates() {
   const sheet = SpreadsheetApp.getActiveSheet();
-  const cell = sheet.getActiveCell();
-  const col = cell.getColumn();
+  const lastRow = sheet.getLastRow();
+  var range = sheet.getRange(2, TISSUE_ID_COL, lastRow - 1);
+  range.setBackground(OK_BG);
 
-  if (col != TISSUE_ID_COL) { return; }
+  const allIds = getAllIds();
+  const dupes = findDuplicates(allIds);
 
-  const value = cell.getDisplayValue();
-  const row = cell.getRow();
+  dupes.forEach(function(row) {
+    range = sheet.getRange(row, TISSUE_ID_COL);
+    range.setBackground(ERROR_BG);
+  });
+
+  if (dupes.length) {
+    throw 'Duplicate tissue ID on rows: ' + dupes.join(', ');
+  }
+}
+
+
+function findDuplicates(allIds) {
+  var dupes = [];
+  Object.keys(allIds).forEach(function(id) {
+    if (allIds[id].length > 1) {
+      dupes = dupes.concat(allIds[id]);
+    }
+  });
+  return dupes.sort(function(a, b) { return a - b; });
+}
+
+
+function getAllIds() {
   const allIds = {};
-  const newIds = getIds(value);
-
-  sheet.getDataRange()
+  SpreadsheetApp.getActiveSheet()
+    .getDataRange()
     .getValues()
     .forEach(function(row, r) {
       getIds(row[TISSUE_ID_COL - 1]).forEach(function(id) {
@@ -24,20 +53,7 @@ function onEdit() {
         allIds[id].push(r + 1);
       });
     });
-
-  Object.keys(allIds).forEach(function(id) {
-    row
-    if (allIds[id].length > 1) {
-      
-    }
-  });
-
-  // cell.setBackground(OK_BG);
-  // newIds.forEach(function (id) {
-  //   if (allIds[id].length > 1) {
-  //     cell.setBackground(ERROR_BG);
-  //   }
-  // });
+  return allIds;
 }
 
 

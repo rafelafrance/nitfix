@@ -39,6 +39,8 @@ function addTemplate() {
   validate(row, col, plateId);
 
   addRowLabels(row, col);
+  addDate(row, col);
+  addProtocol(row, col);
   addBody(row, col);
 }
 
@@ -92,8 +94,23 @@ function cellsAreEmpty(row, col) {
     }
   }
 
-  return sheet.getRange(row + 1, col, ROW_COUNT, 1).isBlank()
+  return sheet.getRange(row + 1, col, ROW_COUNT + 2, 1).isBlank()
       && grid.isBlank();
+}
+
+
+function addDate(row, col) {
+  const today = ((new Date()).toISOString()).slice(0, 10);
+  SpreadsheetApp.getActiveSheet()
+    .getRange(row + 1, 1)
+    .setValues([[today]]);
+}
+
+
+function addProtocol(row, col) {
+  SpreadsheetApp.getActiveSheet()
+    .getRange(row + 2, 1)
+    .setValues([['Protocol']]);
 }
 
 
@@ -103,14 +120,15 @@ function addRowLabels(row, col) {
     values.push(['Plate row ' + r]);
   }
   SpreadsheetApp.getActiveSheet()
-    .getRange(row + 1, 1, ROW_COUNT, 1)
-    .setValues(values);
+    .getRange(row + 3, 1, ROW_COUNT)
+    .setValues(values)
+    .setBorder(true, true, true, true, true, true);
 }
 
 
 function addBody(row, col) {
   SpreadsheetApp.getActiveSheet()
-    .getRange(row + 1, col + 1, ROW_COUNT, COL_COUNT)
+    .getRange(row + 3, col + 1, ROW_COUNT, COL_COUNT)
     .setBackground(BACKGROUND)
     .setBorder(true, true, true, true, true, true);
 }
