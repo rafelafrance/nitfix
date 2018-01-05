@@ -48,11 +48,11 @@ function validate(row, col, plateId) {
     throw 'Plate IDs must go into the first column.';
   }
 
-  if (!validUuid(plateId)) {
+  if (!isUuid(plateId)) {
     throw 'Please select a cell with a valid plate ID.';
   }
 
-  if (plateIdInSheet(plateId)) {
+  if (uuidInSheet(plateId)) {
     throw 'This plate ID "' + plateId + '" has already been entered.';
   }
 
@@ -62,19 +62,19 @@ function validate(row, col, plateId) {
 }
 
 
-function validUuid(uuid) {
+function isUuid(uuid) {
   return uuid.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
 }
 
 
-function plateIdInSheet(plateId) {
+function uuidInSheet(uuid) {
+  count = 0;
   const values = SpreadsheetApp.getActiveSheet()
     .getDataRange()
     .getValues();
-  count = 0;
   for (var r = 0; r < values.length; r++) {
     for (var c = 0; c < values[r].length; c++) {
-      count += values[r][c] == plateId ? 1 : 0;
+      count += values[r][c] == uuid ? 1 : 0;
     }
   }
   return count > 1;
