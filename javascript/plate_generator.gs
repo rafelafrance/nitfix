@@ -1,5 +1,9 @@
 var ROW_COUNT = 8;
 var COL_COUNT = 12;
+var DATE_OFFSET = 1; // Ass this to get to the date cell
+var PROTOCOL_OFFSET = 2; // Add this to get to the protocol cell
+var NOTES_OFFSET = 3; // Add this to get to the notes cell
+var TABLE_OFFSET = 4; // Add this to get to the top of the sample table
 var LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 var BACKGROUND = '#fdffa8';
 
@@ -7,12 +11,14 @@ var BACKGROUND = '#fdffa8';
 function setup() {
   const sheet = SpreadsheetApp.getActiveSheet();
 
-  const values = [[]];
+  const values = [
+    []
+  ];
   values[0].push('Plate ID');
   for (c = 0; c < COL_COUNT; c++) {
     values[0].push('Plate column ' + LETTERS[c]);
   }
-  sheet.getRange(1, 1, 1, COL_COUNT + 1 ).setValues(values);
+  sheet.getRange(1, 1, 1, COL_COUNT + 1).setValues(values);
 
   sheet.setFrozenRows(1);
   sheet.setFrozenColumns(1);
@@ -38,10 +44,19 @@ function addTemplate() {
 
   validate(row, col, plateId);
 
+  const today = ((new Date()).toISOString()).slice(0, 10);
+  addRowText(row, col, DATE_OFFSET, today);
+  addRowText(row, col, PROTOCOL_OFFSET, 'Protocol');
+  addRowText(row, col, NOTES_OFFSET, 'Notes');
   addRowLabels(row, col);
-  addDate(row, col);
-  addProtocol(row, col);
   addBody(row, col);
+}
+
+
+function addRowText(row, col, offset, text) {
+  return SpreadsheetApp.getActiveSheet()
+    .getRange(row + offset, col)
+    .setValues([ [text] ]);
 }
 
 
@@ -85,32 +100,19 @@ function uuidInSheet(uuid) {
 
 function cellsAreEmpty(row, col) {
   const sheet = SpreadsheetApp.getActiveSheet();
-  const grid = sheet.getRange(row + 1, col + 1, ROW_COUNT, COL_COUNT);
+  const grid = sheet.getRange(row + TABLE_OFFSET, col + 1, ROW_COUNT, COL_COUNT);
   const bgColors = grid.getBackgrounds();
 
   for (var r = 0; r < bgColors.length; r++) {
     for (var c = 0; c < bgColors[r].length; c++) {
-      if (bgColors[r][c] == BACKGROUND) { return false; }
+      if (bgColors[r][c] == BACKGROUND) {
+        return false;
+      }
     }
   }
 
-  return sheet.getRange(row + 1, col, ROW_COUNT + 2, 1).isBlank()
-      && grid.isBlank();
-}
-
-
-function addDate(row, col) {
-  const today = ((new Date()).toISOString()).slice(0, 10);
-  SpreadsheetApp.getActiveSheet()
-    .getRange(row + 1, 1)
-    .setValues([[today]]);
-}
-
-
-function addProtocol(row, col) {
-  SpreadsheetApp.getActiveSheet()
-    .getRange(row + 2, 1)
-    .setValues([['Protocol']]);
+  return sheet.getRange(row + DATE_OFFSET, col, TABLE_OFFSET + ROW_COUNT, 1).isBlank() &&
+    grid.isBlank();
 }
 
 
@@ -120,7 +122,7 @@ function addRowLabels(row, col) {
     values.push(['Plate row ' + r]);
   }
   SpreadsheetApp.getActiveSheet()
-    .getRange(row + 3, 1, ROW_COUNT)
+    .getRange(row + TABLE_OFFSET, 1, ROW_COUNT)
     .setValues(values)
     .setBorder(true, true, true, true, true, true);
 }
@@ -128,7 +130,7 @@ function addRowLabels(row, col) {
 
 function addBody(row, col) {
   SpreadsheetApp.getActiveSheet()
-    .getRange(row + 3, col + 1, ROW_COUNT, COL_COUNT)
+    .getRange(row + TABLE_OFFSET, col + 1, ROW_COUNT, COL_COUNT)
     .setBackground(BACKGROUND)
     .setBorder(true, true, true, true, true, true);
 }
