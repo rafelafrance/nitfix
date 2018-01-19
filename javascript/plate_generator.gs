@@ -1,9 +1,10 @@
 var ROW_COUNT = 8;
 var COL_COUNT = 12;
-var DATE_OFFSET = 1; // Ass this to get to the date cell
-var PROTOCOL_OFFSET = 2; // Add this to get to the protocol cell
-var NOTES_OFFSET = 3; // Add this to get to the notes cell
-var TABLE_OFFSET = 4; // Add this to get to the top of the sample table
+var DATE_OFFSET = 1; // Add this to get to the date cell
+var LOCAL_ID_OFFSET = 2; // Add this to get to the date cell
+var PROTOCOL_OFFSET = 3; // Add this to get to the protocol cell
+var NOTES_OFFSET = 4; // Add this to get to the notes cell
+var TABLE_OFFSET = 5; // Add this to get to the top of the sample table
 var LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 var BACKGROUND = '#fdffa8';
 
@@ -46,6 +47,7 @@ function addTemplate() {
 
   const today = ((new Date()).toISOString()).slice(0, 10);
   addRowText(row, col, DATE_OFFSET, today);
+  addRowText(row, col, LOCAL_ID_OFFSET, 'Local identifier');
   addRowText(row, col, PROTOCOL_OFFSET, 'Protocol');
   addRowText(row, col, NOTES_OFFSET, 'Notes');
   addRowLabels(row, col);
