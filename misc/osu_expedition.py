@@ -1,24 +1,13 @@
 """Build a Notes from Nature expedition."""
 
-import os
 from os.path import join, split
 import csv
-from shutil import copyfile
 import lib.db as db
 
 
-EXPEDITION_DIR = join('data', 'osu_expedition')
-PROVIDER = ''
+EXPEDITION_DIR = 'data/OS_DOE-nitfix_specimen_photos'
 MANIFEST = 'osu_expedition.csv'
-FILE_PATTERN = 'data/OS_DOE-nitfix_specimen_photos/%'
-
-
-def copy_images(images):
-    """Copy images to the expedition repository."""
-    for image in images:
-        _, file_name = split(image['file_name'])
-        path = join(EXPEDITION_DIR, file_name)
-        copyfile(image['file_name'], path)
+FILE_PATTERN = EXPEDITION_DIR + '/%.JPG'
 
 
 def create_manifest(images):
@@ -29,7 +18,7 @@ def create_manifest(images):
         writer.writerow(
             ['image_name', 'provider_id', 'qr_code', 'resolved_name'])
         for image in images:
-            _, file_name = split(image[0])
+            _, file_name = split(image['file_name'])
             writer.writerow([
                 file_name,
                 image['provider_id'],
@@ -37,14 +26,7 @@ def create_manifest(images):
                 image['scientific_name']])
 
 
-def main():
-    """Create expedition."""
-    with db.connect() as db_conn:
-        images = db.get_images_taxonomies(db_conn, FILE_PATTERN)
-    os.makedirs(EXPEDITION_DIR, exist_ok=True)
-    copy_images(images)
-    create_manifest(images)
-
-
 if __name__ == '__main__':
-    main()
+    with db.connect() as db_conn:
+        IMAGES = db.get_images_taxonomies(db_conn, FILE_PATTERN)
+    create_manifest(IMAGES)

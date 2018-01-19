@@ -8,7 +8,7 @@ import lib.google_sheet as google_sheet
 
 def get_sheet_data():
     """Get UUIDs from the google sheet."""
-    service = google_sheet.get_service()
+    service = google_sheet.get_service('sheets')
     range_name = 'NitFixList!A2:I'
     result = service.spreadsheets().values().get(
         spreadsheetId=google_sheet.MASTER_TAXONOMY, range=range_name).execute()
@@ -38,5 +38,19 @@ def insert_row(db_conn, row):
     db.insert_taxonomy(db_conn, record)
 
 
+def import_master_taxonomy():
+    """Import sample plate data from the Google sheet."""
+    with open('data/master_taxonomy.csv', 'wb') as temp_csv:
+        google_sheet.export_sheet_csv('NitFixMasterTaxonomy', temp_csv)
+        temp_csv.close()
+
+        # with open(temp_csv.name) as csv_file:
+        #     reader = csv.reader(csv_file)
+        #     print(reader)
+        #     for row in reader:
+        #         print(row)
+
+
 if __name__ == '__main__':
-    get_sheet_data()
+    # get_sheet_data()
+    import_master_taxonomy()
