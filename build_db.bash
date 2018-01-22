@@ -29,3 +29,5 @@ python python/resolve_error.py -k data/OS_DOE-nitfix_specimen_photos/R0000229.JP
 python python/resolve_error.py -k data/OS_DOE-nitfix_specimen_photos/R0001835.JPG -r 'OK: Genuine duplicate'
 python python/resolve_error.py -k data/OS_DOE-nitfix_specimen_photos/R0001898.JPG -r 'OK: Genuine duplicate'
 # python python/resolve_error.py -k data/OS_DOE-nitfix_specimen_photos/R0001947.JPG -r ''
+
+python python/get_sample_plates.py
