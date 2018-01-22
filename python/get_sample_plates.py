@@ -4,8 +4,13 @@
 
 import csv
 from tempfile import NamedTemporaryFile
-# import lib.db as db
+from lib.dict_attr import DictAttrs
+import lib.db as db
 import lib.google_sheet as google_sheet
+
+KEYS = ['plate_id', 'entry_date', 'local_id', 'protocol', 'notes']
+ROWS_START = 4
+ROWS_END = 13
 
 
 def import_sample_plates():
@@ -16,9 +21,27 @@ def import_sample_plates():
 
         with open(temp_csv.name) as csv_file:
             reader = csv.reader(csv_file)
-            print(reader)
+            fields = DictAttrs({})
+            state = 0
             for row in reader:
-                print(row)
+                if state == 0:
+                    if db.is_uuid(row[0]):
+                        fields[KEYS[state]] = row[0]
+                        state += 1
+                elif state <= ROWS_START:
+                    fields[KEYS[state]] = row[0]
+                    state += 1
+                elif state < ROWS_END:
+                    fields.plate_row = state - ROWS_START
+                    for col in range(12):
+                        if db.is_uuid(row[col + 1]):
+                            fields.plate_col = 'ABCDEFGHIJKL'[col]
+                            fields.sample_id = row[col + 1]
+                            print(fields)
+                    state += 1
+                else:
+                    state = 0
+                    fields = DictAttrs({})
 
 
 if __name__ == '__main__':

@@ -204,3 +204,46 @@ def insert_uuid_batch(db_conn, batch):
         sql = 'INSERT INTO uuids (uuid) VALUES (?)'
         db_conn.executemany(sql, batch)
         db_conn.commit()
+
+
+def create_sample_plates_table(db_conn):
+    """Create a table to hold data from the sample_plates Google sheet."""
+    db_conn.execute('DROP TABLE IF EXISTS sample_plates')
+    db_conn.execute("""
+        CREATE TABLE sample_plates (
+            plate_id   TEXT NOT NULL,
+            entry_date TEXT,
+            local_id   TEXT,
+            protocol   TEXT,
+            notes      TEXT,
+            plate_row  INTEGER NOT NULL,
+            plate_col  TEXT NOT NULL,
+            sample_id  TEXT NOT NULL
+        )""")
+    db_conn.execute('CREATE INDEX plate_samples ON sample_plates (sample_id)')
+
+
+def insert_sample_plate(db_conn, record):
+    """Insert a sample IDs into the sample_plates table."""
+    sql = """
+        INSERT INTO sample_plates (
+                plate_id,
+                entry_date,
+                local_id,
+                protocol,
+                notes,
+                plate_row,
+                plate_col,
+                sample_id)
+            VALUES (
+                :plate_id,
+                :entry_date,
+                :local_id,
+                :protocol,
+                :notes,
+                :plate_row,
+                :plate_col,
+                :sample_id)
+        """
+    db_conn.execute(sql, record)
+    db_conn.commit()

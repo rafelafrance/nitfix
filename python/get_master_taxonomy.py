@@ -2,6 +2,7 @@
 
 # pylint: disable=no-member
 
+from tempfile import NamedTemporaryFile
 import lib.db as db
 import lib.google_sheet as google_sheet
 
@@ -40,7 +41,8 @@ def insert_row(db_conn, row):
 
 def import_master_taxonomy():
     """Import sample plate data from the Google sheet."""
-    with open('data/master_taxonomy.csv', 'wb') as temp_csv:
+    # with open('data/master_taxonomy.csv', 'wb') as temp_csv:
+    with NamedTemporaryFile(delete=False) as temp_csv:
         google_sheet.export_sheet_csv('NitFixMasterTaxonomy', temp_csv)
         temp_csv.close()
 
