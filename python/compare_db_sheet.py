@@ -7,13 +7,13 @@ def main():
     """Show basic usage of the Sheets API."""
     with db.connect() as db_conn:
         for taxonomy in db.get_taxonomies(db_conn):
-            images = db.get_image(db_conn, taxonomy['tissue_sample_id'])
+            images = db.get_image(db_conn, taxonomy['sample_id'])
             if len(images) < 1:
                 print('Taxonomy without an image: {} {}'.format(
-                    taxonomy['tissue_sample_id'], taxonomy['scientific_name']))
+                    taxonomy['sample_id'], taxonomy['scientific_name']))
             if len(images) > 1:
                 print('Taxonomy with too many images: {} {}'.format(
-                    taxonomy['tissue_sample_id'], taxonomy['scientific_name']))
+                    taxonomy['sample_id'], taxonomy['scientific_name']))
 
         for image in db.get_images(db_conn):
             taxonomies = db.get_taxonomy_by_image_id(

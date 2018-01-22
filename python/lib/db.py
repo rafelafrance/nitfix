@@ -1,7 +1,6 @@
 """Utilities for SQL functions."""
 
 from os.path import join
-import re
 import uuid
 import sqlite3
 
@@ -10,16 +9,15 @@ def connect():
     """Connect to the SQLite3 DB."""
     db_path = join('data', 'nitfix.sqlite.db')
     db_conn = sqlite3.connect(db_path)
-    # db_conn.create_function('REGEXP', 2, regexp)
+
+    db_conn.execute("PRAGMA page_size = {}".format(2**16))
+    db_conn.execute("PRAGMA busy_timeout = 10000")
+    db_conn.execute("PRAGMA journal_mode = OFF")
+    db_conn.execute("PRAGMA synchronous = OFF")
+
     db_conn.create_function('IS_UUID', 1, is_uuid)
     db_conn.row_factory = sqlite3.Row
     return db_conn
-
-
-def regexp(expression, item):
-    """Create a user function for regular expressions."""
-    regex = re.compile(expression, re.IGNORECASE | re.VERBOSE)
-    return regex.search(item) is not None
 
 
 def is_uuid(guid):
@@ -99,39 +97,46 @@ def create_taxonomies_table(db_conn):
     db_conn.execute('DROP TABLE IF EXISTS taxonomies')
     db_conn.execute("""
                     CREATE TABLE taxonomies (
-                        taxonomy_key        TEXT PRIMARY KEY NOT NULL,
+                        taxonomy_key        TEXT NOT NULL,
                         family              TEXT,
                         scientific_name     TEXT,
                         taxonomic_authority TEXT,
                         synonyms            TEXT,
-                        tissue_sample_id    TEXT,
+                        sample_id           TEXT,
                         provider_acronym    TEXT,
                         provider_id         TEXT,
                         quality_notes       TEXT
                     )""")
-    db_conn.execute('CREATE INDEX taxonomies_key ON taxonomies (taxonomy_key)')
-    db_conn.execute("""CREATE INDEX taxonomies_provider_acronym ON taxonomies
-                       (provider_acronym)""")
-    db_conn.execute("""CREATE INDEX taxonomies_provider_id ON taxonomies
-                       (provider_id)""")
 
 
-def insert_taxonomy(db_conn, record):
+def create_taxonomies_indexes(db_conn):
+    """Create indexes for the taxonomies table."""
+    db_conn.execute("""CREATE UNIQUE INDEX taxonomies_key
+                        ON taxonomies (taxonomy_key)""")
+    db_conn.execute("""CREATE INDEX taxonomies_provider_acronym
+                        ON taxonomies (provider_acronym)""")
+    db_conn.execute("""CREATE INDEX taxonomies_provider_id
+                        ON taxonomies (provider_id)""")
+    db_conn.execute("""CREATE INDEX taxonomies_sample_id
+                        ON taxonomies (sample_id)""")
+
+
+def insert_taxonomy(db_conn, values):
     """Insert a record into the taxonomies table."""
     sql = """
         INSERT INTO taxonomies (
-                        taxonomy_key,
-                        family,
-                        scientific_name,
-                        taxonomic_authority,
-                        synonyms,
-                        tissue_sample_id,
-                        provider_acronym,
-                        provider_id,
-                        quality_notes)
+                taxonomy_key,
+                family,
+                scientific_name,
+                taxonomic_authority,
+                synonyms,
+                sample_id,
+                provider_acronym,
+                provider_id,
+                quality_notes)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
-    db_conn.execute(sql, record)
+    db_conn.executemany(sql, values)
     db_conn.commit()
 
 
@@ -149,7 +154,7 @@ def get_taxonomy_by_provider(db_conn, provider_acronym, provider_id):
 
 def get_taxonomies(db_conn):
     """Get taxonomies where the tissue sample ID is a valid UUID."""
-    sql = """SELECT * FROM taxonomies WHERE IS_UUID(tissue_sample_id)"""
+    sql = """SELECT * FROM taxonomies WHERE IS_UUID(sample_id)"""
     return db_conn.execute(sql)
 
 
@@ -158,7 +163,7 @@ def get_images_taxonomies(db_conn, file_pattern):
     sql = """
             SELECT images.*, taxonomies.*
               FROM images
-              JOIN taxonomies ON images.image_id = taxonomies.tissue_sample_id
+              JOIN taxonomies ON images.image_id = taxonomies.sample_id
               WHERE file_name LIKE ?
            ORDER BY images.file_name
         """
@@ -168,7 +173,7 @@ def get_images_taxonomies(db_conn, file_pattern):
 def get_taxonomy_by_image_id(db_conn, file_id):
     """Look for a taxonomy with the given file ID."""
     pattern = '%{}%'.format(file_id)
-    sql = """SELECT * FROM taxonomies WHERE tissue_sample_id LIKE ?"""
+    sql = """SELECT * FROM taxonomies WHERE sample_id LIKE ?"""
     result = db_conn.execute(sql, (pattern, ))
     return result.fetchall()
 
@@ -177,15 +182,15 @@ def old_taxonomy_image_mismatches(db_conn):
     """Taxonomies and images where the two are not in each other's table."""
     sql = """
           WITH taxos AS (
-            SELECT * FROM taxonomies WHERE IS_UUID(tissue_sample_id))
+            SELECT * FROM taxonomies WHERE IS_UUID(sample_id))
         SELECT images.*, taxos.*
           FROM images
-     LEFT JOIN taxos ON images.image_id = taxos.tissue_sample_id
-         WHERE taxos.tissue_sample_id IS NULL
+     LEFT JOIN taxos ON images.image_id = taxos.sample_id
+         WHERE taxos.sample_id IS NULL
      UNION
         SELECT images.*, taxos.*
           FROM taxos
-     LEFT JOIN images ON images.image_id = taxos.tissue_sample_id
+     LEFT JOIN images ON images.image_id = taxos.sample_id
          WHERE images.image_id IS NULL
       ORDER BY taxos.scientific_name, images.file_name
         """
@@ -223,7 +228,7 @@ def create_sample_plates_table(db_conn):
     db_conn.execute('CREATE INDEX plate_samples ON sample_plates (sample_id)')
 
 
-def insert_sample_plate(db_conn, record):
+def insert_sample_plates(db_conn, values):
     """Insert a sample IDs into the sample_plates table."""
     sql = """
         INSERT INTO sample_plates (
@@ -235,15 +240,27 @@ def insert_sample_plate(db_conn, record):
                 plate_row,
                 plate_col,
                 sample_id)
-            VALUES (
-                :plate_id,
-                :entry_date,
-                :local_id,
-                :protocol,
-                :notes,
-                :plate_row,
-                :plate_col,
-                :sample_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """
-    db_conn.execute(sql, record)
+    db_conn.executemany(sql, values)
     db_conn.commit()
+
+
+def select_plates(db_conn):
+    """Get plate data from the sample_plates table."""
+    sql = """
+        SELECT DISTINCT plate_id, entry_date, local_id, protocol, notes
+          FROM sample_plates
+        """
+    return db_conn.execute(sql)
+
+
+def get_plate_report(db_conn, plate_id):
+    """Get data for a plate."""
+    sql = """
+        SELECT *
+          FROM sample_plates
+          JOIN taxonomies USING (sample_id)
+         WHERE plate_id = ?
+        """
+    return db_conn.execute(sql, (plate_id, ))
