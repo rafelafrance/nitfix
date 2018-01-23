@@ -6,7 +6,7 @@ import lib.db as db
 import lib.google as google
 
 
-def import_master_taxonomy():
+def get_data():
     """Import sample plate data from the Google sheet."""
     with db.connect() as db_conn:
         db.create_taxonomies_table(db_conn)
@@ -28,4 +28,4 @@ def import_master_taxonomy():
 
 
 if __name__ == '__main__':
-    import_master_taxonomy()
+    get_data()

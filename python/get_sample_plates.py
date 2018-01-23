@@ -12,7 +12,7 @@ ROWS_END = 13
 COLS_END = 13
 
 
-def import_sample_plates():
+def get_data():
     """Import sample plate data from the Google sheet."""
     with db.connect() as db_conn:
         db.create_sample_plates_table(db_conn)
@@ -53,4 +53,4 @@ def import_sample_plates():
 
 
 if __name__ == '__main__':
-    import_sample_plates()
+    get_data()

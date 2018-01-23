@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="utf-8" />
+<title>{{title}}</title>
+
+<style>
+{% include 'sample_plates_report.css' -%}
+</style>
+</head>
+
+<body>
+  <section>
+    <table>
+      {% for plate in plates %}
+        <tr class="header">
+          <td>Plate ID</td>
+          <td>Entry Date</td>
+          <td>Local ID</td>
+          <td>Protocol</td>
+          <td>Notes</td>
+        </tr>
+        <tr>
+          <td>{{ plate['plate_id'] }}</td>
+          <td>{{ plate['entry_date'] }}</td>
+          <td>{{ plate['local_id'] }}</td>
+          <td>{{ plate['protocol'] }}</td>
+          <td>{{ plate['notes'] }}</td>
+        </tr>
+        <tr class="sub-header">
+          <td class="empty"></td>
+          <td>Row</td>
+          <td>Column</td>
+          <td>Scientific Name</td>
+          <td>Sample ID</td>
+        </tr>
+        {% for well in wells[plate['plate_id']] %}
+          <tr class="well">
+            <td class="empty"></td>
+            <td>{{ well['plate_row'] }}</td>
+            <td>{{ well['plate_col'] }}</td>
+            <td>{{ well['scientific_name'] }}</td>
+            <td>{{ well['sample_id'] }}</td>
+          </tr>
+        {% endfor %}
+      {% endfor %}
+    </table>
+  </section>
+</body>
+</html>

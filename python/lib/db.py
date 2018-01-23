@@ -251,6 +251,7 @@ def select_plates(db_conn):
     sql = """
         SELECT DISTINCT plate_id, entry_date, local_id, protocol, notes
           FROM sample_plates
+      ORDER BY entry_date, plate_id
         """
     return db_conn.execute(sql)
 
@@ -262,5 +263,6 @@ def get_plate_report(db_conn, plate_id):
           FROM sample_plates
           JOIN taxonomies USING (sample_id)
          WHERE plate_id = ?
+      ORDER BY plate_row, plate_col
         """
     return db_conn.execute(sql, (plate_id, ))

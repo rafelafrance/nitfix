@@ -2,6 +2,7 @@ venv/
 old/
 docs/
 data/
+output/
 .ipynb_checkpoints
 .ropeproject
 __pycache__
