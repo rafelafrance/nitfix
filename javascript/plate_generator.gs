@@ -139,16 +139,22 @@ function addBody(row, col) {
     .setBorder(true, true, true, true, true, true);
 }
 
+
 function moveAcross(row, col) {
-  if (col >= 2 and col <= COL_COUNT + 1) {
+  if (col >= 2 && col <= COL_COUNT) {
     SpreadsheetApp.getActiveSheet()
       .getRange(row, col + 1)
+      .activate();
+  } else if (col == COL_COUNT + 1) {
+    SpreadsheetApp.getActiveSheet()
+      .getRange(row + 1, 2)
       .activate();
   }
 }
 
+
 function onEdit(evt) {
   var row = evt.range.getRow();
   var col = evt.range.getColumn();
-  moveAcross();
+  moveAcross(row, col);
 }
