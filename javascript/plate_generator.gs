@@ -8,6 +8,7 @@ var RESULTS_OFFSET = 5; // Add this to get to the results cell
 var TABLE_OFFSET = 6; // Add this to get to the top of the sample table
 var LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 var BACKGROUND = '#fdffa8';
+var ROW_LABEL = 'Plate row ';
 
 
 function setup() {
@@ -84,21 +85,29 @@ function validate(row, col, plateId) {
 
 
 function isUuid(uuid) {
-  return uuid.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+  return !!uuid.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+}
+
+
+function isDuplicateUuid(uuid, values) {
+  count = 0;
+  for (var r = 0; r < values.length; r++) {
+    for (var c = 0; c < values[r].length; c++) {
+      var other = values[r][c];
+      if (isUuid(other)) {
+        count += other == uuid ? 1 : 0;
+      }
+    }
+  }
+  return count > 1;
 }
 
 
 function uuidInSheet(uuid) {
-  count = 0;
   const values = SpreadsheetApp.getActiveSheet()
     .getDataRange()
     .getValues();
-  for (var r = 0; r < values.length; r++) {
-    for (var c = 0; c < values[r].length; c++) {
-      count += values[r][c] == uuid ? 1 : 0;
-    }
-  }
-  return count > 1;
+  return isDuplicateUuid(uuid, values);
 }
 
 
@@ -123,7 +132,7 @@ function cellsAreEmpty(row, col) {
 function addRowLabels(row, col) {
   const values = [];
   for (r = 1; r <= ROW_COUNT; ++r) {
-    values.push(['Plate row ' + r]);
+    values.push([ROW_LABEL + r]);
   }
   SpreadsheetApp.getActiveSheet()
     .getRange(row + TABLE_OFFSET, 1, ROW_COUNT)
@@ -153,8 +162,27 @@ function moveAcross(row, col) {
 }
 
 
+function getPlateRange(row, col) {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const label = sheet.getRange(row, 1).getValue();
+
+  if (label.slice(0, -1) != ROW_LABEL) {
+    throw 'Could not find the row label';
+  }
+  const firstRow = row - parseInt(label.slice(-1), 10) - 1;
+  return sheet.getRange(firstRow, 2, ROW_COUNT, COL_COUNT);
+}
+
+
 function onEdit(evt) {
   var row = evt.range.getRow();
   var col = evt.range.getColumn();
+  var uuid = evt.range.getValue();
+  if (isUuid(uuid)) {
+    var values = getPlateRange(row, col).getValues();
+    if (isDuplicateUuid(uuid, values)) {
+      Browser.msgBox('This sample ID "' + uuid + '" has already been entered.');
+    }
+  }
   moveAcross(row, col);
 }
