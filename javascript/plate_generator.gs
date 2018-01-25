@@ -13,7 +13,9 @@ var BACKGROUND = '#fdffa8';
 function setup() {
   const sheet = SpreadsheetApp.getActiveSheet();
 
-  const values = [ [] ];
+  const values = [
+    []
+  ];
   values[0].push('Plate ID');
   for (c = 0; c < COL_COUNT; c++) {
     values[0].push('Plate column ' + LETTERS[c]);
@@ -135,4 +137,18 @@ function addBody(row, col) {
     .getRange(row + TABLE_OFFSET, col + 1, ROW_COUNT, COL_COUNT)
     .setBackground(BACKGROUND)
     .setBorder(true, true, true, true, true, true);
+}
+
+function moveAcross(row, col) {
+  if (col >= 2 and col <= COL_COUNT + 1) {
+    SpreadsheetApp.getActiveSheet()
+      .getRange(row, col + 1)
+      .activate();
+  }
+}
+
+function onEdit(evt) {
+  var row = evt.range.getRow();
+  var col = evt.range.getColumn();
+  moveAcross();
 }
