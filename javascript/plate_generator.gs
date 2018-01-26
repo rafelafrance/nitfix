@@ -14,12 +14,9 @@ var ROW_LABEL = 'Plate row ';
 function setup() {
   const sheet = SpreadsheetApp.getActiveSheet();
 
-  const values = [
-    []
-  ];
-  values[0].push('Plate ID');
-  for (c = 0; c < COL_COUNT; c++) {
-    values[0].push('Plate column ' + LETTERS[c]);
+  const values = [ ['Plate ID'] ];
+  for (c = 1; c <= COL_COUNT; c++) {
+    values[0].push('Plate column ' + c);
   }
   sheet.getRange(1, 1, 1, COL_COUNT + 1).setValues(values);
 
@@ -85,6 +82,9 @@ function validate(row, col, plateId) {
 
 
 function isUuid(uuid) {
+  if (typeof uuid !== 'string') {
+    return false;
+  }
   return !!uuid.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
 }
 
@@ -131,8 +131,8 @@ function cellsAreEmpty(row, col) {
 
 function addRowLabels(row, col) {
   const values = [];
-  for (r = 1; r <= ROW_COUNT; ++r) {
-    values.push([ROW_LABEL + r]);
+  for (var r = 0; r < ROW_COUNT; ++r) {
+    values.push([ROW_LABEL + LETTERS[r]]);
   }
   SpreadsheetApp.getActiveSheet()
     .getRange(row + TABLE_OFFSET, 1, ROW_COUNT)
@@ -169,7 +169,8 @@ function getPlateRange(row, col) {
   if (label.slice(0, -1) != ROW_LABEL) {
     throw 'Could not find the row label';
   }
-  const firstRow = row - parseInt(label.slice(-1), 10) - 1;
+  const letter_offset = LETTERS.indexOf(label.slice(-1));
+  const firstRow = row - letter_offset;
   return sheet.getRange(firstRow, 2, ROW_COUNT, COL_COUNT);
 }
 
@@ -178,7 +179,7 @@ function onEdit(evt) {
   var row = evt.range.getRow();
   var col = evt.range.getColumn();
   var uuid = evt.range.getValue();
-  if (isUuid(uuid)) {
+  if (isUuid(uuid) && col > 1) {
     var values = getPlateRange(row, col).getValues();
     if (isDuplicateUuid(uuid, values)) {
       Browser.msgBox('This sample ID "' + uuid + '" has already been entered.');
