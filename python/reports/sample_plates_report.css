@@ -1,14 +1,56 @@
+body {
+  margin-bottom: 5em;
+}
+
+h1 span {
+  font-size: 20px;
+  float: right;
+  margin-right: 12px;
+}
+
+section {
+  margin-top: 5em;
+}
+
+section.plates table {
+  margin-top: 5em;
+}
+
+section.plates table:first-of-type {
+  margin-top: 0;
+}
+
 .header,
 .sub-header {
   font-weight: bold;
   background-color: #eeeeee;
 }
 
+td {
+  text-align: center;
+  padding: 4px 8px;
+}
+
+td.l {
+  text-align: left;
+}
+
+td.r {
+  text-align: right;
+}
+
 .sub-header td.empty {
   background-color: #ffffff;
 }
 
-.header td.
-.sub-header td {
-  padding: 12px 4px 0 4px;
+.families tr button:before {
+  content: '-';
+}
+
+.families tr.closed button:before {
+  content: '+';
+}
+
+.families tr.closed.genus {
+  display: none;
 }

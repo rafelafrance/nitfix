@@ -11,9 +11,63 @@
 </head>
 
 <body>
-  <section>
+  <h1>Nitfix Sample Plates <span>{{ now.strftime('%Y-%m-%d %I:%M %p') }}</span></h1>
+
+  <section class="families">
+    <h2>Family coverage</h2>
     <table>
-      {% for plate in plates %}
+      <tr class="header">
+        <td></td>
+        <td>Family</td>
+        <td>Genus</td>
+        <td>Total count</td>
+        <td>Sample count</td>
+        <td>Percent covered</td>
+      </tr>
+      {% for genus in genera %}
+        <tr class="closed {{ 'genus' if genus.genus else 'family' }}" data-family="{{ genus.family }}">
+          {% if genus.genus %}
+            <td></td>
+            <td></td>
+          {% else %}
+            <td><button data-family="{{ genus.family }}" title="Open or close this family"></button></td>
+            <td class="l">{{ genus.family }}</td>
+          {% endif %}
+          <td class="l">{{ genus.genus }}</td>
+          <td class="r">{{ '{:,}'.format(genus.total) if genus.total else '' }}</td>
+          <td class="r">{{ '{:,}'.format(genus.plated) if genus.plated else '' }}</td>
+          <td class="r">{{ '{:.2f}'.format(genus.percent) if genus.percent  else '' }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  </section>
+
+  <section class="missing">
+    <h2>Samples not in the master taxonomy</h2>
+    <table>
+      <tr class="header">
+        <td>Plate ID</td>
+        <td>Local ID</td>
+        <td>Plate row</td>
+        <td>Plate column</td>
+        <td>Sample ID</td>
+      </tr>
+      {% for sample in missing %}
+        <tr>
+          <td class="l">{{ sample.plate_id }}</td>
+          <td class="l">{{ sample.local_id }}</td>
+          <td>{{ sample.plate_row }}</td>
+          <td>{{ sample.plate_col }}</td>
+          <td class="l">{{ sample.sample_id }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  </section>
+
+  <section class="plates">
+    <h2>Plates</h2>
+    {% for plate in plates %}
+      <table>
         <tr class="header">
           <td>Plate ID</td>
           <td>Entry Date</td>
@@ -22,11 +76,11 @@
           <td>Notes</td>
         </tr>
         <tr>
-          <td>{{ plate['plate_id'] }}</td>
-          <td>{{ plate['entry_date'] }}</td>
-          <td>{{ plate['local_id'] }}</td>
-          <td>{{ plate['protocol'] }}</td>
-          <td>{{ plate['notes'] }}</td>
+          <td class="l">{{ plate.plate_id }}</td>
+          <td>{{ plate.entry_date }}</td>
+          <td class="l">{{ plate.local_id }}</td>
+          <td class="l">{{ plate.protocol }}</td>
+          <td class="l">{{ plate.notes }}</td>
         </tr>
         <tr class="sub-header">
           <td class="empty"></td>
@@ -40,12 +94,17 @@
             <td class="empty"></td>
             <td>{{ well['plate_row'] }}</td>
             <td>{{ well['plate_col'] }}</td>
-            <td>{{ well['scientific_name'] }}</td>
-            <td>{{ well['sample_id'] }}</td>
+            <td class="l">{{ well['scientific_name'] }}</td>
+            <td class="l">{{ well['sample_id'] }}</td>
           </tr>
         {% endfor %}
-      {% endfor %}
-    </table>
+      </table>
+    {% endfor %}
   </section>
+
+<script>
+{% include 'sample_plates_report.js' -%}
+</script>
+
 </body>
 </html>

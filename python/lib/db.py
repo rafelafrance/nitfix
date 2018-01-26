@@ -3,10 +3,22 @@
 from os.path import join
 import uuid
 import sqlite3
+from lib.dict_attr import DictAttrs
 
 
-def connect():
+def attr_factory(cursor, row):
+    """Turn the rows into pseudo-data classes.attr_factory."""
+    data = DictAttrs({})
+    for i, col in enumerate(cursor.description):
+        data[col[0]] = row[i]
+    return data
+
+
+def connect(factory=None):
     """Connect to the SQLite3 DB."""
+    if not factory:
+        factory = sqlite3.Row
+
     db_path = join('data', 'nitfix.sqlite.db')
     db_conn = sqlite3.connect(db_path)
 
@@ -16,7 +28,7 @@ def connect():
     db_conn.execute("PRAGMA synchronous = OFF")
 
     db_conn.create_function('IS_UUID', 1, is_uuid)
-    db_conn.row_factory = sqlite3.Row
+    db_conn.row_factory = factory
     return db_conn
 
 
@@ -228,7 +240,7 @@ def create_sample_plates_table(db_conn):
             protocol   TEXT,
             notes      TEXT,
             plate_row  TEXT NOT NULL,
-            plate_col  TEXT NOT NULL,
+            plate_col  INTEGER NOT NULL,
             sample_id  TEXT NOT NULL
         )""")
     db_conn.execute('CREATE INDEX plate_samples ON sample_plates (sample_id)')
@@ -272,3 +284,46 @@ def get_plate_report(db_conn, plate_id):
       ORDER BY plate_row, plate_col
         """
     return db_conn.execute(sql, (plate_id, ))
+
+
+def samples_not_in_taxonomies(db_conn):
+    """Get the plate samples that are not in the master taxonomy."""
+    sql = """
+        SELECT *
+          FROM sample_plates
+         WHERE sample_id NOT IN (SELECT sample_id FROM taxonomies)
+        """
+    return db_conn.execute(sql)
+
+
+def family_genus_coverage(db_conn):
+    """Get the sample plates' family coverage."""
+    sql = """
+        SELECT family,
+                 '' AS genus,
+                 COUNT(*) AS total,
+                 COALESCE(plated, 0) AS plated,
+                 ROUND(100.0 * COALESCE(plated, 0) / COUNT(*), 2) AS percent
+          FROM taxonomies
+          LEFT JOIN
+            (SELECT family, COUNT(*) AS plated
+             FROM sample_plates
+             JOIN taxonomies USING (sample_id)
+             GROUP BY family) USING (family)
+          GROUP BY family
+        UNION ALL
+          SELECT family,
+                 genus,
+                 COUNT(*) AS total,
+                 COALESCE(plated, 0) AS plated,
+                 ROUND(100.0 * COALESCE(plated, 0) / COUNT(*), 2) AS percent
+          FROM taxonomies
+          LEFT JOIN
+            (SELECT family, genus, COUNT(*) AS plated
+             FROM sample_plates
+             JOIN taxonomies USING (sample_id)
+             GROUP BY family, genus) USING (family, genus)
+        GROUP BY family, genus
+        ORDER BY family, genus
+        """
+    return db_conn.execute(sql)
