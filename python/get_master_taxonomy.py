@@ -21,6 +21,7 @@ def get_data():
                 reader = csv.reader(csv_file)
                 next(reader)    # Skip header
                 for row in reader:
+                    row.append(row[2].split()[0])
                     batch.append(row)
 
         db.insert_taxonomy(db_conn, batch)

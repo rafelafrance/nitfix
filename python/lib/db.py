@@ -105,7 +105,8 @@ def create_taxonomies_table(db_conn):
                         sample_id           TEXT,
                         provider_acronym    TEXT,
                         provider_id         TEXT,
-                        quality_notes       TEXT
+                        quality_notes       TEXT,
+                        genus               TEXT
                     )""")
 
 
@@ -119,6 +120,10 @@ def create_taxonomies_indexes(db_conn):
                         ON taxonomies (provider_id)""")
     db_conn.execute("""CREATE INDEX taxonomies_sample_id
                         ON taxonomies (sample_id)""")
+    db_conn.execute("""CREATE INDEX taxonomies_family
+                        ON taxonomies (family)""")
+    db_conn.execute("""CREATE INDEX taxonomies_genus
+                        ON taxonomies (genus)""")
 
 
 def insert_taxonomy(db_conn, values):
@@ -133,8 +138,9 @@ def insert_taxonomy(db_conn, values):
                 sample_id,
                 provider_acronym,
                 provider_id,
-                quality_notes)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                quality_notes,
+                genus)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
     db_conn.executemany(sql, values)
     db_conn.commit()
@@ -221,7 +227,7 @@ def create_sample_plates_table(db_conn):
             local_id   TEXT,
             protocol   TEXT,
             notes      TEXT,
-            plate_row  INTEGER NOT NULL,
+            plate_row  TEXT NOT NULL,
             plate_col  TEXT NOT NULL,
             sample_id  TEXT NOT NULL
         )""")
