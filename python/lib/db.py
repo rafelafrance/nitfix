@@ -1,4 +1,4 @@
-"""Utilities for SQL functions."""
+"""SQL functions."""
 
 from os.path import join
 import uuid
