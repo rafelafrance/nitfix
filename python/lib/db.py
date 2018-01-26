@@ -323,7 +323,7 @@ def family_genus_coverage(db_conn):
              FROM sample_plates
              JOIN taxonomies USING (sample_id)
              GROUP BY family, genus) USING (family, genus)
-        GROUP BY family, genus
+          GROUP BY family, genus
         ORDER BY family, genus
         """
     return db_conn.execute(sql)
