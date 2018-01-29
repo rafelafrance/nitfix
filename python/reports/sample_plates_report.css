@@ -1,5 +1,5 @@
 body {
-  margin-bottom: 5em;
+  margin: 2em 2em 5em 2em;
 }
 
 h1 span {
@@ -43,14 +43,31 @@ td.r {
   background-color: #ffffff;
 }
 
+h2 > button {
+  margin-right: 1em;
+}
+
+h2 > button:before,
 .families tr button:before {
   content: '-';
 }
 
+h2 > button.closed:before,
 .families tr.closed button:before {
   content: '+';
 }
 
+@keyframes fadein {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+table,
+.families tr.genus {
+  animation: fadein 1s;
+}
+
+table.closed,
 .families tr.closed.genus {
   display: none;
 }

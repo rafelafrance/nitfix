@@ -14,8 +14,8 @@
   <h1>Nitfix Sample Plates <span>{{ now.strftime('%Y-%m-%d %I:%M %p') }}</span></h1>
 
   <section class="families">
-    <h2>Family coverage</h2>
-    <table>
+    <h2><button class="closed" data-selector="family-table" title="Open or close this section"></button>Family coverage</h2>
+    <table class="closed family-table">
       <tr class="header">
         <td></td>
         <td>Family</td>
@@ -43,8 +43,8 @@
   </section>
 
   <section class="missing">
-    <h2>Samples not in the master taxonomy</h2>
-    <table>
+    <h2><button class="closed" data-selector="missing-table" title="Open or close this section"></button>Samples not in the master taxonomy</h2>
+    <table class="closed missing-table">
       <tr class="header">
         <td>Plate ID</td>
         <td>Local ID</td>
@@ -65,9 +65,9 @@
   </section>
 
   <section class="plates">
-    <h2>Plates</h2>
+    <h2><button class="closed" data-selector="plate-table" title="Open or close this section"></button>Plates</h2>
     {% for plate in plates %}
-      <table>
+      <table class="closed plate-table">
         <tr class="header">
           <td>Plate ID</td>
           <td>Entry Date</td>
