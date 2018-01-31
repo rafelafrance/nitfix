@@ -13,9 +13,12 @@
 <body>
   <h1>Nitfix Sample Plates <span>{{ now.strftime('%Y-%m-%d %I:%M %p') }}</span></h1>
 
-  <section class="families">
-    <h2><button class="closed" data-selector="family-table" title="Open or close this section"></button>Family coverage</h2>
-    <table class="closed family-table">
+  <h2>
+    <button data-selector="families" class="toggle closed" title="Open or close this section"></button>
+    Family coverage
+  </h2>
+  <section class="families closed">
+    <table>
       <tr class="header">
         <td></td>
         <td>Family</td>
@@ -30,7 +33,7 @@
             <td></td>
             <td></td>
           {% else %}
-            <td><button data-family="{{ genus.family }}" title="Open or close this family"></button></td>
+            <td><button class="toggle closed" data-family="{{ genus.family }}" title="Open or close this family"></button></td>
             <td class="l">{{ genus.family }}</td>
           {% endif %}
           <td class="l">{{ genus.genus }}</td>
@@ -43,7 +46,10 @@
   </section>
 
   <section class="missing">
-    <h2><button class="closed" data-selector="missing-table" title="Open or close this section"></button>Samples not in the master taxonomy</h2>
+    <h2>
+      <button data-selector="missing-table" class="closed" title="Open or close this section"></button>
+      Samples not in the master taxonomy
+    </h2>
     <table class="closed missing-table">
       <tr class="header">
         <td>Plate ID</td>
@@ -65,41 +71,34 @@
   </section>
 
   <section class="plates">
-    <h2><button class="closed" data-selector="plate-table" title="Open or close this section"></button>Plates</h2>
-    {% for plate in plates %}
-      <table class="closed plate-table">
-        <tr class="header">
-          <td>Plate ID</td>
-          <td>Entry Date</td>
-          <td>Local ID</td>
-          <td>Protocol</td>
-          <td>Notes</td>
-        </tr>
-        <tr>
-          <td class="l">{{ plate.plate_id }}</td>
-          <td>{{ plate.entry_date }}</td>
-          <td class="l">{{ plate.local_id }}</td>
-          <td class="l">{{ plate.protocol }}</td>
-          <td class="l">{{ plate.notes }}</td>
-        </tr>
-        <tr class="sub-header">
-          <td class="empty"></td>
-          <td>Row</td>
-          <td>Column</td>
-          <td>Scientific Name</td>
-          <td>Sample ID</td>
-        </tr>
-        {% for well in wells[plate['plate_id']] %}
-          <tr class="well">
-            <td class="empty"></td>
-            <td>{{ well['plate_row'] }}</td>
-            <td>{{ well['plate_col'] }}</td>
-            <td class="l">{{ well['scientific_name'] }}</td>
-            <td class="l">{{ well['sample_id'] }}</td>
-          </tr>
-        {% endfor %}
+    <h2>
+      <button data-selector="plate-toggle" class="" title="Open or close this section"></button>
+      Plates
+    </h2>
+    <div class="sample-search plate-toggle">
+      <div class="search-container">
+        <label>Filter by scientific name:</label>
+        <input  data-selector="scientific-name" class="search" type="text" />
+        <button data-selector="scientific-name" class="clear-search" title="Clear search">X</button>
+      </div>
+      <div class="search-container">
+        <label>Filter by sample ID:</label>
+        <input  data-selector="sample-id" class="search" type="text" />
+        <button data-selector="sample-id" class="clear-search" title="Clear search">X</button>
+      </div>
+    </div>
+      <table class="plate-toggle">
+        <tbody></tbody>
       </table>
-    {% endfor %}
+    <div class="pager-container plate-toggle">
+      <button class="first-page" title="First plate">&lt;&lt;</button>
+      <button  class="previous-page"title="Previous plate">&lt;</button>
+      <label>Plate:</label>
+      <input class="pager" type="number" min="1" step="1" value="1"/>
+      <label class="max-page"></label>
+      <button class="next-page" title="Next plate">&gt;</button>
+      <button class="last-page" title="Last plate">&gt;&gt;</button>
+    </div>
   </section>
 
 <script>

@@ -1,29 +1,27 @@
+/* ============================================================================
+  global styles
+*/
+
 body {
   margin: 2em 2em 5em 2em;
 }
 
-h1 span {
+h1 > span {
   font-size: 20px;
   float: right;
   margin-right: 12px;
 }
 
-section {
-  margin-top: 5em;
+button.toggle {
+  margin-right: 1em;
 }
 
-section.plates table {
-  margin-top: 5em;
+button.toggle:before {
+  content: '-';
 }
 
-section.plates table:first-of-type {
-  margin-top: 0;
-}
-
-.header,
-.sub-header {
-  font-weight: bold;
-  background-color: #eeeeee;
+button.toggle.closed:before {
+  content: '+';
 }
 
 td {
@@ -39,22 +37,16 @@ td.r {
   text-align: right;
 }
 
-.sub-header td.empty {
-  background-color: #ffffff;
+section {
+  max-height: 1024px;
+  overflow-y: auto;
+  transition: all 0.75s ease-in;
 }
 
-h2 > button {
-  margin-right: 1em;
-}
-
-h2 > button:before,
-.families tr button:before {
-  content: '-';
-}
-
-h2 > button.closed:before,
-.families tr.closed button:before {
-  content: '+';
+section.closed {
+  max-height: 0;
+  overflow-y: hidden;
+  transition: all 0.75s ease-out;
 }
 
 @keyframes fadein {
@@ -62,12 +54,101 @@ h2 > button.closed:before,
   to { opacity: 1; }
 }
 
-table,
+@keyframes fadeout {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* ============================================================================
+  section.families
+*/
+
 .families tr.genus {
   animation: fadein 1s;
 }
 
-table.closed,
 .families tr.closed.genus {
+  animation: fadeout 1s;
   display: none;
 }
+
+
+/* ============================================================================
+  section.missing
+*/
+
+
+
+/*
+.header,
+.sub-header {
+  font-weight: bold;
+  background-color: #eeeeee;
+}
+
+.sub-header td.empty {
+  background-color: #ffffff;
+}
+
+.plate-toggle {
+  margin: 1em;
+}
+
+.sample-search label {
+  display: inline-block;
+  width: 180px;
+  margin-bottom: 12px;
+  margin-right: 4px;
+  text-align: right;
+}
+
+table,
+div.pager-container,
+div.sample-search,
+.families tr.genus {
+  opacity: 100%;
+  visibility: visible;
+  height:auto;
+}
+
+div.closed,
+table.closed,
+.families tr.closed.genus {
+  opacity: 0;
+  visibility: hidden;
+  height: 0;
+  transition: height 1s, opacity 1s, visibility 1s;
+}
+
+.sample-search {
+  margin-bottom: 24px;
+}
+
+.search-container {
+  position: relative;
+}
+
+.search {
+  padding: 4px;
+  width: 240px;
+}
+
+.clear-search {
+  position: relative;
+  background: #70a7b5;
+  color: white;
+  border: none;
+  border-radius: 32px;
+  left: -32px;
+}
+
+.plate-toggle.pager-container {
+  margin-top: 48px;
+}
+
+.pager {
+  min-width: 100px;
+  text-align: center;
+  font-size: 20px;
+}
+*/
