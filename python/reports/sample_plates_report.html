@@ -45,12 +45,12 @@
     </table>
   </section>
 
-  <section class="missing">
-    <h2>
-      <button data-selector="missing-table" class="closed" title="Open or close this section"></button>
-      Samples not in the master taxonomy
-    </h2>
-    <table class="closed missing-table">
+  <h2>
+    <button data-selector="missing" class="toggle closed" title="Open or close this section"></button>
+    Samples not in the master taxonomy
+  </h2>
+  <section class="missing closed">
+    <table>
       <tr class="header">
         <td>Plate ID</td>
         <td>Local ID</td>
@@ -70,26 +70,23 @@
     </table>
   </section>
 
-  <section class="plates">
-    <h2>
-      <button data-selector="plate-toggle" class="" title="Open or close this section"></button>
-      Plates
-    </h2>
-    <div class="sample-search plate-toggle">
-      <div class="search-container">
+  <h2>
+    <button data-selector="samples" class="toggle closed" title="Open or close this section"></button>
+    Sample Plates
+  </h2>
+  <section class="samples closed">
+    <div class="search-container">
+      <div class="search-control">
         <label>Filter by scientific name:</label>
-        <input  data-selector="scientific-name" class="search" type="text" />
-        <button data-selector="scientific-name" class="clear-search" title="Clear search">X</button>
+        <input  data-selector="scientific-name" type="text" />
+        <button data-selector="scientific-name" title="Clear search">X</button>
       </div>
-      <div class="search-container">
+      <div class="search-control">
         <label>Filter by sample ID:</label>
-        <input  data-selector="sample-id" class="search" type="text" />
-        <button data-selector="sample-id" class="clear-search" title="Clear search">X</button>
+        <input  data-selector="sample-id" type="text" />
+        <button data-selector="sample-id" title="Clear search">X</button>
       </div>
     </div>
-      <table class="plate-toggle">
-        <tbody></tbody>
-      </table>
     <div class="pager-container plate-toggle">
       <button class="first-page" title="First plate">&lt;&lt;</button>
       <button  class="previous-page"title="Previous plate">&lt;</button>
@@ -99,6 +96,9 @@
       <button class="next-page" title="Next plate">&gt;</button>
       <button class="last-page" title="Last plate">&gt;&gt;</button>
     </div>
+    <table>
+      <tbody></tbody>
+    </table>
   </section>
 
 <script>

@@ -59,6 +59,17 @@ section.closed {
   to { opacity: 0; }
 }
 
+.header,
+.sub-header {
+  font-weight: bold;
+  background-color: #eeeeee;
+}
+
+.sub-header td.empty {
+  background-color: #ffffff;
+}
+
+
 /* ============================================================================
   section.families
 */
@@ -74,27 +85,29 @@ section.closed {
 
 
 /* ============================================================================
-  section.missing
+  section.samples
 */
 
-
-
-/*
-.header,
-.sub-header {
-  font-weight: bold;
-  background-color: #eeeeee;
+.pager-container {
+  margin: 12px;
 }
 
-.sub-header td.empty {
-  background-color: #ffffff;
+.pager {
+  min-width: 80px;
+  width: 80px;
+  text-align: center;
+  font-size: 20px;
 }
 
-.plate-toggle {
-  margin: 1em;
+.search-container {
+  margin: 24px;
 }
 
-.sample-search label {
+.search-control {
+  position: relative;
+}
+
+.search-control label {
   display: inline-block;
   width: 180px;
   margin-bottom: 12px;
@@ -102,38 +115,12 @@ section.closed {
   text-align: right;
 }
 
-table,
-div.pager-container,
-div.sample-search,
-.families tr.genus {
-  opacity: 100%;
-  visibility: visible;
-  height:auto;
-}
-
-div.closed,
-table.closed,
-.families tr.closed.genus {
-  opacity: 0;
-  visibility: hidden;
-  height: 0;
-  transition: height 1s, opacity 1s, visibility 1s;
-}
-
-.sample-search {
-  margin-bottom: 24px;
-}
-
-.search-container {
-  position: relative;
-}
-
-.search {
+.search-control input {
   padding: 4px;
   width: 240px;
 }
 
-.clear-search {
+.search-control button {
   position: relative;
   background: #70a7b5;
   color: white;
@@ -141,14 +128,3 @@ table.closed,
   border-radius: 32px;
   left: -32px;
 }
-
-.plate-toggle.pager-container {
-  margin-top: 48px;
-}
-
-.pager {
-  min-width: 100px;
-  text-align: center;
-  font-size: 20px;
-}
-*/

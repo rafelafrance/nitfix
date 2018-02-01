@@ -45,10 +45,10 @@ document.querySelectorAll('.search').forEach(function(search) {
 });
 
 function buildTable(rows) {
-  const tbody = document.querySelector('section.plates tbody');
+  const tbody = document.querySelector('section.samples tbody');
 
   // Remove old rows
-  while (tbody.firstChild) {
+  while (tbody && tbody.firstChild) {
     tbody.removeChild(tbody.firstChild);
   }
 
@@ -169,4 +169,6 @@ document.querySelector('.last-page').addEventListener('click', function() {
   changePage();
 });
 
-filterChange();
+document.querySelector('.pager').addEventListener('change', changePage);
+
+changePage();
