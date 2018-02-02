@@ -78,18 +78,18 @@
     <div class="search-container">
       <div class="search-control">
         <label>Filter by scientific name:</label>
-        <input  data-selector="scientific-name" type="text" />
-        <button data-selector="scientific-name" title="Clear search">X</button>
+        <input data-field="scientific_name" type="text" />
+        <button title="Clear search">X</button>
       </div>
       <div class="search-control">
         <label>Filter by sample ID:</label>
-        <input  data-selector="sample-id" type="text" />
-        <button data-selector="sample-id" title="Clear search">X</button>
+        <input data-field="sample_id" type="text" />
+        <button title="Clear search">X</button>
       </div>
     </div>
-    <div class="pager-container plate-toggle">
+    <div class="pager-container">
       <button class="first-page" title="First plate">&lt;&lt;</button>
-      <button  class="previous-page"title="Previous plate">&lt;</button>
+      <button  class="previous-page" title="Previous plate">&lt;</button>
       <label>Plate:</label>
       <input class="pager" type="number" min="1" step="1" value="1"/>
       <label class="max-page"></label>

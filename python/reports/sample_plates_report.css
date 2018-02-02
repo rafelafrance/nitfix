@@ -69,6 +69,9 @@ section.closed {
   background-color: #ffffff;
 }
 
+h2 {
+  cursor: pointer;
+}
 
 /* ============================================================================
   section.families
@@ -92,6 +95,14 @@ section.closed {
   margin: 12px;
 }
 
+.pager-container label {
+  margin-left: 8px;
+}
+
+.pager-container .max-page {
+  margin-right: 8px;
+}
+
 .pager {
   min-width: 80px;
   width: 80px;
@@ -109,7 +120,7 @@ section.closed {
 
 .search-control label {
   display: inline-block;
-  width: 180px;
+  width: 200px;
   margin-bottom: 12px;
   margin-right: 4px;
   text-align: right;
@@ -126,5 +137,5 @@ section.closed {
   color: white;
   border: none;
   border-radius: 32px;
-  left: -32px;
+  left: -36px;
 }
