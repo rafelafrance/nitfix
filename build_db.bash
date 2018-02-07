@@ -6,6 +6,7 @@ set -x
 python python/process_images.py -f 'data/DOE-nitfix_specimen_photos/*.JPG' -c
 python python/process_images.py -f 'data/HUH_DOE-nitfix_specimen_photos/*.JPG'
 python python/process_images.py -f 'data/OS_DOE-nitfix_specimen_photos/*.JPG'
+python python/process_images.py -f 'data/CAS-DOE-nitfix_specimen_photos/*.JPG'
 
 python python/get_master_taxonomy.py
 python python/get_uuids.py

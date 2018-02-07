@@ -1,11 +1,11 @@
 var ROW_COUNT = 8;
 var COL_COUNT = 12;
-var DATE_OFFSET = 1; // Add this to get to the date cell
-var LOCAL_ID_OFFSET = 2; // Add this to get to the date cell
-var PROTOCOL_OFFSET = 3; // Add this to get to the protocol cell
-var NOTES_OFFSET = 4; // Add this to get to the notes cell
-var RESULTS_OFFSET = 5; // Add this to get to the results cell
-var TABLE_OFFSET = 6; // Add this to get to the top of the sample table
+var DATE_OFFSET = 1;      // Add this to get to the date cell
+var LOCAL_ID_OFFSET = 2;  // Add this to get to the date cell
+var PROTOCOL_OFFSET = 3;  // Add this to get to the protocol cell
+var NOTES_OFFSET = 4;     // Add this to get to the notes cell
+var RESULTS_OFFSET = 5;   // Add this to get to the results cell
+var TABLE_OFFSET = 6;     // Add this to get to the top of the sample table
 var LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 var BACKGROUND = '#fdffa8';
 var ROW_LABEL = 'Plate row ';
@@ -49,7 +49,7 @@ function addTemplate() {
   addRowText(row, col, LOCAL_ID_OFFSET, 'Local identifier');
   addRowText(row, col, PROTOCOL_OFFSET, 'Protocol');
   addRowText(row, col, NOTES_OFFSET, 'Notes');
-  addRowText(row, col, RESULTS_OFFSET, 'Link to quantification results');
+  addRowText(row, col, RESULTS_OFFSET, 'Link to results');
   addRowLabels(row, col);
   addBody(row, col);
 }
