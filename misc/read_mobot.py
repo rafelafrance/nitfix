@@ -16,6 +16,7 @@ MOBOT_DIR = DATA_DIR / 'dwca-tropicosspecimens-v1.17'
 CONTINENTS = DATA_DIR / 'Continents'
 OCCURRENCE = MOBOT_DIR / 'occurrence.txt'
 IN_AFRICA = DATA_DIR / 'mobot_in_africa.txt'
+INTERSECTION = DATA_DIR / 'mobot_nitfix_africa.txt'
 
 
 def mobot_in_africa():
@@ -55,14 +56,12 @@ def nitfix_in_africa():
     mobot = {ln.strip() for ln in mobot}
     print('Length mobot', len(mobot))
     print('Length nitfix', len(taxa))
-    print(len(mobot & taxa))
-    # intersect = []
-    # for mobo in mobot:
-    #     for taxon in taxa:
-    #         if taxon.startswith(mobo):
-    #             intersect.append(taxon)
-    #             break
-    # print('Length intersection', len(intersect))
+    intersection = mobot & taxa
+    print(len(intersection))
+
+    with open(str(INTERSECTION), 'w') as out_file:
+        for taxon in sorted(intersection):
+            out_file.write('{}\n'.format(taxon))
 
 
 def main():
