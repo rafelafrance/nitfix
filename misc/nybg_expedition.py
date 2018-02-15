@@ -34,7 +34,7 @@ def get_image_info(db_conn, row, no_image):
     if not image:
         no_image.append(('{} {}'.format(PROVIDER, row[1]), taxonomy[2]))
         return None
-    return (image[1], '{} {}'.format(PROVIDER, row[1]), image[0], taxonomy[2])
+    return image[1], '{} {}'.format(PROVIDER, row[1]), image[0], taxonomy[2]
 
 
 def copy_images(absent):
