@@ -2,7 +2,7 @@
 
 import csv
 import sys
-import string
+# import string
 from pathlib import Path
 import geopandas as gpd
 from shapely.geometry import Point
@@ -15,15 +15,15 @@ DATA_DIR = Path('.') / 'data'
 MOBOT_DIR = DATA_DIR / 'dwca-tropicosspecimens-v1.17'
 CONTINENTS = DATA_DIR / 'Continents'
 OCCURRENCE = MOBOT_DIR / 'occurrence.txt'
-IN_AFRICA = DATA_DIR / 'mobo_in_africa.txt'
+IN_AFRICA = DATA_DIR / 'mobot_in_africa.txt'
 
 
-def mobo_in_africa():
+def mobot_in_africa():
     """Scan the MOBOT data dump for records in Africa."""
     csv.field_size_limit(sys.maxsize)
     continents = gpd.read_file(str(CONTINENTS))
     africa = continents.iloc[3, 1]
-    trans_table = str.maketrans('', '', string.punctuation)
+    # trans_table = str.maketrans('', '', string.punctuation)
     in_africa = {}
 
     with open(OCCURRENCE) as in_file:
@@ -37,7 +37,7 @@ def mobo_in_africa():
                 if africa.contains(point):
                     phylo = row.scientificName.split()
                     sci_name = ' '.join(phylo[:2])
-                    sci_name = sci_name.translate(trans_table)
+                    # sci_name = sci_name.translate(trans_table)
                     in_africa[sci_name] = 1
                     # print(sci_name)
 
@@ -49,12 +49,26 @@ def mobo_in_africa():
 def nitfix_in_africa():
     """Look for matching nitfix records in the mobo scrap."""
     db_conn = db.connect(factory=db.attr_factory)
-    taxa = [t.scientific_name for t in db.get_taxonomies(db_conn)]
+    taxa = {t.scientific_name for t in db.get_taxonomy_names(db_conn)}
+    with open(str(IN_AFRICA)) as in_file:
+        mobot = in_file.readlines()
+    mobot = {ln.strip() for ln in mobot}
+    print('Length mobot', len(mobot))
+    print('Length nitfix', len(taxa))
+    print(len(mobot & taxa))
+    # intersect = []
+    # for mobo in mobot:
+    #     for taxon in taxa:
+    #         if taxon.startswith(mobo):
+    #             intersect.append(taxon)
+    #             break
+    # print('Length intersection', len(intersect))
 
 
 def main():
-    """The main function."""
-    # mobo_in_africa()
+    """Run the script."""
+    # mobot_in_africa()
+    nitfix_in_africa()
 
 
 if __name__ == '__main__':

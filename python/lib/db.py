@@ -176,6 +176,12 @@ def get_taxonomies(db_conn):
     return db_conn.execute(sql)
 
 
+def get_taxonomy_names(db_conn):
+    """Get taxonomies where the tissue sample ID is a valid UUID."""
+    sql = """SELECT DISTINCT scientific_name FROM taxonomies"""
+    return db_conn.execute(sql)
+
+
 def get_images_taxonomies(db_conn, file_pattern):
     """Get images joind with their matching taxonomies."""
     sql = """
@@ -197,7 +203,7 @@ def get_taxonomy_by_image_id(db_conn, file_id):
 
 
 def old_taxonomy_image_mismatches(db_conn):
-    """Taxonomies and images where the two are not in each other's table."""
+    """Get taxonomies and images set difference."""
     sql = """
           WITH taxos AS (
             SELECT * FROM taxonomies WHERE IS_UUID(sample_id))
