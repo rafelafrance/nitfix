@@ -1,10 +1,8 @@
-venv/
-old/
-docs/
-data/
-output/
+/venv/
+/old/
+/data/
+/reports/*.html
 .ipynb_checkpoints
 .ropeproject
-.idea
 __pycache__
 junk*
