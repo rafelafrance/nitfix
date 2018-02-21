@@ -1,7 +1,7 @@
 """Resolve errors in the database."""
 
 import argparse
-import lib.db as db
+import data.db as db
 
 
 def parse_command_line():

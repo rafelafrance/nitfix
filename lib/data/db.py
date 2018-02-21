@@ -3,7 +3,7 @@
 from os.path import join
 import uuid
 import sqlite3
-from lib.dict_attr import DictAttrs
+from ..dict_attr import DictAttrs
 
 
 def attr_factory(cursor, row):

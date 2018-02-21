@@ -2,7 +2,7 @@
 
 from os.path import join
 from glob import glob
-import lib.db as db
+import data.db as db
 
 
 def load_uuids():
@@ -14,7 +14,3 @@ def load_uuids():
             with open(path) as uuid_file:
                 uuids = [(u.strip(), ) for u in uuid_file.readlines()]
             db.insert_uuid_batch(db_conn, uuids)
-
-
-if __name__ == '__main__':
-    load_uuids()

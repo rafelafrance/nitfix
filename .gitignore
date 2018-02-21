@@ -1,7 +1,8 @@
+.env
 /venv/
 /old/
 /data/
-/reports/*.html
+temp/
 .ipynb_checkpoints
 .ropeproject
 __pycache__

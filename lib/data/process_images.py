@@ -6,7 +6,7 @@ from collections import namedtuple
 from PIL import Image, ImageFilter
 import exifread
 import zbarlight
-import lib.db as db
+import data.db as db
 
 
 Dimensions = namedtuple('Dimensions', 'width height')

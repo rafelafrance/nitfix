@@ -19,8 +19,8 @@ There is a fixed format to the plates:
 import csv
 from tempfile import NamedTemporaryFile
 from lib.dict_attr import DictAttrs
-import lib.db as db
-import lib.google as google
+import data.db as db
+import google
 
 KEYS = ['plate_id', 'entry_date', 'local_id', 'protocol', 'notes', 'results']
 ROWS_START = 5
