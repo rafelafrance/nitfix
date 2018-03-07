@@ -2,8 +2,8 @@
 
 import csv
 from tempfile import NamedTemporaryFile
-from ..data import db
-from .. import google
+import lib.db as db
+import lib.google as google
 
 
 def import_sheet(path):
@@ -57,3 +57,13 @@ def read_old():
 
         db.insert_taxonomy(db_conn, batch)
         db.create_taxonomies_indexes(db_conn)
+
+
+def read():
+    """Import sample plate data from the Google sheet."""
+    with NamedTemporaryFile(delete=False) as temp_csv:
+        import_sheet(temp_csv.name)
+
+
+if __name__ == '__main__':
+    read()
