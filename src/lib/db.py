@@ -1,7 +1,7 @@
 """SQL functions."""
 
-from os.path import join
 import uuid
+from pathlib import Path
 import sqlite3
 from lib.dict_attr import DictAttrs
 
@@ -19,7 +19,7 @@ def connect(factory=None):
     if not factory:
         factory = sqlite3.Row
 
-    db_path = join('data', 'nitfix.sqlite.db')
+    db_path = str(Path('data') / 'processed' / 'nitfix.sqlite.db')
     db_conn = sqlite3.connect(db_path)
 
     db_conn.execute("PRAGMA page_size = {}".format(2**16))
