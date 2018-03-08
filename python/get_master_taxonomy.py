@@ -1,7 +1,7 @@
 """Get master taxonomy info from Google sheet and put it into the database."""
 
 import csv
-from tempfile import NamedTemporaryFile
+# from tempfile import NamedTemporaryFile
 import lib.db as db
 import lib.google as google
 
@@ -12,8 +12,8 @@ def get_data():
         db.create_taxonomies_table(db_conn)
         batch = []
 
-        # with open('data/master_taxonomy.csv', 'wb') as temp_csv:
-        with NamedTemporaryFile(delete=False) as temp_csv:
+        # with NamedTemporaryFile(delete=False) as temp_csv:
+        with open('data/raw/master_taxonomy.csv', 'wb') as temp_csv:
             google.export_sheet_csv('NitFixMasterTaxonomy', temp_csv)
             temp_csv.close()
 
