@@ -108,22 +108,18 @@ def create_taxonomies_table(db_conn):
     """Create a table from the Google sheet."""
     db_conn.execute('DROP TABLE IF EXISTS taxonomies')
     db_conn.execute("""
-                    CREATE TABLE taxonomies (
-                        taxonomy_key        TEXT NOT NULL,
-                        family              TEXT,
-                        scientific_name     TEXT,
-                        taxonomic_authority TEXT,
-                        synonyms            TEXT,
-                        sample_id           TEXT,
-                        provider_acronym    TEXT,
-                        provider_id         TEXT,
-                        quality_notes       TEXT,
-                        genus               TEXT
-                    )""")
-
-
-def create_taxonomies_indexes(db_conn):
-    """Create indexes for the taxonomies table."""
+        CREATE TABLE taxonomies (
+            taxonomy_key        TEXT NOT NULL,
+            family              TEXT,
+            scientific_name     TEXT,
+            taxonomic_authority TEXT,
+            synonyms            TEXT,
+            sample_id           TEXT,
+            provider_acronym    TEXT,
+            provider_id         TEXT,
+            quality_notes       TEXT,
+            genus               TEXT)
+        """)
     db_conn.execute("""CREATE UNIQUE INDEX taxonomies_key
                         ON taxonomies (taxonomy_key)""")
     db_conn.execute("""CREATE INDEX taxonomies_provider_acronym
@@ -247,8 +243,8 @@ def create_sample_plates_table(db_conn):
             notes      TEXT,
             plate_row  TEXT NOT NULL,
             plate_col  INTEGER NOT NULL,
-            sample_id  TEXT NOT NULL
-        )""")
+            sample_id  TEXT NOT NULL)
+        """)
     db_conn.execute('CREATE INDEX plate_samples ON sample_plates (sample_id)')
 
 
@@ -277,6 +273,12 @@ def select_plates(db_conn):
           FROM sample_plates
       ORDER BY entry_date, plate_id
         """
+    return db_conn.execute(sql)
+
+
+def select_plate_wells(db_conn):
+    """Get plate data from the sample_plates table."""
+    sql = """SELECT * FROM sample_plates"""
     return db_conn.execute(sql)
 
 
@@ -333,3 +335,39 @@ def family_genus_coverage(db_conn):
         ORDER BY family, genus
         """
     return db_conn.execute(sql)
+
+
+def create_picogreen_table(db_conn):
+    """Create a table to hold data from the picogreen Google sheet."""
+    db_conn.execute('DROP TABLE IF EXISTS picogreen')
+    db_conn.execute("""
+        CREATE TABLE picogreen (
+            picogreen_id       TEXT NOT NULL,
+            well               TEXT,
+            rfu                TEXT,
+            ng_microliter      NUMBER,
+            ng_microliter_mean TEXT,
+            quant_method       TEXT,
+            quant_date         TEXT,
+            sample_id          TEXT)
+        """)
+    db_conn.execute('CREATE INDEX picogreen_id ON picogreen (picogreen_id)')
+    db_conn.execute('CREATE INDEX picogreen_samples ON picogreen (sample_id)')
+
+
+def insert_picogreen_batch(db_conn, batch):
+    """Insert a sample IDs into the sample_plates table."""
+    sql = """
+        INSERT INTO picogreen (
+            picogreen_id,
+            well,
+            rfu,
+            ng_microliter,
+            ng_microliter_mean,
+            quant_method,
+            quant_date,
+            sample_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """
+    db_conn.executemany(sql, batch)
+    db_conn.commit()

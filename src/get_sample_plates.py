@@ -17,10 +17,10 @@ There is a fixed format to the plates:
 """
 
 import csv
-from tempfile import NamedTemporaryFile
-from lib.dict_attr import DictAttrs
+from pathlib import Path
 import lib.db as db
 import lib.google as google
+from lib.dict_attr import DictAttrs
 
 KEYS = ['plate_id', 'entry_date', 'local_id', 'protocol', 'notes', 'results']
 ROWS_START = 5
@@ -34,7 +34,8 @@ def get_data():
         db.create_sample_plates_table(db_conn)
         batch = []
 
-        with NamedTemporaryFile(delete=False) as temp_csv:
+        csv_path = Path('data') / 'interim' / 'sample_plates.csv'
+        with open(csv_path, 'wb') as temp_csv:
             google.export_sheet_csv('sample_plates', temp_csv)
             temp_csv.close()
 
