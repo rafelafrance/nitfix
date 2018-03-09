@@ -1,6 +1,7 @@
 """Get Picogreen results from Google sheet and put it into the database."""
 
 import re
+import sys
 import csv
 from pathlib import Path
 import lib.db as db
@@ -41,14 +42,16 @@ def get_data(picogreen2sample_id):
                     sample_id = ''
                     if picogreen_id:
                         sample_id = picogreen2sample_id.get(row[0], 'x')
-                        row[-1] = sample_id
+                        if row[-1] != sample_id:
+                            print('Error: Plate IDs do not match')
+                            sys.exit(1)
                     values.append([sample_id])
                     batch.append(row)
 
         db.insert_picogreen_batch(db_conn, batch)
 
     range_ = f'H2:H{len(values) + 1}'
-    google.update_sheet('picogreen', range_, values)
+    # google.update_sheet('picogreen', range_, values)
 
 
 if __name__ == '__main__':
