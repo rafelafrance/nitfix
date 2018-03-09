@@ -25,7 +25,6 @@ def get_data():
                     batch.append(row)
 
         db.insert_taxonomy(db_conn, batch)
-        db.create_taxonomies_indexes(db_conn)
 
 
 if __name__ == '__main__':

@@ -3,7 +3,8 @@ venv/
 old/
 old2/
 
-output/
+output/*
+!output/.gitkeep
 
 .ipynb_checkpoints
 

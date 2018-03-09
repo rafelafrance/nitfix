@@ -9,9 +9,6 @@ python src/process_images.py -f 'data/raw/OS_DOE-nitfix_specimen_photos/*.JPG'
 python src/process_images.py -f 'data/raw/CAS-DOE-nitfix_specimen_photos/*.JPG'
 python src/process_images.py -f 'data/raw/MO-DOE-nitfix_specimen_photos/*.JPG'
 
-python src/get_master_taxonomy.py
-python src/get_uuids.py
-
 # Manually fix UUID
 # python src/process_images.py -f 'data/raw/DOE-nitfix_specimen_photos/R0000674.JPG' --set-uuid 3d83f5f0-419f-4aaf-be4d-2773f2683412
 
@@ -33,6 +30,13 @@ python src/resolve_error.py -k data/raw/OS_DOE-nitfix_specimen_photos/R0001898.J
 # python src/resolve_error.py -k data/raw/OS_DOE-nitfix_specimen_photos/R0001947.JPG -r ''
 python src/resolve_error.py -k data/raw/CAS-DOE-nitfix_specimen_photos/R0001361.JPG -r 'OK: Genuine duplicate'
 python src/resolve_error.py -k data/raw/CAS-DOE-nitfix_specimen_photos/R0002349.JPG -r 'OK: Genuine duplicate'
+python src/resolve_error.py -k data/raw/MO-DOE-nitfix_specimen_photos/R0002933.JPG -r 'OK: Genuine duplicate'
+python src/resolve_error.py -k data/raw/MO-DOE-nitfix_specimen_photos/R0003226.JPG -r 'OK: Genuine duplicate'
 
+python src/process_images.py -f 'data/raw/DOE-nitfix_specimen_photos/R0000674.JPG' --set-uuid 2eea159f-3c25-42ef-837d-27ad545a6779
+
+python src/get_uuids.py
+
+python src/get_master_taxonomy.py
 python src/get_sample_plates.py
 python src/get_picogreen.py
