@@ -191,6 +191,7 @@ function buildPlateHeader() {
       { content: 'Local ID' },
       { content: 'Protocol' },
       { content: 'Notes' },
+      { content: '' },
     ],
   };
 }
@@ -212,9 +213,10 @@ function buildWellHeader() {
     cls: 'sub-header',
     td: [
       { content: '', cls: 'empty'},
-      { content: 'Row' },
-      { content: 'Column' },
+      { content: 'Well' },
+      { content: 'Well Number' },
       { content: 'Scientific Name' },
+      { content: 'Mean Yield' },
       { content: 'Sample ID' },
     ],
   };
@@ -225,10 +227,11 @@ function buildWellData(well) {
     cls: 'well',
     td: [
       { content: '', cls: 'empty' },
-      { content: well.plate_row },
-      { content: well.plate_col },
-      { content: well.scientific_name, cls: 'l' },
-      { content: well.sample_id,       cls: 'l' },
+      { content: well.plate_well },
+      { content: well.picogreen_id },
+      { content: well.scientific_name,    cls: 'l' },
+      { content: well.ng_microliter_mean, cls: 'r' },
+      { content: well.sample_id,          cls: 'l' },
     ],
   };
 }

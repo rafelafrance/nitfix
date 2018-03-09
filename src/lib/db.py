@@ -285,11 +285,13 @@ def select_plate_wells(db_conn):
 def get_plate_report(db_conn, plate_id):
     """Get data for a plate."""
     sql = """
-        SELECT *
+        SELECT *,
+               plate_row || substr('00' || plate_col, -2) AS plate_well
           FROM sample_plates
           JOIN taxonomies USING (sample_id)
+     LEFT JOIN picogreen USING (sample_id)
          WHERE plate_id = ?
-      ORDER BY plate_row, plate_col
+        ORDER BY plate_row, plate_col
         """
     return db_conn.execute(sql, (plate_id, ))
 
