@@ -28,13 +28,13 @@ def get_absent_data(db_conn):
 
 
 def get_image_info(db_conn, row, no_image):
-    """Get the image info from the taxonomies and images tables."""
-    taxonomy = db.get_taxonomy_by_provider(db_conn, PROVIDER, row[1])
-    image = db.get_image(db_conn, taxonomy[5])
+    """Get the image info from the taxons and images tables."""
+    taxon = db.get_taxon_by_provider(db_conn, PROVIDER, row[1])
+    image = db.get_image(db_conn, taxon[5])
     if not image:
-        no_image.append(('{} {}'.format(PROVIDER, row[1]), taxonomy[2]))
+        no_image.append(('{} {}'.format(PROVIDER, row[1]), taxon[2]))
         return None
-    return image[1], '{} {}'.format(PROVIDER, row[1]), image[0], taxonomy[2]
+    return image[1], '{} {}'.format(PROVIDER, row[1]), image[0], taxon[2]
 
 
 def copy_images(absent):

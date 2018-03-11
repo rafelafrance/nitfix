@@ -103,7 +103,7 @@ def inside_africa(row):
 def nitfix_in_africa():
     """Look for matching nitfix records in the mobo scrap."""
     db_conn = db.connect(factory=db.attr_factory)
-    taxa = {t.scientific_name for t in db.get_taxonomy_names(db_conn)}
+    taxa = {t.scientific_name for t in db.get_taxon_names(db_conn)}
     with open(str(IN_AFRICA)) as in_file:
         mobot = in_file.readlines()
     mobot = {ln.strip() for ln in mobot}

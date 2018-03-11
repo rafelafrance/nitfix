@@ -9,10 +9,10 @@ import lib.google as google
 def get_data():
     """Import sample plate data from the Google sheet."""
     with db.connect() as db_conn:
-        db.create_taxonomies_table(db_conn)
+        db.create_taxons_table(db_conn)
         batch = []
 
-        csv_path = Path('data') / 'interim' / 'master_taxonomy.csv'
+        csv_path = Path('data') / 'interim' / 'taxons.csv'
         with open(csv_path, 'wb') as temp_csv:
             google.export_sheet_csv('NitFixMasterTaxonomy', temp_csv)
             temp_csv.close()
@@ -24,7 +24,7 @@ def get_data():
                     row.append(row[2].split()[0])
                     batch.append(row)
 
-        db.insert_taxonomy(db_conn, batch)
+        db.insert_taxon_batch(db_conn, batch)
 
 
 if __name__ == '__main__':

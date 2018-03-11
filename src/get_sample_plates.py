@@ -19,6 +19,7 @@ There is a fixed format to the plates:
 import csv
 from pathlib import Path
 import lib.db as db
+import lib.util as util
 import lib.google as google
 from lib.dict_attr import DictAttrs
 
@@ -31,10 +32,10 @@ COLS_END = 13
 def get_data():
     """Import sample plate data from the Google sheet."""
     with db.connect() as db_conn:
-        db.create_sample_plates_table(db_conn)
+        db.create_plates_table(db_conn)
         batch = []
 
-        csv_path = Path('data') / 'interim' / 'sample_plates.csv'
+        csv_path = Path('data') / 'interim' / 'plates.csv'
         with open(csv_path, 'wb') as temp_csv:
             google.export_sheet_csv('sample_plates', temp_csv)
             temp_csv.close()
@@ -45,7 +46,7 @@ def get_data():
                 state = 0
                 for row in reader:
                     if state == 0:
-                        if db.is_uuid(row[0]):
+                        if util.is_uuid(row[0]):
                             rec[KEYS[state]] = row[0]
                             state += 1
                     elif state <= ROWS_START:
@@ -55,7 +56,7 @@ def get_data():
                         # Row label looks like "Plate row X". Get the X.
                         rec.plate_row = row[0][-1]  # Letter of row label
                         for col in range(1, COLS_END):
-                            if db.is_uuid(row[col]):
+                            if util.is_uuid(row[col]):
                                 rec.plate_col = col
                                 rec.sample_id = row[col]
                                 batch.append((
@@ -67,7 +68,7 @@ def get_data():
                         state = 0
                         rec = DictAttrs({})
 
-        db.insert_sample_plates(db_conn, batch)
+        db.insert_plates(db_conn, batch)
 
 
 if __name__ == '__main__':

@@ -3,7 +3,7 @@
 
 <head>
 <meta charset="utf-8" />
-<title>{{title}}</title>
+<title>Sample plate report</title>
 
 <style>
 {% include 'sample_plates_report.css' -%}
@@ -24,8 +24,8 @@
         <td>Family</td>
         <td>Genus</td>
         <td>Total count</td>
-        <td>Sample count</td>
-        <td>Percent covered</td>
+        <td>Imaged count</td>
+        <td>Percent imaged</td>
       </tr>
       {% for genus in genera %}
         <tr class="closed {{ 'genus' if genus.genus else 'family' }}" data-family="{{ genus.family }}">
@@ -33,12 +33,16 @@
             <td></td>
             <td></td>
           {% else %}
-            <td><button class="toggle closed" data-family="{{ genus.family }}" title="Open or close this family"></button></td>
+            {% if genus.family[0] != '~' %}
+              <td><button class="toggle closed" data-family="{{ genus.family }}" title="Open or close this family"></button></td>
+            {% else %}
+              <td></td>
+            {% endif %}
             <td class="l">{{ genus.family }}</td>
           {% endif %}
           <td class="l">{{ genus.genus }}</td>
           <td class="r">{{ '{:,}'.format(genus.total) if genus.total else '' }}</td>
-          <td class="r">{{ '{:,}'.format(genus.plated) if genus.plated else '' }}</td>
+          <td class="r">{{ '{:,}'.format(genus.imaged) if genus.imaged else '' }}</td>
           <td class="r">{{ '{:.2f}'.format(genus.percent) if genus.percent  else '' }}</td>
         </tr>
       {% endfor %}
@@ -47,7 +51,7 @@
 
   <h2>
     <button data-selector="missing" class="toggle closed" title="Open or close this section"></button>
-    Samples not in the master taxonomy
+    Plate samples not in the master taxonomy
   </h2>
   <section class="missing closed">
     <table>

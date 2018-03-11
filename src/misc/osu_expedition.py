@@ -22,11 +22,11 @@ def create_manifest(images):
             writer.writerow([
                 file_name,
                 image['provider_id'],
-                image['image_id'],
+                image['sample_id'],
                 image['scientific_name']])
 
 
 if __name__ == '__main__':
     with db.connect() as db_conn:
-        IMAGES = db.get_images_taxonomies(db_conn, FILE_PATTERN)
+        IMAGES = db.get_images_taxons(db_conn, FILE_PATTERN)
     create_manifest(IMAGES)

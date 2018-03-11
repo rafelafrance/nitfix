@@ -32,6 +32,7 @@ python src/resolve_error.py -k data/raw/CAS-DOE-nitfix_specimen_photos/R0001361.
 python src/resolve_error.py -k data/raw/CAS-DOE-nitfix_specimen_photos/R0002349.JPG -r 'OK: Genuine duplicate'
 python src/resolve_error.py -k data/raw/MO-DOE-nitfix_specimen_photos/R0002933.JPG -r 'OK: Genuine duplicate'
 python src/resolve_error.py -k data/raw/MO-DOE-nitfix_specimen_photos/R0003226.JPG -r 'OK: Genuine duplicate'
+python src/resolve_error.py -k data/raw/DOE-nitfix_specimen_photos/R0000674.JPG -r 'OK: Manually entered'
 
 python src/process_images.py -f 'data/raw/DOE-nitfix_specimen_photos/R0000674.JPG' --set-uuid 2eea159f-3c25-42ef-837d-27ad545a6779
 
