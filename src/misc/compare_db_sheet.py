@@ -5,9 +5,9 @@ import lib.db as db
 
 def main():
     """Show basic usage of the Sheets API."""
-    with db.connect() as db_conn:
-        for taxon in db.get_taxons(db_conn):
-            images = db.get_image(db_conn, taxon['sample_id'])
+    with db.connect() as cxn:
+        for taxon in db.get_taxons(cxn):
+            images = db.get_image(cxn, taxon['sample_id'])
             if len(images) < 1:
                 print('Taxon without an image: {} {}'.format(
                     taxon['sample_id'], taxon['scientific_name']))
@@ -15,9 +15,9 @@ def main():
                 print('Taxon with too many images: {} {}'.format(
                     taxon['sample_id'], taxon['scientific_name']))
 
-        for image in db.get_images(db_conn):
+        for image in db.get_images(cxn):
             taxons = db.get_taxon_by_sample_id(
-                db_conn, image['sample_id'])
+                cxn, image['sample_id'])
             if len(taxons) < 1:
                 print('Image with out a taxon: {} {}'.format(
                     image['sample_id'], image['file_name']))

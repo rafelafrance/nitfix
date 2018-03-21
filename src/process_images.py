@@ -101,29 +101,29 @@ def get_image_data(file_name, args):
     return str(exif['Image DateTime']), qr_code
 
 
-def create_tables(args, db_conn):
+def create_tables(args, cxn):
     """Reset the images table."""
     if not args.create_table or args.dry_run:
         return
 
-    db.create_images_table(db_conn)
-    db.create_errors_table(db_conn)
+    db.create_images_table(cxn)
+    db.create_errors_table(cxn)
 
 
-def insert_error(args, db_conn, file_name, msg):
+def insert_error(args, cxn, file_name, msg):
     """Insert into the errors table."""
     print(msg)
 
     if not args.dry_run:
-        db.insert_error(db_conn, file_name, msg)
+        db.insert_error(cxn, file_name, msg)
 
 
-def insert_image(args, db_conn, uuid, file_name, image_created):
+def insert_image(args, cxn, uuid, file_name, image_created):
     """Insert into the images table."""
     print(file_name, uuid, image_created)
 
     if not args.dry_run:
-        db.insert_image(db_conn, uuid, file_name, image_created)
+        db.insert_image(cxn, uuid, file_name, image_created)
 
 
 def main():
@@ -131,8 +131,8 @@ def main():
     uuids = {}
     args = parse_command_line()
 
-    with db.connect() as db_conn:
-        create_tables(args, db_conn)
+    with db.connect() as cxn:
+        create_tables(args, cxn)
 
         for pattern in args.files:
             for file_name in sorted(glob(pattern)):
@@ -140,14 +140,14 @@ def main():
 
                 if not uuid:
                     msg = 'MISSING: QR code missing in {}'.format(file_name)
-                    insert_error(args, db_conn, file_name, msg)
+                    insert_error(args, cxn, file_name, msg)
                 elif uuids.get(uuid):
                     msg = ('DUPLICATES: Files {} and {} have the same '
                            'QR code').format(uuids[uuid], file_name)
-                    insert_error(args, db_conn, file_name, msg)
+                    insert_error(args, cxn, file_name, msg)
                 else:
                     uuids[uuid] = file_name
-                    insert_image(args, db_conn, uuid, file_name, image_created)
+                    insert_image(args, cxn, uuid, file_name, image_created)
 
 
 if __name__ == '__main__':

@@ -12,12 +12,12 @@ def print_report():
     env = Environment(loader=FileSystemLoader(join('src', 'reports')))
     template = env.get_template('sample_plates_report.html')
 
-    with db.connect(factory=db.attr_factory) as db_conn:
-        plates = list(db.select_plates(db_conn))
-        wells = get_plate_wells(db_conn, plates)
-        taxon_ids, taxon_2_sample_ids = get_taxon_sample_ids(db_conn)
-        missing = get_missing(db_conn, taxon_ids)
-        genera = family_genus_coverage(db_conn, taxon_2_sample_ids)
+    with db.connect(factory=db.attr_factory) as cxn:
+        plates = list(db.select_plates(cxn))
+        wells = get_plate_wells(cxn, plates)
+        taxon_ids, taxon_2_sample_ids = get_taxon_sample_ids(cxn)
+        missing = get_missing(cxn, taxon_ids)
+        genera = family_genus_coverage(cxn, taxon_2_sample_ids)
 
     report = template.render(
         now=datetime.now(),
@@ -30,11 +30,11 @@ def print_report():
         out_file.write(report)
 
 
-def get_taxon_sample_ids(db_conn):
+def get_taxon_sample_ids(cxn):
     """Get the taxon sample IDs."""
     taxon_ids = set()
     taxon_2_sample_ids = {}
-    for taxon in db.get_taxons(db_conn):
+    for taxon in db.get_taxons(cxn):
         for sample_id in taxon.get('sample_id', '').split(';'):
             sample_id = sample_id.strip()
             if util.is_uuid(sample_id):
@@ -45,23 +45,23 @@ def get_taxon_sample_ids(db_conn):
     return taxon_ids, taxon_2_sample_ids
 
 
-def get_missing(db_conn, taxon_ids):
+def get_missing(cxn, taxon_ids):
     """Get the plate samples that are not in the master taxonomy."""
     missing = []
-    for well in db.select_plate_wells(db_conn):
+    for well in db.select_plate_wells(cxn):
         well_id = well['sample_id']
         if util.is_uuid(well_id) and well_id not in taxon_ids:
             missing.append(well)
     return missing
 
 
-def family_genus_coverage(db_conn, taxon_2_sample_ids):
+def family_genus_coverage(cxn, taxon_2_sample_ids):
     """Get family and genus coverage of images for the report."""
-    images = {i['sample_id'] for i in db.get_images(db_conn)}
+    images = {i['sample_id'] for i in db.get_images(cxn)}
 
     total_key = ('~Total~', '')
     genera = {total_key: {'total': 0, 'imaged': 0}}
-    for taxon in db.get_taxons(db_conn):
+    for taxon in db.get_taxons(cxn):
         genus_key = (taxon['family'], taxon['genus'])
         family_key = (taxon['family'], '')
         genus = genera.get(genus_key, {'total': 0, 'imaged': 0})
@@ -101,12 +101,12 @@ def is_taxon_imaged(taxon, taxon_2_sample_ids, images):
     return imaged
 
 
-def get_plate_wells(db_conn, plates):
+def get_plate_wells(cxn, plates):
     """Get the plate well data for the report."""
     wells = {}
     for plate in plates:
         plate_id = plate['plate_id']
-        well_data = list(db.get_plate_report(db_conn, plate_id))
+        well_data = list(db.get_plate_report(cxn, plate_id))
         for row in well_data:
             for key, value in row.items():
                 row[key] = value if value else ''

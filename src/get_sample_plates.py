@@ -31,8 +31,8 @@ COLS_END = 13
 
 def get_data():
     """Import sample plate data from the Google sheet."""
-    with db.connect() as db_conn:
-        db.create_plates_table(db_conn)
+    with db.connect() as cxn:
+        db.create_plates_table(cxn)
         batch = []
 
         csv_path = Path('data') / 'interim' / 'plates.csv'
@@ -68,7 +68,7 @@ def get_data():
                         state = 0
                         rec = DictAttrs({})
 
-        db.insert_plates(db_conn, batch)
+        db.insert_plates(cxn, batch)
 
 
 if __name__ == '__main__':

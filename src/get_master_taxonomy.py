@@ -8,8 +8,8 @@ import lib.google as google
 
 def get_data():
     """Import sample plate data from the Google sheet."""
-    with db.connect() as db_conn:
-        db.create_taxons_table(db_conn)
+    with db.connect() as cxn:
+        db.create_taxons_table(cxn)
         batch = []
 
         csv_path = Path('data') / 'interim' / 'taxons.csv'
@@ -24,7 +24,7 @@ def get_data():
                     row.append(row[2].split()[0])
                     batch.append(row)
 
-        db.insert_taxon_batch(db_conn, batch)
+        db.insert_taxon_batch(cxn, batch)
 
 
 if __name__ == '__main__':

@@ -1,19 +1,19 @@
 """Build a Notes from Nature expedition."""
 
-from os.path import join, split
+from os.path import split
+from pathlib import Path
 import csv
 import lib.db as db
 
 
-EXPEDITION_DIR = 'data/OS_DOE-nitfix_specimen_photos'
-MANIFEST = 'osu_expedition.csv'
-FILE_PATTERN = EXPEDITION_DIR + '/%.JPG'
+EXPEDITION_DIR = Path('data') / 'raw' / 'MO-DOE-nitfix_specimen_photos'
+MANIFEST = Path('data') / 'interim' / 'mobot_expedition.csv'
+FILE_PATTERN = EXPEDITION_DIR / '%.JPG'
 
 
 def create_manifest(images):
     """Create expedition manifest."""
-    csv_path = join(EXPEDITION_DIR, MANIFEST)
-    with open(csv_path, 'w') as csv_file:
+    with open(MANIFEST, 'w') as csv_file:
         writer = csv.writer(csv_file)
         writer.writerow(
             ['image_name', 'provider_id', 'qr_code', 'resolved_name'])

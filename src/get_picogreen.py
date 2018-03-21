@@ -12,8 +12,8 @@ def get_sample_ids():
     """Get data from the sample plates table and organize it for linking."""
     local_id_regex = re.compile(r'^.+_(\d+)$')
     picogreen2sample_id = {}
-    with db.connect(factory=db.attr_factory) as db_conn:
-        for well in db.select_plate_wells(db_conn):
+    with db.connect(factory=db.attr_factory) as cxn:
+        for well in db.select_plate_wells(cxn):
             match = local_id_regex.match(well.local_id)
             plate_no = match[1]
             well_no = 'ABCDEFGH'.find(well.plate_row) * 12 + well.plate_col
@@ -24,8 +24,8 @@ def get_sample_ids():
 
 def get_data(picogreen2sample_id):
     """Import picogreen data from the Google sheet."""
-    with db.connect() as db_conn:
-        db.create_picogreen_table(db_conn)
+    with db.connect() as cxn:
+        db.create_picogreen_table(cxn)
         batch = []
         values = []
 
@@ -48,10 +48,10 @@ def get_data(picogreen2sample_id):
                     values.append([sample_id])
                     batch.append(row)
 
-        db.insert_picogreen_batch(db_conn, batch)
+        db.insert_picogreen_batch(cxn, batch)
 
     range_ = f'H2:H{len(values) + 1}'
-    # google.update_sheet('picogreen', range_, values)
+    google.update_sheet('picogreen', range_, values)
 
 
 if __name__ == '__main__':

@@ -11,7 +11,7 @@ EXPEDITION_DIR = join('data', 'osu_expedition')
 PROVIDER = 'OSU'
 
 
-def get_absent_data(db_conn):
+def get_absent_data(cxn):
     """Get absent data."""
     absent = []
     no_image = []
@@ -21,16 +21,16 @@ def get_absent_data(db_conn):
         next(reader)
         for row in reader:
             if row[2] != 'Present':
-                record = get_image_info(db_conn, row, no_image)
+                record = get_image_info(cxn, row, no_image)
                 if record:
                     absent.append(record)
     return absent, no_image
 
 
-def get_image_info(db_conn, row, no_image):
+def get_image_info(cxn, row, no_image):
     """Get the image info from the taxons and images tables."""
-    taxon = db.get_taxon_by_provider(db_conn, PROVIDER, row[1])
-    image = db.get_image(db_conn, taxon[5])
+    taxon = db.get_taxon_by_provider(cxn, PROVIDER, row[1])
+    image = db.get_image(cxn, taxon[5])
     if not image:
         no_image.append(('{} {}'.format(PROVIDER, row[1]), taxon[2]))
         return None
@@ -59,8 +59,8 @@ def create_manifest(absent):
 
 def main():
     """Create expedition."""
-    with db.connect() as db_conn:
-        absent, no_image = get_absent_data(db_conn)
+    with db.connect() as cxn:
+        absent, no_image = get_absent_data(cxn)
     os.makedirs(EXPEDITION_DIR, exist_ok=True)
     copy_images(absent)
     create_manifest(absent)
