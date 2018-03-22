@@ -12,6 +12,9 @@ def parse_command_line():
     parser.add_argument('--error-key', '-k', metavar='KEY',
                         help="""Update this record in the errors table.""")
 
+    parser.add_argument('--ok', action='store_true',
+                        help="""Was the resolution OK.""")
+
     parser.add_argument('--resolution', '-r', metavar='RESOLUTION',
                         help="""Resolution of the error.""")
 
@@ -24,7 +27,7 @@ def main():
     args = parse_command_line()
 
     with db.connect() as cxn:
-        db.resolve_error(cxn, args.error_key, args.resolution)
+        db.resolve_error(cxn, args.error_key, args.ok, args.resolution)
 
 
 if __name__ == '__main__':

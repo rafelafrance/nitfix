@@ -78,6 +78,7 @@ def create_errors_table(cxn):
         CREATE TABLE errors (
             error_key   TEXT NOT NULL,
             msg         TEXT,
+            ok          INTEGER,
             resolution  TEXT
         )""")
     cxn.execute("""CREATE INDEX error_idx ON errors(error_key)""")
@@ -90,10 +91,11 @@ def insert_error(cxn, error_key, msg):
     cxn.commit()
 
 
-def resolve_error(cxn, error_key, resolution):
+# pylint: disable=invalid-name
+def resolve_error(cxn, error_key, ok, resolution):
     """Resolve an error."""
-    sql = """UPDATE errors SET resolution = ? WHERE error_key = ?"""
-    cxn.execute(sql, (resolution, error_key))
+    sql = """UPDATE errors SET ok = ?, resolution = ? WHERE error_key = ?"""
+    cxn.execute(sql, (ok, resolution, error_key))
     cxn.commit()
 
 
