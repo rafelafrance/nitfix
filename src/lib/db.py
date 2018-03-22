@@ -131,10 +131,10 @@ def insert_taxon_batch(cxn, values):
     """Insert a batch of records into the taxons table."""
     sql = """
         INSERT INTO taxons (
-                taxon,
+                taxon_key,
                 family,
                 scientific_name,
-                taxonomic_authority,
+                authority,
                 synonyms,
                 sample_id,
                 provider_acronym,
@@ -293,7 +293,7 @@ def create_picogreen_table(cxn):
 
 
 def insert_picogreen_batch(cxn, batch):
-    """Insert a sample IDs into the plates table."""
+    """Insert sample IDs into the plates table."""
     sql = """
         INSERT INTO picogreen (
             picogreen_id,
@@ -323,3 +323,19 @@ def create_loci_table(cxn):
             rbcL            INTEGER)
         """)
     cxn.execute("""CREATE INDEX loci_idx ON loci (scientific_name)""")
+
+
+def insert_loci_batch(cxn, batch):
+    """Insert a sample IDs into the plates table."""
+    sql = """
+        INSERT INTO picogreen (
+            scientific_name,
+            ITS,
+            atpB,
+            matK,
+            matR,
+            rbcL)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """
+    cxn.executemany(sql, batch)
+    cxn.commit()
