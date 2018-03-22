@@ -50,9 +50,6 @@ def get_data(picogreen2sample_id):
 
         db.insert_picogreen_batch(cxn, batch)
 
-    # range_ = f'H2:H{len(values) + 1}'
-    # google.update_sheet('picogreen', range_, values)
-
 
 if __name__ == '__main__':
     PICOGREEN2SAMPLE_ID = get_sample_ids()

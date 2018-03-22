@@ -19,7 +19,7 @@ def connect(factory=None):
     if not factory:
         factory = sqlite3.Row
 
-    db_path = str(Path('data') / 'processed' / 'nitfix.sqlite.db')
+    db_path = str(Path('..') / 'data' / 'processed' / 'nitfix.sqlite.db')
     cxn = sqlite3.connect(db_path)
 
     cxn.execute("PRAGMA page_size = {}".format(2**16))
@@ -31,28 +31,6 @@ def connect(factory=None):
     cxn.create_function('IS_UUID', 1, util.is_uuid)
     cxn.row_factory = factory
     return cxn
-
-
-def create_images_table(cxn):
-    """Create images table and index."""
-    cxn.execute('DROP TABLE IF EXISTS images')
-    cxn.execute("""
-        CREATE TABLE images (
-            sample_id     TEXT PRIMARY KEY NOT NULL,
-            file_name     TEXT NOT NULL UNIQUE,
-            image_created TEXT
-        )""")
-    cxn.execute("""CREATE INDEX image_idx ON images(sample_id)""")
-
-
-def insert_image(cxn, guid, file_name, image_created):
-    """Insert a record into the images table."""
-    sql = """
-        INSERT INTO images (sample_id, file_name, image_created)
-             VALUES (?, ?, ?)
-        """
-    cxn.execute(sql, (guid, file_name, image_created))
-    cxn.commit()
 
 
 def get_image(cxn, sample_ids):
@@ -69,34 +47,6 @@ def get_images(cxn):
     sql = """SELECT * FROM images"""
     result = cxn.execute(sql)
     return result.fetchall()
-
-
-def create_errors_table(cxn):
-    """Create errors table for persisting errors."""
-    cxn.execute('DROP TABLE IF EXISTS errors')
-    cxn.execute("""
-        CREATE TABLE errors (
-            error_key   TEXT NOT NULL,
-            msg         TEXT,
-            ok          INTEGER,
-            resolution  TEXT
-        )""")
-    cxn.execute("""CREATE INDEX error_idx ON errors(error_key)""")
-
-
-def insert_error(cxn, error_key, msg):
-    """Insert a record into the errors table."""
-    sql = """INSERT INTO errors (error_key, msg) VALUES (?, ?)"""
-    cxn.execute(sql, (error_key, msg))
-    cxn.commit()
-
-
-# pylint: disable=invalid-name
-def resolve_error(cxn, error_key, ok, resolution):
-    """Resolve an error."""
-    sql = """UPDATE errors SET ok = ?, resolution = ? WHERE error_key = ?"""
-    cxn.execute(sql, (ok, resolution, error_key))
-    cxn.commit()
 
 
 def create_taxons_table(cxn):
