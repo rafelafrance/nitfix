@@ -49,56 +49,6 @@ def get_images(cxn):
     return result.fetchall()
 
 
-def create_taxons_table(cxn):
-    """Create a table from the Google sheet."""
-    cxn.execute('DROP TABLE IF EXISTS taxons')
-    cxn.execute("""
-        CREATE TABLE taxons (
-            taxon_key        TEXT NOT NULL,
-            family           TEXT,
-            scientific_name  TEXT,
-            authority        TEXT,
-            synonyms         TEXT,
-            sample_id        TEXT,
-            provider_acronym TEXT,
-            provider_id      TEXT,
-            quality_notes    TEXT,
-            genus            TEXT)
-        """)
-    cxn.execute("""CREATE UNIQUE INDEX taxons_key
-                        ON taxons (taxon_key)""")
-    cxn.execute("""CREATE INDEX taxons_provider_acronym
-                        ON taxons (provider_acronym)""")
-    cxn.execute("""CREATE INDEX taxons_provider_id
-                        ON taxons (provider_id)""")
-    cxn.execute("""CREATE INDEX taxons_sample_id
-                        ON taxons (sample_id)""")
-    cxn.execute("""CREATE INDEX taxons_family
-                        ON taxons (family)""")
-    cxn.execute("""CREATE INDEX taxons_genus
-                        ON taxons (genus)""")
-
-
-def insert_taxon_batch(cxn, values):
-    """Insert a batch of records into the taxons table."""
-    sql = """
-        INSERT INTO taxons (
-                taxon_key,
-                family,
-                scientific_name,
-                authority,
-                synonyms,
-                sample_id,
-                provider_acronym,
-                provider_id,
-                quality_notes,
-                genus)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """
-    cxn.executemany(sql, values)
-    cxn.commit()
-
-
 def get_taxon_by_provider(cxn, provider_acronym, provider_id):
     """Get a taxon record using the provider ID."""
     sql = """
@@ -158,42 +108,6 @@ def insert_uuid_batch(cxn, batch):
         cxn.commit()
 
 
-def create_plates_table(cxn):
-    """Create a table to hold data from the sample_plates Google sheet."""
-    cxn.execute('DROP TABLE IF EXISTS plates')
-    cxn.execute("""
-        CREATE TABLE plates (
-            plate_id   TEXT NOT NULL,
-            entry_date TEXT,
-            local_id   TEXT,
-            protocol   TEXT,
-            notes      TEXT,
-            plate_row  TEXT NOT NULL,
-            plate_col  INTEGER NOT NULL,
-            sample_id  TEXT NOT NULL)
-        """)
-    cxn.execute("""CREATE INDEX plate_idx ON plates (plate_id)""")
-    cxn.execute("""CREATE INDEX plate_sample_ids ON plates (sample_id)""")
-
-
-def insert_plates(cxn, values):
-    """Insert a sample IDs into the plates table."""
-    sql = """
-        INSERT INTO plates (
-                plate_id,
-                entry_date,
-                local_id,
-                protocol,
-                notes,
-                plate_row,
-                plate_col,
-                sample_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """
-    cxn.executemany(sql, values)
-    cxn.commit()
-
-
 def select_plates(cxn):
     """Get plate data from the plates table."""
     sql = """
@@ -233,7 +147,7 @@ def create_picogreen_table(cxn):
             well               TEXT,
             rfu                TEXT,
             ng_microliter      NUMBER,
-            ng_microliter_mean TEXT,
+            ng_microliter_mean NUMBER,
             quant_method       TEXT,
             quant_date         TEXT,
             sample_id          TEXT)
@@ -242,24 +156,6 @@ def create_picogreen_table(cxn):
         CREATE INDEX picogreen_idx ON picogreen (picogreen_id)""")
     cxn.execute("""
         CREATE INDEX picogreen_sample_id ON picogreen (sample_id)""")
-
-
-def insert_picogreen_batch(cxn, batch):
-    """Insert sample IDs into the plates table."""
-    sql = """
-        INSERT INTO picogreen (
-            picogreen_id,
-            well,
-            rfu,
-            ng_microliter,
-            ng_microliter_mean,
-            quant_method,
-            quant_date,
-            sample_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """
-    cxn.executemany(sql, batch)
-    cxn.commit()
 
 
 def create_loci_table(cxn):
