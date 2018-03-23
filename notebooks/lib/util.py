@@ -10,3 +10,11 @@ def is_uuid(guid):
         return True
     except ValueError:
         return False
+
+
+def split_uuids(string):
+    """Split a string into a list of UUIDs."""
+    if not isinstance(string, str):
+        string = ''
+    parts = [p.strip() for p in string.split(';')]
+    return [p for p in parts if is_uuid(p)]
