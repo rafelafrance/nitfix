@@ -50,31 +50,6 @@
   </section>
 
   <h2>
-    <button data-selector="missing" class="toggle closed" title="Open or close this section"></button>
-    Plate samples not in the master taxonomy
-  </h2>
-  <section class="missing closed">
-    <table>
-      <tr class="header">
-        <td>Plate ID</td>
-        <td>Local ID</td>
-        <td>Plate row</td>
-        <td>Plate column</td>
-        <td>Sample ID</td>
-      </tr>
-      {% for sample in missing %}
-        <tr>
-          <td class="l">{{ sample.plate_id }}</td>
-          <td class="l">{{ sample.local_id }}</td>
-          <td>{{ sample.plate_row }}</td>
-          <td>{{ sample.plate_col }}</td>
-          <td class="l">{{ sample.sample_id }}</td>
-        </tr>
-      {% endfor %}
-    </table>
-  </section>
-
-  <h2>
     <button data-selector="samples" class="toggle closed" title="Open or close this section"></button>
     Sample Plates
   </h2>

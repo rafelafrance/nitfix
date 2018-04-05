@@ -1,4 +1,7 @@
 var PLATE_SHEET_ID = '1uPOtAuu3VQUcVkRsY4q2GtfeFrs1l9udkyNEaxvqjmA';
+var TAXONOMY_SHEET_ID = '14J1_gHf4g4BHfG-qVJTx3Z296xyXPIXWNAGRx0uReWk';
+var SHEET_1 = 'picogreen_2_15';
+var SHEET_2 = 'Samples_for_test_plate';
 var LOCAL_ID_OFFSET = 2;  // Add this to get to the date cell
 var TABLE_OFFSET = 6;     // Add this to get to the top of the sample table
 var TABLE_END = 14;       // Add this to get pass the end of the sample table
@@ -6,19 +9,62 @@ var PICOGREEN_ID_IDX = 0;
 var UUID_IDX = 7;
 var UUID_COL = UUID_IDX + 1;
 
+var SCI_NAME_IDX = 4;
+var FAMILY_COL = 5 + 1;
+
 
 function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu('Update')
     .addItem('Update UUIDs', 'updateUuids')
+    .addItem('Update Families', 'updateFamilies')
     .addToUi();
+}
+
+function updateFamilies() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  if (sheet.getName() != SHEET_2) {
+    throw 'You need to have this sheet open: ' + SHEET_2;
+  }
+  const all_families = getFamilies();
+  const families = [];
+
+  sheet.getDataRange()
+    .getValues()
+    .forEach(function(row, r) {
+      const family = all_families[row[SCI_NAME_IDX]] || '';
+      families.push( [family] );
+    });
+
+ families[0] = ['Family'];
+ sheet.getRange(1, FAMILY_COL, families.length, 1)
+   .setValues(families);
+}
+
+
+function getFamilies() {
+  const families = {};
+  const family_idx = 1;
+  const sci_name_idx = 2;
+  const rows = SpreadsheetApp
+    .openById(TAXONOMY_SHEET_ID)
+    .getActiveSheet()
+    .getDataRange()
+    .getValues()
+    .forEach(function(row, r) {
+      families[row[sci_name_idx]] = row[family_idx];
+    });
+  return families;
 }
 
 
 function updateUuids() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  if (sheet.getName() != SHEET_1) {
+    throw 'You need to have this sheet open: ' + SHEET_1;
+  }
   const sampleIds = getSampleIds();
   const uuids = [];
-  const sheet = SpreadsheetApp.getActiveSheet();
   sheet.getDataRange()
     .getValues()
     .forEach(function (row, r) {

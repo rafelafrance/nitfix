@@ -10,26 +10,21 @@ from oauth2client import tools
 from oauth2client.file import Storage
 
 
-SCOPES = 'https://www.googleapis.com/auth/drive'
-CREDENTIALS = 'drive-nitfix.json'
-APPLICATION = 'Google Drive API Python'
-SECRETS = 'data/secrets/client_drive_secrets.json'
-VERSION = 'v3'
-
-
 def get_credentials():
     """Validate user's credentials from cache or prompt for new credentials."""
     home_dir = os.path.expanduser('~')
     credential_dir = join(home_dir, '.credentials')
     if not exists(credential_dir):
         os.makedirs(credential_dir)
-    credential_path = join(credential_dir, CREDENTIALS)
+    credential_path = join(credential_dir, 'drive-nitfix.json')
 
     store = Storage(credential_path)
     credentials = store.get()
     if not credentials or credentials.invalid:
-        flow = client.flow_from_clientsecrets(SECRETS, SCOPES)
-        flow.user_agent = APPLICATION
+        flow = client.flow_from_clientsecrets(
+            'data/secrets/client_drive_secrets.json',
+            'https://www.googleapis.com/auth/drive')
+        flow.user_agent = 'Google Drive API Python'
         flags = argparse.ArgumentParser(
             parents=[tools.argparser]).parse_args()
         credentials = tools.run_flow(flow, store, flags)
@@ -37,28 +32,34 @@ def get_credentials():
     return credentials
 
 
-def get_service(google_app):
-    """Get the Google Drive API."""
-    credentials = get_credentials()
-    http = credentials.authorize(httplib2.Http())
-    return discovery.build(google_app, VERSION, http=http)
-
-
-def export_sheet_csv(sheet_name, csv_file):
+def sheet_download(sheet_name, csv_path, mime_type):
     """Export the Google Sheet."""
-    service = get_service('drive')
+    http = get_credentials().authorize(httplib2.Http())
+    service = discovery.build('drive', 'v3', http=http)
+
     files = service.files().list(
         q='name="{}" and mimeType="{}"'.format(
             sheet_name, 'application/vnd.google-apps.spreadsheet'),
         orderBy='modifiedTime desc,name').execute().get('files', [])
 
     data = service.files().export(
-        fileId=files[0]['id'], mimeType='text/csv').execute()
+        fileId=files[0]['id'], mimeType=mime_type).execute()
 
     if not data:
-        raise FileNotFoundError(
-            'Could not read Google sheet {}'.format(sheet_name))
+        raise FileNotFoundError(f'Could not read Google sheet {sheet_name}')
 
-    csv_file.write(data)
-    csv_file.flush()
-    csv_file.seek(0)
+    with open(csv_path, 'wb') as csv_file:
+        csv_file.write(data)
+
+
+def sheet_to_csv(sheet_name, csv_path):
+    """Export the Google Sheet."""
+    sheet_download(sheet_name, csv_path, 'text/csv')
+
+
+def sheet_to_excel(sheet_name, csv_path):
+    """Export the Google Sheet."""
+    sheet_download(
+        sheet_name,
+        csv_path,
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
