@@ -66,7 +66,7 @@ section.closed {
 }
 
 .sub-header td.empty {
-  background-color: #ffffff;
+  background-color: white;
 }
 
 h2 {
@@ -86,6 +86,14 @@ h2 {
   display: none;
 }
 
+.families tr.genus td.r {
+  padding-right: 24px;
+  background-color: cornsilk;
+}
+
+.families tr.genus td.l {
+  background-color: cornsilk;
+}
 
 /* ============================================================================
   section.samples
