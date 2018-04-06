@@ -210,23 +210,25 @@ function buildWellHeader() {
       { content: 'Well Number' },
       { content: 'Family' },
       { content: 'Scientific Name' },
-      { content: 'Mean Yield' },
+      { content: 'Mean Yield (ng/µL)' },
       { content: 'Sample ID' },
     ],
   };
 }
 
 function buildWellData(well) {
+  var mean = parseFloat(well.ng_microliter_mean).toFixed(3);
+  mean = mean == 'NaN' ? '' : mean;
   return {
     cls: 'well',
     td: [
       { content: '', cls: 'empty' },
       { content: well.well },
       { content: well.picogreen_id },
-      { content: well.family,             cls: 'l' },
-      { content: well.scientific_name,    cls: 'l' },
-      { content: well.ng_microliter_mean, cls: 'r' },
-      { content: well.sample_id,          cls: 'l' },
+      { content: well.family,          cls: 'l' },
+      { content: well.scientific_name, cls: 'l' },
+      { content: mean,                 cls: 'r' },
+      { content: well.sample_id,       cls: 'l' },
     ],
   };
 }
