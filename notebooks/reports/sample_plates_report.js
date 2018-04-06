@@ -55,21 +55,13 @@ function debounce(func, wait, immediate) {
 
 
 function filterWells(plate) {
-  const scientific_name =( document.querySelector('.search-control [data-field=scientific_name]').value || '').toLowerCase();
+  const scientific_name = (document.querySelector('.search-control [data-field=scientific_name]').value || '').toLowerCase();
+  const family = (document.querySelector('.search-control [data-field=family]').value || '').toLowerCase();
   const sample_id = (document.querySelector('.search-control [data-field=sample_id]').value || '').toLowerCase();
-  return allWells[plate.plate_id].filter(function (well) {
-    if (!scientific_name && !sample_id) {
-      return true;
-    }
-    if (!scientific_name) {
-      return well.sample_id.toLowerCase().indexOf(sample_id) > -1;
-    }
-    if (!sample_id) {
-      return well.scientific_name.toLowerCase().indexOf(scientific_name) > -1;
-    }
-    return well.scientific_name.toLowerCase().indexOf(scientific_name) > -1
-        && well.sample_id.toLowerCase().indexOf(sample_id) > -1;
-  });
+  return allWells[plate.plate_id]
+    .filter(function (well) { return sample_id ? well.sample_id.toLowerCase().indexOf(sample_id) > -1 : true; })
+    .filter(function (well) { return scientific_name ? well.scientific_name.toLowerCase().indexOf(scientific_name) > -1 : true; })
+    .filter(function (well) { return family ? well.family.toLowerCase().indexOf(family) > -1 : true; });
 }
 
 function filterChange(target) {
