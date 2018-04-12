@@ -35,7 +35,7 @@ const allWells = {{ wells | safe }};
 ////////////////////////////////////////////////////////////////////////////////////
 // Filter logic for the Sample Plates report section
 
-let filteredPlates = allPlates.filter(function(plate) { return true; });
+var filteredPlates = allPlates.filter(function(plate) { return true; });
 
 function debounce(func, wait, immediate) {
   // Taken from underscore.js
@@ -185,6 +185,8 @@ function buildPlateHeader() {
       { content: 'Notes' },
       { content: '' },
       { content: '' },
+      { content: '' },
+      { content: '' },
     ],
   };
 }
@@ -211,12 +213,16 @@ function buildWellHeader() {
       { content: 'Family' },
       { content: 'Scientific Name' },
       { content: 'Mean Yield (ng/µL)' },
+      { content: 'Sent to Rapid' },
+      { content: 'Sequence Returned' },
       { content: 'Sample ID' },
     ],
   };
 }
 
 function buildWellData(well) {
+  const sent2Rapid = well.input_concentration ? 'Yes' : '';
+  const seqReturned = '';
   var mean = parseFloat(well.ng_microliter_mean).toFixed(3);
   mean = mean == 'NaN' ? '' : mean;
   return {
@@ -228,6 +234,8 @@ function buildWellData(well) {
       { content: well.family,          cls: 'l' },
       { content: well.scientific_name, cls: 'l' },
       { content: mean,                 cls: 'r' },
+      { content: sent2Rapid,                    },
+      { content: seqReturned,                   },
       { content: well.sample_id,       cls: 'l' },
     ],
   };
