@@ -1,15 +1,14 @@
 DATE=`date +%Y-%m-%d`
 PROCESSED=./data/processed
-BACKUP=./data/backup
 DB=nitfix.sqlite.db
 SRC="$(PROCESSED)/$(DB)"
-DST="$(BACKUP)/$(basename $(DB))_$(DATE).db"
-PYTHON=python 
+DST="$(PROCESSED)/$(basename $(DB))_$(DATE).db"
+PYTHON=python
 
 all: images taxonomy samples report
 
 images:
-	@echo "images not done $(DATE)"
+	$(PYTHON) ./src/01_ingest_images.py
 
 taxonomy:
 	$(PYTHON) ./src/02_ingest_taxonomy.py
@@ -23,5 +22,7 @@ report:
 backup:
 	cp $(SRC) $(DST)
 
-clean:
+clean: backup
+	rm ./data/processed/*
 	rm ./data/interim/*
+	rm ./output/*

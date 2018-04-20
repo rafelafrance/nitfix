@@ -16,8 +16,6 @@ __pycache__
 junk*
 temp/
 
-data/backup/*
-!data/backup/.gitkeep
 data/external/*
 !data/external/.gitkeep
 data/interim/*
