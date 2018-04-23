@@ -21,8 +21,3 @@ report:
 
 backup:
 	cp $(SRC) $(DST)
-
-clean: backup
-	rm ./data/processed/*
-	rm ./data/interim/*
-	rm ./output/*

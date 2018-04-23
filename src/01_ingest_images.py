@@ -55,15 +55,12 @@ RESOLUTIONS = [
     ('MO-DOE-nitfix_specimen_photos', 'R0002933', 1, 'OK: Genuine duplicate'),
     ('MO-DOE-nitfix_specimen_photos', 'R0003226', 1, 'OK: Genuine duplicate'),
     ('MO-DOE-nitfix_specimen_photos', 'R0003663', 1, 'OK: Manually fixed'),
-    ('MO-DOE-nitfix_specimen_photos', 'R0003509', 0, 'ERROR: Blurry image'),
-]
+    ('MO-DOE-nitfix_specimen_photos', 'R0003509', 0, 'ERROR: Blurry image')]
 
 MANUAL_INSERTS = [
     {
         'image_file': join('MO-DOE-nitfix_specimen_photos', 'R0003663'),
-        'sample_id': '2eea159f-3c25-42ef-837d-27ad545a6779'
-    },
-]
+        'sample_id': '2eea159f-3c25-42ef-837d-27ad545a6779'}]
 
 PROCESSES = min(10, os.cpu_count() - 4 if os.cpu_count() > 4 else 1)
 BATCH_SIZE = 100
@@ -74,15 +71,10 @@ def ingest_images():
     """Process image files."""
     cxn = db.connect()
 
-    old_images = pd.read_sql('SELECT * FROM raw_images', cxn)
-    old_errors = pd.read_sql('SELECT * FROM image_errors', cxn)
-    old_images.image_file = old_images.image_file.apply(normalize_file_name)
-    old_errors.image_file = old_errors.image_file.apply(normalize_file_name)
-
+    old_images, old_errors = get_old_images(cxn)
     image_files = get_images_to_process(old_images, old_errors)
-    image_files = image_files[:5] + image_files[:3]
     batches = [image_files[i:i + BATCH_SIZE]
-               for i in range(0, image_files.shape[0], BATCH_SIZE)]
+               for i in range(0, len(image_files), BATCH_SIZE)]
 
     with multiprocessing.Pool(processes=PROCESSES) as pool:
         results = [pool.apply_async(ingest_batch, (b, )) for b in batches]
@@ -105,6 +97,20 @@ def ingest_images():
 
     images.to_sql('raw_images', cxn, if_exists='replace', index=False)
     errors.to_sql('image_errors', cxn, if_exists='replace', index=False)
+
+
+def get_old_images(cxn):
+    """Get images already in the database."""
+    try:
+        images = pd.read_sql('SELECT * FROM raw_images', cxn)
+        errors = pd.read_sql('SELECT * FROM image_errors', cxn)
+        images.image_file = images.image_file.apply(normalize_file_name)
+        errors.image_file = errors.image_file.apply(normalize_file_name)
+    except pd.io.sql.DatabaseError:
+        images = pd.DataFrame(columns=['image_file', 'sample_id'])
+        errors = pd.DataFrame(
+            columns=['image_file', 'msg', 'ok', 'resolution'])
+    return images, errors
 
 
 def find_duplicate_uuids(images):
