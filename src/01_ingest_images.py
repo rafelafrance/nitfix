@@ -163,7 +163,7 @@ def get_images_to_process(old_images, old_errors):
 
     image_files = []
     for image_dir in IMAGE_DIRS:
-        pattern = str(IMAGE_ROOT / image_dir / '*.JPG')
+        pattern = os.fspath(IMAGE_ROOT / image_dir / '*.JPG')
         file_names = glob(pattern)
         image_files += map(normalize_file_name, file_names)
     image_files = [f for f in image_files if f not in skip_images]

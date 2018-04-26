@@ -1,5 +1,6 @@
 """Print project status report."""
 
+import os
 from pathlib import Path
 from datetime import datetime
 import pandas as pd
@@ -78,7 +79,7 @@ def print_report():
     cxn = db.connect()
     now = datetime.now()
 
-    template_dir = str(Path('.') / 'src' / 'reports')
+    template_dir = os.fspath(Path('src') / 'reports')
     env = Environment(loader=FileSystemLoader(template_dir))
     template = env.get_template('sample_plates_report.html')
 
@@ -92,7 +93,7 @@ def print_report():
 
     report_name = f'sample_plates_report_{now.strftime("%Y-%m-%d")}.html'
     report_path = Path('output') / report_name
-    with open(report_path, 'w') as out_file:
+    with report_path.open('w') as out_file:
         out_file.write(report)
 
 

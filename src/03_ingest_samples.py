@@ -7,8 +7,7 @@ import lib.db as db
 import lib.google as google
 
 
-INTERIM_DATA = Path('..') / 'data' / 'interim'
-PROCESSED_DATA = Path('..') / 'data' / 'processed'
+INTERIM_DATA = Path('data') / 'interim'
 
 
 def ingest_samples():
@@ -45,10 +44,8 @@ def get_wells():
        .                        .            ...       .
     Plate row H                UUID?          ...     UUID?
     """
-    csv_name = 'sample_plates.csv'
-
-    csv_path = INTERIM_DATA / csv_name
     step = 14
+    csv_path = INTERIM_DATA / 'sample_plates.csv'
 
     google.sheet_to_csv('sample_plates', csv_path)
 

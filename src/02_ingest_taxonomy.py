@@ -179,7 +179,7 @@ def merge_genbank_loci_data(taxonomy):
 
 def get_expedition_data(dbx, taxon_ids):
     """Get NitFix 1 expedition data."""
-    csv_path = str(INTERIM_DATA / 'nitfix01.csv')
+    csv_path = os.fspath(INTERIM_DATA / 'nitfix01.csv')
     dbx_path = 'id:zSBrtnqOfSAAAAAAAAAAKw/5657_Nit_Fix_I.reconcile.4.2.csv'
 
     dbx.files_download_to_file(csv_path, dbx_path)
