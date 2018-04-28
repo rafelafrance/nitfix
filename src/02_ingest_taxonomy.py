@@ -77,7 +77,7 @@ def get_master_taxonomy():
 
     split_ids = taxonomy.ids.str.split(r'\s*[;,]\s*', expand=True)
     id_cols = {i: f'id_{i + 1}' for i in split_ids.columns}
-    split_ids.rename(columns=id_cols, inplace=True)
+    split_ids = split_ids.rename(columns=id_cols)
 
     taxonomy = pd.concat([taxonomy, split_ids], axis=1)
 
@@ -88,9 +88,9 @@ def link_images_to_taxonomy(cxn, taxonomy, split_ids):
     """Link Images to Taxonomy IDs."""
     images = pd.read_sql('SELECT * FROM raw_images', cxn)
 
-    taxon_ids = taxonomy.melt(
-        id_vars=['scientific_name'], value_vars=split_ids.columns)
-    taxon_ids.rename(columns={'value': 'id'}, inplace=True)
+    taxon_ids = (taxonomy.melt(id_vars=['scientific_name'],
+                               value_vars=split_ids.columns)
+                         .rename(columns={'value': 'id'}))
 
     has_id = taxon_ids.id.str.len() > 4
     taxon_ids = taxon_ids[has_id]
@@ -113,12 +113,12 @@ def merge_pilot_data(cxn, taxon_ids):
     columns = ['image_file_x', 'image_file_y']
     taxon_ids['image_file'] = taxon_ids.apply(
         partial(join_columns, columns), axis=1)
-    taxon_ids.drop(columns, axis=1, inplace=True)
+    taxon_ids = taxon_ids.drop(columns, axis=1)
 
     columns = ['sample_id_x', 'sample_id_y']
     taxon_ids['sample_id'] = taxon_ids.apply(
         partial(join_columns, columns), axis=1)
-    taxon_ids.drop(columns, axis=1, inplace=True)
+    taxon_ids = taxon_ids.drop(columns, axis=1)
 
     return taxon_ids
 
@@ -133,12 +133,12 @@ def merge_corrales_data(cxn, taxon_ids):
     columns = ['image_file_x', 'image_file_y']
     taxon_ids['image_files'] = taxon_ids.apply(
         partial(join_columns, columns), axis=1)
-    taxon_ids.drop(columns, axis=1, inplace=True)
+    taxon_ids = taxon_ids.drop(columns, axis=1)
 
     columns = ['sample_id_x', 'sample_id_y']
     taxon_ids['sample_ids'] = taxon_ids.apply(
         partial(join_columns, columns), axis=1)
-    taxon_ids.drop(columns, axis=1, inplace=True)
+    taxon_ids = taxon_ids.drop(columns, axis=1)
 
     not_an_id = taxon_ids.id.str.contains('corrales: corrales no voucher')
     taxon_ids = taxon_ids[~not_an_id]
@@ -196,7 +196,7 @@ def get_expedition_data(dbx, taxon_ids):
         columns[old] = new
     columns['subject_qr_code'] = 'sample_id'
 
-    nitfix01.rename(columns=columns, inplace=True)
+    nitfix01 = nitfix01.rename(columns=columns)
 
     taxon_ids = taxon_ids.merge(
         right=nitfix01, how='left', left_on='id', right_on='sample_id')

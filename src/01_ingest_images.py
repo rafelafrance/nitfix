@@ -126,7 +126,7 @@ def find_duplicate_uuids(images):
                 dupe.image_file,
                 images.loc[images.sample_id == dupe.sample_id, 'image_file']),
         axis=1)
-    dupes.drop(['sample_id'], axis=1, inplace=True)
+    dupes = dupes.drop(['sample_id'], axis=1)
     return images, dupes
 
 
@@ -256,8 +256,8 @@ def read_pilot_data(cxn, images):
     pilot['image_file'] = pilot['File'].apply(
         lambda x: f'UFBI_sample_photos/{x}')
 
-    pilot.drop(['File'], axis=1, inplace=True)
-    pilot.rename(columns={'Identifier': 'pilot_id'}, inplace=True)
+    pilot = (pilot.drop(['File'], axis=1)
+                  .rename(columns={'Identifier': 'pilot_id'}))
     pilot.pilot_id = pilot.pilot_id.str.lower().str.split().str.join(' ')
 
     pilot.to_sql('raw_pilot', cxn, if_exists='replace', index=False)
@@ -265,7 +265,7 @@ def read_pilot_data(cxn, images):
     already_in = pilot.sample_id.isin(images.sample_id)
     pilot = pilot[~already_in]
 
-    pilot.drop('pilot_id', axis=1, inplace=True)
+    pilot = pilot.drop('pilot_id', axis=1)
     return pd.concat([images, pilot], ignore_index=True)
 
 
@@ -282,7 +282,7 @@ def read_corrales_data(cxn, images):
     already_in = corrales.sample_id.isin(images.sample_id)
     corrales = corrales[~already_in]
 
-    corrales.drop('corrales_id', axis=1, inplace=True)
+    corrales = corrales.drop('corrales_id', axis=1)
     return pd.concat([images, corrales], ignore_index=True)
 
 

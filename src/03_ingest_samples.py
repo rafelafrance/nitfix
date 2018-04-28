@@ -53,13 +53,13 @@ def get_wells():
 
     has_data = sample_plates['Plate ID'].notna()
     sample_plates = sample_plates[has_data]
-    sample_plates.reset_index(drop=True, inplace=True)
+    sample_plates = sample_plates.reset_index(drop=True)
 
     # Get all of the per plate information into a data frame
     plates = []
     for i in range(6):
         plate = sample_plates.iloc[i::step, [0]]
-        plate.reset_index(drop=True, inplace=True)
+        plate = plate.reset_index(drop=True)
         plates.append(plate)
 
     plates = pd.concat(plates, axis=1, ignore_index=True)
@@ -71,26 +71,24 @@ def get_wells():
     for row in range(row_start, row_start + len(rows)):
         for col in range(1, 13):
             well = pd.DataFrame(sample_plates.iloc[row::step, col])
-            well.reset_index(drop=True, inplace=True)
+            well = well.reset_index(drop=True)
             row_offset = row - row_start
             well['row'] = rows[row_offset:row_offset + 1]
             well['col'] = col
             well = pd.concat([plates, well], axis=1, ignore_index=True)
             wells.append(well)
 
-    wells = pd.concat(wells, axis=0, ignore_index=True)
-    wells.rename(
-        columns={
-            0: 'plate_id',
-            1: 'entry_date',
-            2: 'local_id',
-            3: 'protocol',
-            4: 'notes',
-            5: 'results',
-            6: 'sample_id',
-            7: 'row',
-            8: 'col'},
-        inplace=True)
+    wells = (pd.concat(wells, axis=0, ignore_index=True)
+               .rename(columns={
+                    0: 'plate_id',
+                    1: 'entry_date',
+                    2: 'local_id',
+                    3: 'protocol',
+                    4: 'notes',
+                    5: 'results',
+                    6: 'sample_id',
+                    7: 'row',
+                    8: 'col'}))
     wells['well_no'] = wells.apply(
         lambda well: 'ABCDEFGH'.find(well.row.upper()) * 12 + well.col, axis=1)
     wells['local_no'] = wells.local_id.str.replace(r'\D+', '').astype('int')

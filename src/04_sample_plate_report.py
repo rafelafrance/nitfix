@@ -51,10 +51,9 @@ def get_plate_wells(wells):
 
 def get_genus_coverage(cxn):
     """Get family and genus coverage."""
-    taxonomy = pd.read_sql('SELECT * FROM taxonomy', cxn)
-    taxonomy.rename(
-        columns={'scientific_name': 'total', 'image_files': 'imaged'},
-        inplace=True)
+    taxonomy = (pd.read_sql('SELECT * FROM taxonomy', cxn)
+                  .rename(columns={'scientific_name': 'total',
+                                   'image_files': 'imaged'}))
     taxonomy = taxonomy[['family', 'genus', 'total', 'imaged']]
 
     genera = taxonomy.groupby(['family', 'genus']).count()
@@ -70,7 +69,7 @@ def get_genus_coverage(cxn):
     coverage['genus'] = coverage.index.get_level_values('genus')
     coverage['percent'] = coverage['imaged'] / coverage['total'] * 100.0
 
-    coverage.sort_values(['family', 'genus'], inplace=True)
+    coverage = coverage.sort_values(['family', 'genus'])
     return coverage
 
 
