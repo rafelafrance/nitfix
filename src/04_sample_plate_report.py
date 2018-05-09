@@ -16,14 +16,14 @@ def get_wells(cxn):
                ng_microliter_mean,
                family,
                rapid_input.concentration AS input_concentration,
-               rapid_input.volume AS rapid_input_volume,
+               rapid_input.volume        AS rapid_input_volume,
                rapid_input.rapid_concentration,
-               rapid_input.rapid_volume,
-               rapid_wells.volume AS rapid_well_volume
+               rapid_input.rapid_volume
+               rapid_wells.volume        AS rapid_well_volume,
           FROM wells
-          JOIN taxon_ids ON (wells.sample_id = taxon_ids.id)
-          JOIN taxonomy USING (scientific_name)
-     LEFT JOIN picogreen USING (picogreen_id)
+          JOIN taxon_ids   ON    (wells.sample_id = taxon_ids.id)
+          JOIN taxonomy    USING (scientific_name)
+     LEFT JOIN picogreen   USING (picogreen_id)
      LEFT JOIN rapid_input USING (sample_id)
      LEFT JOIN rapid_wells USING (source_plate, source_well)
       ORDER BY local_no, row, col
