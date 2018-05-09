@@ -26,7 +26,7 @@ def get_wells(cxn):
      LEFT JOIN picogreen USING (picogreen_id)
      LEFT JOIN rapid_input USING (sample_id)
      LEFT JOIN rapid_wells USING (source_plate, source_well)
-        ORDER BY local_no, row, col
+      ORDER BY local_no, row, col
     """
     wells = pd.read_sql(sql, cxn)
     return wells
