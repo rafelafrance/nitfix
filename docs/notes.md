@@ -1,4 +1,9 @@
-###  Meeting 2018-03-21 - Priorities
+###  Toss list
 
-1. Based on yield, get a "toss" list, remove lower 25% or so. However, we need to make sure we keep important taxa. AKA Plate plan
-1. Nodulation states?
+1. Toss everything with a value <1 (not <=). This means <1 ng/uL or <100 ng total DNA.
+1. Priority rules.
+  1. Must have one representative of each genus.
+  1. If we have <= 5 species TOTAL in a genus, submit everything we have.
+  1. If we have >5 but <=12 species TOTAL a the genus, submit 50% of what we have.
+  1. If we have >12 species in a genus, submit 25% of what we have.
+1. Whenever you execute part (2) — can the tossing of species be not completely random but favor higher DNA yield?
