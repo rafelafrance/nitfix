@@ -64,7 +64,7 @@ function filterWells(plate) {
     .filter(function (well) { return sample_id ? well.sample_id.toLowerCase().indexOf(sample_id) > -1 : true; })
     .filter(function (well) { return scientific_name ? well.scientific_name.toLowerCase().indexOf(scientific_name) > -1 : true; })
     .filter(function (well) { return family ? well.family.toLowerCase().indexOf(family) > -1 : true; })
-    .filter(function (well) { return sent2Rapid ? well.input_concentration : true; })
+    .filter(function (well) { return sent2Rapid ? well.rapid_concentration : true; })
     .filter(function (well) { return seqReturned ? well.seqReturned : true; });
 }
 
@@ -233,7 +233,7 @@ function buildWellHeader() {
 }
 
 function buildWellData(well) {
-  const sent2Rapid = well.input_concentration ? 'Yes' : '';
+  const sent2Rapid = well.rapid_concentration ? 'Yes' : '';
   const seqReturned = '';
   var mean = parseFloat(well.ng_microliter_mean).toFixed(3);
   mean = mean == 'NaN' ? '' : mean;

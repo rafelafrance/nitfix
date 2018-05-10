@@ -93,10 +93,10 @@ def ingest_images():
     images = read_corrales_data(cxn, images)
 
     errors = resolve_errors(errors)
-    images = manually_insert_images(images)
+    # images = manually_insert_images(images)
 
-    images.to_sql('raw_images', cxn, if_exists='replace', index=False)
-    errors.to_sql('image_errors', cxn, if_exists='replace', index=False)
+    # images.to_sql('raw_images', cxn, if_exists='replace', index=False)
+    # errors.to_sql('image_errors', cxn, if_exists='replace', index=False)
 
 
 def get_old_images(cxn):
@@ -120,12 +120,15 @@ def find_duplicate_uuids(images):
     images = images[~dupe_mask]
     dupes['ok'] = np.nan
     dupes['resolution'] = None
-    dupes['msg'] = dupes.apply(
-        lambda dupe:
-            ('DUPLICATES: Files {} and {} have the same QR code').format(
-                dupe.image_file,
-                images.loc[images.sample_id == dupe.sample_id, 'image_file']),
-        axis=1)
+    dupes['msg'] = ''
+    if dupes.shape[0]:
+        dupes['msg'] = dupes.apply(
+            lambda dupe:
+                ('DUPLICATES: Files {} and {} have the same QR code').format(
+                    dupe.image_file,
+                    images.loc[images.sample_id == dupe.sample_id,
+                               'image_file']),
+            axis=1)
     dupes = dupes.drop(['sample_id'], axis=1)
     return images, dupes
 
@@ -290,9 +293,9 @@ def resolve_errors(errors):
     """Update errors with their resolutions."""
     for resolution in RESOLUTIONS:
         path = join(resolution[0], resolution[1])
-        error = errors[errors.image_file == path]
-        error.ok = resolution[2]
-        error.resolution = resolution[3]
+        error = errors.image_file == path
+        errors.loc[error, 'ok'] = resolution[2]
+        errors.loc[error, 'resolution'] = resolution[3]
     return errors
 
 

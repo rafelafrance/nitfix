@@ -116,11 +116,11 @@ def get_picogreen():
 
 
 def get_rapid_input():
-    """Get data dent to Rapid from Google sheet."""
+    """Get data sent to Rapid from Google sheet."""
     csv_path = INTERIM_DATA / 'rapid_input.csv'
 
     google.sheet_to_csv(
-        'FMN_131001_Normal_Plate_Layout_03-21-2018_20-22-03.xlsx', csv_path)
+        'FMN_131001_QC_Normal_Plate_Layout.xlsx', csv_path)
 
     rapid_input = pd.read_csv(
         csv_path,
@@ -128,7 +128,7 @@ def get_rapid_input():
         skiprows=1,
         names=[
             'row_sort', 'col_sort', 'rapid_id', 'sample_id', 'concentration',
-            'volume', 'comments', 'rapid_concentration', 'rapid_volume'])
+            'volume', 'comments', 'rapid_concentration', 'rapid_total_dna'])
 
     source_plate = re.compile(r'^[A-Za-z]+_\d+_(P\d+)_W\w+$')
     rapid_input['source_plate'] = rapid_input.rapid_id.str.extract(
