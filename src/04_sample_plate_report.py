@@ -85,7 +85,7 @@ def generate_reports():
     genera = get_genus_coverage(cxn)
 
     generate_html_report(now, wells, plates, genera)
-    generate_excel_report(now, wells, plates, genera)
+    generate_excel_report(cxn, now, wells, plates, genera)
 
 
 def generate_html_report(now, wells, plates, genera):
@@ -106,24 +106,29 @@ def generate_html_report(now, wells, plates, genera):
         out_file.write(report)
 
 
-def generate_excel_report(now, wells, plates, genera):
+def generate_excel_report(cxn, now, wells, plates, genera):
     """Generate the Excel version of the report."""
     report_name = f'sample_plates_report_{now.strftime("%Y-%m-%d")}.xlsx'
     report_path = Path('output') / report_name
 
     genera = genera.drop(['family', 'genus'], axis=1)
 
-    wells = wells.set_index(['local_no', 'well_no'])
     wells = wells.drop(
         ['entry_date', 'local_id', 'protocol', 'notes', 'plate_id',
-         'row', 'col', 'results', 'rapid_well_volume'],
-        axis=1)
-    wells = wells.reindex(['well', 'picogreen_id', 'family',
+         'row', 'col', 'results', 'rapid_well_volume'], axis=1)
+    wells = wells.reindex(['local_no', 'well_no', 'well',
+                           'picogreen_id', 'family',
                            'scientific_name', 'sample_id',
                            'ng_microliter_mean', 'input_concentration',
                            'rapid_input_volume', 'rapid_concentration',
                            'rapid_total_dna'], axis=1)
+    expeditions = pd.read_sql('SELECT * FROM expeditions', cxn)
+    wells = wells.merge(right=expeditions, how='left', on='sample_id')
+    wells = wells.drop(['subject_id'], axis=1)
+    wells = wells.sort_values(['local_no', 'well'])
     wells = wells.rename(columns={
+        'local_no': 'Local Plate Number',
+        'well_no': 'Well Offset',
         'well': 'Well',
         'picogreen_id': 'Well Number',
         'family': 'Family',
@@ -132,14 +137,42 @@ def generate_excel_report(now, wells, plates, genera):
         'input_concentration': 'Concentration (ng / uL)',
         'rapid_input_volume': 'Volume (uL)',
         'sample_id': 'Sample ID',
-        'rapid_total_dna': 'RAPiD Genomics Lab Use ONLY\nTotal DNA (ng)',
         'rapid_concentration':
-            'RAPiD Genomics Lab Use ONLY\nConcentration (ng / uL)'})
+            'RAPiD Genomics Lab Use ONLY\nConcentration (ng / uL)',
+        'rapid_total_dna': 'RAPiD Genomics Lab Use ONLY\nTotal DNA (ng)',
+        'subject_id': 'subject_id',
+        'country': 'Country',
+        'state_province': 'State/Province',
+        'county': 'County',
+        'location': 'Location',
+        'minimum_elevation': 'Minimum Elevation',
+        'maximum_elevation': 'Maximum Elevation',
+        'main_dropdown': 'Main Dropdown',
+        'latitude_deg': 'Latitude ⁰',
+        'latitude_min': "Latitude '",
+        'latitude_sec': 'Latitude "',
+        'longitude_deg': 'Longitude ⁰',
+        'longitude_min': "Longitude '",
+        'longitude_sec': 'Longitude "',
+        'primary_collector_last_first_middle':
+            'Primary Collector (*Last* *First* *Middle*)',
+        'other_collectors_as_written': 'Other Collectors (as written)',
+        'collector_number_numeric_only': 'Collector Number  (numeric only)',
+        'collector_number_verbatim': 'Collector Number (verbatim)',
+        'month_1': 'Month #1',
+        'day_1': 'Day #1',
+        'year_1': 'Year #1',
+        'month_2': 'Month #2',
+        'day_2': 'Day #2',
+        'year_2': 'Year #2',
+        'subject_image_name': 'Image Name',
+        'subject_nybg_bar_code': 'Bar Code',
+        'subject_resolved_name': 'Resolved Name'})
 
     with pd.ExcelWriter(report_path) as writer:
         genera.to_excel(writer, sheet_name='Family Coverage')
         plates.to_excel(writer, sheet_name='Sample Plates')
-        wells.to_excel(writer, sheet_name='Sample Plate Wells')
+        wells.to_excel(writer, sheet_name='Sample Plate Wells', index=False)
 
 
 if __name__ == '__main__':

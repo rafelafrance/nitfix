@@ -30,12 +30,12 @@ def ingest_taxonomy():
     taxon_ids = merge_corrales_data(cxn, taxon_ids)
     taxonomy = rollup_id_data(taxonomy, taxon_ids)
     taxonomy, loci = merge_genbank_loci_data(taxonomy)
-    taxon_ids, nitfix01 = get_expedition_data(dbx, taxon_ids)
+    taxon_ids, expeditions = get_expedition_data(dbx, taxon_ids)
 
     taxonomy.to_sql('taxonomy', cxn, if_exists='replace', index=False)
     taxon_ids.to_sql('taxon_ids', cxn, if_exists='replace', index=False)
     loci.to_sql('raw_loci', cxn, if_exists='replace', index=False)
-    nitfix01.to_sql('raw_nitfix01', cxn, if_exists='replace', index=False)
+    expeditions.to_sql('expeditions', cxn, if_exists='replace', index=False)
 
 
 def join_columns(columns, row):
@@ -90,7 +90,7 @@ def link_images_to_taxonomy(cxn, taxonomy, split_ids):
 
     taxon_ids = (taxonomy.melt(id_vars=['scientific_name'],
                                value_vars=split_ids.columns)
-                         .rename(columns={'value': 'id'}))
+                 .rename(columns={'value': 'id'}))
 
     has_id = taxon_ids.id.str.len() > 4
     taxon_ids = taxon_ids[has_id]
@@ -179,14 +179,14 @@ def merge_genbank_loci_data(taxonomy):
 
 def get_expedition_data(dbx, taxon_ids):
     """Get NitFix 1 expedition data."""
-    csv_path = os.fspath(INTERIM_DATA / 'nitfix01.csv')
+    csv_path = os.fspath(INTERIM_DATA / 'expedition_01.csv')
     dbx_path = 'id:zSBrtnqOfSAAAAAAAAAAKw/5657_Nit_Fix_I.reconcile.4.2.csv'
 
     dbx.files_download_to_file(csv_path, dbx_path)
 
-    nitfix01 = pd.read_csv(csv_path)
+    expedition_01 = pd.read_csv(csv_path)
     columns = {}
-    for old in nitfix01.columns:
+    for old in expedition_01.columns:
         new = old.lower()
         new = new.replace('⁰', 'deg')
         new = new.replace("''", 'sec')
@@ -196,12 +196,12 @@ def get_expedition_data(dbx, taxon_ids):
         columns[old] = new
     columns['subject_qr_code'] = 'sample_id'
 
-    nitfix01 = nitfix01.rename(columns=columns)
+    expeditions = expedition_01.rename(columns=columns)
 
     taxon_ids = taxon_ids.merge(
-        right=nitfix01, how='left', left_on='id', right_on='sample_id')
+        right=expeditions, how='left', left_on='id', right_on='sample_id')
 
-    return taxon_ids, nitfix01
+    return taxon_ids, expeditions
 
 
 if __name__ == '__main__':
