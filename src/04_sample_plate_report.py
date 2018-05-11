@@ -118,11 +118,11 @@ def generate_excel_report(now, wells, plates, genera):
         ['entry_date', 'local_id', 'protocol', 'notes', 'plate_id',
          'row', 'col', 'results', 'rapid_well_volume'],
         axis=1)
-    columns = ['well', 'picogreen_id', 'family', 'scientific_name',
-               'sample_id', 'ng_microliter_mean',
-               'input_concentration', 'rapid_input_volume',
-               'rapid_concentration', 'rapid_total_dna']
-    wells = wells.reindex(columns, axis=1)
+    wells = wells.reindex(['well', 'picogreen_id', 'family',
+                           'scientific_name', 'sample_id',
+                           'ng_microliter_mean', 'input_concentration',
+                           'rapid_input_volume', 'rapid_concentration',
+                           'rapid_total_dna'], axis=1)
     wells = wells.rename(columns={
         'well': 'Well',
         'picogreen_id': 'Well Number',

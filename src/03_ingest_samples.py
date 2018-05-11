@@ -79,16 +79,9 @@ def get_wells():
             wells.append(well)
 
     wells = (pd.concat(wells, axis=0, ignore_index=True)
-               .rename(columns={
-                    0: 'plate_id',
-                    1: 'entry_date',
-                    2: 'local_id',
-                    3: 'protocol',
-                    4: 'notes',
-                    5: 'results',
-                    6: 'sample_id',
-                    7: 'row',
-                    8: 'col'}))
+               .rename(columns={0: 'plate_id', 1: 'entry_date', 2: 'local_id',
+                                3: 'protocol', 4: 'notes', 5: 'results',
+                                6: 'sample_id', 7: 'row', 8: 'col'}))
     wells['well_no'] = wells.apply(
         lambda well: 'ABCDEFGH'.find(well.row.upper()) * 12 + well.col, axis=1)
     wells['local_no'] = wells.local_id.str.replace(r'\D+', '').astype('int')
