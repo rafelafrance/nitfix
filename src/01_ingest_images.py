@@ -26,7 +26,9 @@ IMAGE_DIRS = [
     'NY_visit_2',
     'NY_DOE-nitfix_visit3',
     'NY_DOE-nitfix_visit4',
-    'HUH_DOE-nitfix_specimen_photos']
+    'HUH_DOE-nitfix_specimen_photos',
+    'MOBOT-523to525-Set2',
+    'MO-DOE-nitfix_visit2']
 
 RESOLUTIONS = [
     ('DOE-nitfix_specimen_photos', 'R0000149', 1, 'OK: Genuine duplicate'),
