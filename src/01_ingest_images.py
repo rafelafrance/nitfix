@@ -21,13 +21,12 @@ IMAGE_ROOT = Path('..') / 'Dropbox'
 IMAGE_DIRS = [
     'OS_DOE-nitfix_specimen_photos',
     'CAS-DOE-nitfix_specimen_photos',
-    'MO-DOE-nitfix_specimen_photos',
     'DOE-nitfix_specimen_photos',
     'NY_visit_2',
     'NY_DOE-nitfix_visit3',
     'NY_DOE-nitfix_visit4',
     'HUH_DOE-nitfix_specimen_photos',
-    'MOBOT-523to525-Set2',
+    'MO-DOE-nitfix_specimen_photos',
     'MO-DOE-nitfix_visit2']
 
 RESOLUTIONS = [
@@ -95,10 +94,10 @@ def ingest_images():
     images = read_corrales_data(cxn, images)
 
     errors = resolve_errors(errors)
-    # images = manually_insert_images(images)
+    images = manually_insert_images(images)
 
-    # images.to_sql('raw_images', cxn, if_exists='replace', index=False)
-    # errors.to_sql('image_errors', cxn, if_exists='replace', index=False)
+    images.to_sql('raw_images', cxn, if_exists='replace', index=False)
+    errors.to_sql('image_errors', cxn, if_exists='replace', index=False)
 
 
 def get_old_images(cxn):
