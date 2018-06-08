@@ -71,7 +71,7 @@ def get_genus_coverage(cxn):
     coverage['genus'] = coverage.index.get_level_values('genus')
     coverage['percent'] = coverage['imaged'] / coverage['total'] * 100.0
 
-    coverage = coverage.sort_values(['family', 'genus'])
+    coverage = coverage.sort_index()
     return coverage
 
 

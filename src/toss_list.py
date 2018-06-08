@@ -7,9 +7,12 @@ Create a list of samples to keep or toss given the criteria below.
 2. Priority rules.
     2a. Must have one representative of each genus.
     2b. If we have <= 5 species TOTAL in a genus, submit everything we have.
-    2c. If we have > 5 but <= 12 species TOTAL a the genus, submit 50% of them.
+    2c. If we have > 5 but <= 12 species TOTAL of genus, submit 50% of them.
     2d. If we have > 12 species in a genus, submit 25% of what we have.
     ** Bias the selection to favor higher DNA yield?
+
+3. Also have to keep samples that have already been sorted. So the sort order
+   is submitted then yield grouped by genus.
 """
 
 import math

@@ -88,7 +88,8 @@ def ingest_images():
 
     images = pd.concat([old_images, new_images], ignore_index=True)
     images, dupes = find_duplicate_uuids(images)
-    errors = pd.concat([old_errors, new_errors, dupes], ignore_index=True)
+    errors = pd.concat(
+        [old_errors, new_errors, dupes], ignore_index=True, sort=True)
 
     images = read_pilot_data(cxn, images)
     images = read_corrales_data(cxn, images)
@@ -270,7 +271,7 @@ def read_pilot_data(cxn, images):
     pilot = pilot[~already_in]
 
     pilot = pilot.drop('pilot_id', axis=1)
-    return pd.concat([images, pilot], ignore_index=True)
+    return pd.concat([images, pilot], ignore_index=True, sort=True)
 
 
 def read_corrales_data(cxn, images):
@@ -287,7 +288,7 @@ def read_corrales_data(cxn, images):
     corrales = corrales[~already_in]
 
     corrales = corrales.drop('corrales_id', axis=1)
-    return pd.concat([images, corrales], ignore_index=True)
+    return pd.concat([images, corrales], ignore_index=True, sort=True)
 
 
 def resolve_errors(errors):
