@@ -13,7 +13,6 @@ def get_wells(cxn):
     sql = """
         SELECT wells.*,
                scientific_name,
-               ng_microliter_mean,
                family,
                rapid_input.concentration AS input_concentration,
                rapid_input.volume        AS rapid_input_volume,
@@ -23,7 +22,6 @@ def get_wells(cxn):
           FROM wells
           JOIN taxon_ids   ON    (wells.sample_id = taxon_ids.id)
           JOIN taxonomy    USING (scientific_name)
-     LEFT JOIN picogreen   USING (picogreen_id)
      LEFT JOIN rapid_input USING (sample_id)
      LEFT JOIN rapid_wells USING (source_plate, source_well)
       ORDER BY local_no, row, col
@@ -116,12 +114,10 @@ def generate_excel_report(cxn, now, wells, plates, genera):
     wells = wells.drop(
         ['entry_date', 'local_id', 'protocol', 'notes', 'plate_id',
          'row', 'col', 'results', 'rapid_well_volume'], axis=1)
-    wells = wells.reindex(['local_no', 'well_no', 'well',
-                           'picogreen_id', 'family',
-                           'scientific_name', 'sample_id',
-                           'ng_microliter_mean', 'input_concentration',
-                           'rapid_input_volume', 'rapid_concentration',
-                           'rapid_total_dna'], axis=1)
+    wells = wells.reindex(
+        """local_no well_no well family scientific_name sample_id
+           input_concentration rapid_input_volume rapid_concentration
+           rapid_total_dna""".split(), axis=1)
     expeditions = pd.read_sql('SELECT * FROM expeditions', cxn)
     wells = wells.merge(right=expeditions, how='left', on='sample_id')
     wells = wells.drop(['subject_id'], axis=1)
@@ -130,10 +126,8 @@ def generate_excel_report(cxn, now, wells, plates, genera):
         'local_no': 'Local Plate Number',
         'well_no': 'Well Offset',
         'well': 'Well',
-        'picogreen_id': 'Well Number',
         'family': 'Family',
         'scientific_name': 'Scientific Name',
-        'ng_microliter_mean': 'Mean Yield (ng/µL)',
         'input_concentration': 'Concentration (ng / uL)',
         'rapid_input_volume': 'Volume (uL)',
         'sample_id': 'Sample ID',

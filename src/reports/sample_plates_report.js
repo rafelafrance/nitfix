@@ -221,11 +221,10 @@ function buildWellHeader() {
     td: [
       { content: '', cls: 'empty'},
       { content: 'Well' },
-      { content: 'Well Number' },
       { content: 'Family' },
       { content: 'Scientific Name' },
-      { content: 'Mean Yield (ng/µL)' },
-      { content: 'Sent to Rapid' },
+      { content: 'Concentration (ng/µL)' },
+      { content: 'Total DNA (ng)' },
       { content: 'Sequence Returned' },
       { content: 'Sample ID' },
     ],
@@ -235,18 +234,19 @@ function buildWellHeader() {
 function buildWellData(well) {
   const sent2Rapid = well.rapid_concentration ? 'Yes' : '';
   const seqReturned = '';
-  var mean = parseFloat(well.ng_microliter_mean).toFixed(3);
-  mean = mean == 'NaN' ? '' : mean;
+  var concentration = parseFloat(well.rapid_concentration).toFixed(2);
+  concentration = concentration == 'NaN' ? '' : concentration;
+  var totalDna = parseFloat(well.rapid_total_dna).toFixed(2);
+  totalDna = totalDna == 'NaN' ? '' : totalDna;
   return {
     cls: 'well',
     td: [
       { content: '', cls: 'empty' },
       { content: well.well },
-      { content: well.picogreen_id },
       { content: well.family,          cls: 'l' },
       { content: well.scientific_name, cls: 'l' },
-      { content: mean,                 cls: 'r' },
-      { content: sent2Rapid,                    },
+      { content: concentration,        cls: 'r' },
+      { content: totalDna,             cls: 'r' },
       { content: seqReturned,                   },
       { content: well.sample_id,       cls: 'l' },
     ],

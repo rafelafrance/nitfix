@@ -12,22 +12,11 @@ import pandas as pd
 from PIL import Image, ImageFilter
 import zbarlight
 import lib.db as db
+import lib.util as util
 import lib.google as google
 
 
 Dimensions = namedtuple('Dimensions', 'width height')
-
-IMAGE_ROOT = Path('..') / 'Dropbox'
-IMAGE_DIRS = [
-    'OS_DOE-nitfix_specimen_photos',
-    'CAS-DOE-nitfix_specimen_photos',
-    'DOE-nitfix_specimen_photos',
-    'NY_visit_2',
-    'NY_DOE-nitfix_visit3',
-    'NY_DOE-nitfix_visit4',
-    'HUH_DOE-nitfix_specimen_photos',
-    'MO-DOE-nitfix_specimen_photos',
-    'MO-DOE-nitfix_visit2']
 
 RESOLUTIONS = [
     ('DOE-nitfix_specimen_photos', 'R0000149', 1, 'OK: Genuine duplicate'),
@@ -58,10 +47,10 @@ RESOLUTIONS = [
     ('MO-DOE-nitfix_specimen_photos', 'R0003663', 1, 'OK: Manually fixed'),
     ('MO-DOE-nitfix_specimen_photos', 'R0003509', 0, 'ERROR: Blurry image')]
 
-MANUAL_INSERTS = [
-    {
-        'image_file': join('MO-DOE-nitfix_specimen_photos', 'R0003663'),
-        'sample_id': '2eea159f-3c25-42ef-837d-27ad545a6779'}]
+# MANUAL_INSERTS = [
+#     {
+#         'image_file': join('MO-DOE-nitfix_specimen_photos', 'R0003663'),
+#         'sample_id': '2eea159f-3c25-42ef-837d-27ad545a6779'}]
 
 PROCESSES = min(10, os.cpu_count() - 4 if os.cpu_count() > 4 else 1)
 BATCH_SIZE = 100
@@ -95,7 +84,7 @@ def ingest_images():
     images = read_corrales_data(cxn, images)
 
     errors = resolve_errors(errors)
-    images = manually_insert_images(images)
+    # images = manually_insert_images(images)
 
     images.to_sql('raw_images', cxn, if_exists='replace', index=False)
     errors.to_sql('image_errors', cxn, if_exists='replace', index=False)
@@ -167,8 +156,8 @@ def get_images_to_process(old_images, old_errors):
     skip_images = set(old_images.image_file) | set(old_errors.image_file)
 
     image_files = []
-    for image_dir in IMAGE_DIRS:
-        pattern = os.fspath(IMAGE_ROOT / image_dir / '*.JPG')
+    for image_dir in util.IMAGE_DIRS:
+        pattern = os.fspath(util.IMAGE_ROOT / image_dir / '*.JPG')
         file_names = glob(pattern)
         image_files += map(normalize_file_name, file_names)
     image_files = [f for f in image_files if f not in skip_images]
@@ -177,7 +166,7 @@ def get_images_to_process(old_images, old_errors):
 
 def get_image_data(image_file):
     """Read and process image."""
-    with open(IMAGE_ROOT / image_file, 'rb') as image_file:
+    with open(util.IMAGE_ROOT / image_file, 'rb') as image_file:
         image = Image.open(image_file)
         image.load()
     return get_qr_code(image)
@@ -301,10 +290,10 @@ def resolve_errors(errors):
     return errors
 
 
-def manually_insert_images(images):
-    """Resolve some errors via a manual insert."""
-    df = pd.DataFrame(MANUAL_INSERTS)
-    return pd.concat([images, df], ignore_index=True)
+# def manually_insert_images(images):
+#     """Resolve some errors via a manual insert."""
+#     df = pd.DataFrame(MANUAL_INSERTS)
+#     return pd.concat([images, df], ignore_index=True)
 
 
 if __name__ == '__main__':

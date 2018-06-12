@@ -5,7 +5,7 @@ SRC="$(PROCESSED)/$(DB)"
 DST="$(PROCESSED)/$(basename $(DB))_$(DATE).db"
 PYTHON=python
 
-all: images taxonomy samples report
+all: images taxonomy samples report select
 
 images:
 	$(PYTHON) ./src/01_ingest_images.py
@@ -18,6 +18,9 @@ samples:
 
 report:
 	$(PYTHON) ./src/04_sample_plate_report.py
+
+select:
+	$(PYTHON) ./src/05_sample_selection.py
 
 backup:
 	cp $(SRC) $(DST)

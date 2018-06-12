@@ -15,12 +15,10 @@ def ingest_samples():
     cxn = db.connect()
 
     wells = get_wells()
-    picogreen = get_picogreen()
     rapid_input = get_rapid_input()
     rapid_wells = get_rapid_wells()
 
     wells.to_sql('wells', cxn, if_exists='replace', index=False)
-    picogreen.to_sql('picogreen', cxn, if_exists='replace', index=False)
     rapid_input.to_sql('rapid_input', cxn, if_exists='replace', index=False)
     rapid_wells.to_sql('rapid_wells', cxn, if_exists='replace', index=False)
 
@@ -86,26 +84,8 @@ def get_wells():
         lambda well: 'ABCDEFGH'.find(well.row.upper()) * 12 + well.col, axis=1)
     wells['local_no'] = wells.local_id.str.replace(r'\D+', '').astype('int')
     wells['well'] = wells.apply(lambda w: f'{w.row}{w.col:02d}', axis=1)
-    wells['picogreen_id'] = wells.apply(
-        lambda w: f'{w.local_no}_{w.well_no:02d}', axis=1)
 
     return wells
-
-
-def get_picogreen():
-    """Get the Picogreen data from the Google sheet."""
-    csv_path = INTERIM_DATA / 'picogreen.csv'
-
-    google.sheet_to_csv('picogreen_results', csv_path)
-
-    picogreen = pd.read_csv(
-        csv_path,
-        header=0,
-        names=[
-            'picogreen_id', 'well', 'rfu', 'ng_microliter',
-            'ng_microliter_mean', 'quant_method', 'quant_date', 'sample_id'])
-
-    return picogreen
 
 
 def get_rapid_input():

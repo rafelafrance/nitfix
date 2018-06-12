@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="utf-8" />
+<title>Sample plate report</title>
+
+<style>
+{% include 'sample_selection.css' -%}
+</style>
+
+</head>
+
+<body>
+  <h1>NitFix Sample Selections <span>{{ now.strftime('%Y-%m-%d %I:%M %p') }}</span></h1>
+
+  <table>
+    <thead>
+      <tr class="header">
+        <td></td>
+        <td class="l">Family Genus</td>
+        <td class="r">Samples</td>
+        <td class="r">Slots</td>
+        <td class="r">Sequenced</td>
+        <td class="r">Automatically<br/>Chosen</td>
+        <td class="r">Available<br/>to Choose</td>
+        <td class="r">Unprocessed<br/>Samples</td>
+        <td class="r">Rejected<br/>Samples</td>
+        <td class="r">Empty<br/>Slots</td>
+      </tr>
+  </thead>
+  <tbody>
+    {% for row in species %}
+      {% if row.category == '0_header' %}
+        <tr class="genus">
+          <td><button class="toggle closed" data-genus="{{ row.family + ' ' + row.genus}}" title="Open or close this genus"></button></td>
+          <td class="l">{{row.family}} {{row.genus}}</td>
+          <td class="r"><span>{{row.samples}}</span></td>
+          <td class="r"><span>{{row.slots}}</span></td>
+          <td class="r"><span>{{row['1_sequenced']}}</span></td>
+          <td class="r"><span>{{row['2_choose']}}</span></td>
+          <td class="r"><span>{{row['4_available']}}</span></td>
+          <td class="r"><span>{{row['5_unprocessed']}}</span></td>
+          <td class="r"><span>{{row['6_reject']}}</span></td>
+          <td class="r"><span>{{row['3_empty']}}</span></td>
+        </tr>
+        <tr class="sub-header closed" data-genus="{{ row.family + ' ' + row.genus}}">
+          <td class="empty"></td>
+          <td class="l">Scientific Name</td>
+          <td>Total DNA (ng)</td>
+          <td>Plate ID</td>
+          <td>Well</td>
+          <td>Sample ID</td>
+          <td class="empty"></td>
+          <td class="empty"></td>
+          <td class="empty"></td>
+          <td class="empty"></td>
+        </tr>
+      {% else %}
+        <tr class="{{row.category[2:]}} closed" data-genus="{{ row.family + ' ' + row.genus}}">
+          <td class="symbol">
+            {% if row.category == '1_sequenced' %}
+              <span title="Already sequenced">&check;</span>
+            {% elif row.category == '2_choose' %}
+              <span title="Automatically chosen">&oast;</span>
+            {% elif row.category == '4_available' %}
+              <span title="Available to choose">&oplus;</span>
+            {% elif row.category == '5_unprocessed' %}
+              <span title="Unprocessed sample">&odot;</span>
+            {% elif row.category == '6_reject' %}
+              <span title="Rejected sample">&otimes;</span>
+            {% endif %}
+          </td>
+          <td class="l">{{row.scientific_name}}</td>
+          <td class="r"><span>{{row.rapid_total_dna}}</span></td>
+          <td>{{row.source_plate}}</td>
+          <td>{{row.source_well}}</td>
+          <td>{{row.sample_id}}</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+      {% endif %}
+    {% endfor %}
+  </tbody>
+<table>
+
+<script>
+{% include 'sample_selection.js' -%}
+</script>
+
+</body>
+</html>

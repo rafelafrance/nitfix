@@ -69,6 +69,7 @@ def get_master_taxonomy():
             'provider_acronym',
             'provider_id',
             'quality_notes'])
+    taxonomy = taxonomy[taxonomy.scientific_name.notna()]
 
     taxonomy.scientific_name = \
         taxonomy.scientific_name.str.split().str.join(' ')
