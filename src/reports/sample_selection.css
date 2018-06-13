@@ -30,17 +30,24 @@ tr.closed {
 }
 
 
+th,
 td {
   text-align: center;
   padding: 4px 8px;
 }
 
+th.l,
 td.l {
   text-align: left;
 }
 
+th.r,
 td.r {
   text-align: right;
+}
+
+h1 {
+  margin: 24px;
 }
 
 h1 > span {
@@ -50,7 +57,37 @@ h1 > span {
 }
 
 table {
+  margin: 24px;
   border-collapse: collapse;
+}
+
+thead {
+  display: block;
+  overflow: auto;
+}
+
+tbody {
+  display: block;
+  height: 720px;
+  overflow: auto;
+}
+
+th, td {
+  width: 80px;
+}
+
+td.num {
+  padding-right: 8px;
+}
+
+th.thin,
+td.thin {
+    width: 40px;
+}
+
+th.wide,
+td.wide {
+    width: 220px;
 }
 
 .header {
@@ -68,7 +105,7 @@ table {
 }
 
 .genus td {
-  border-top: 1px solid black;
+  border-top: 1px solid lightgray;
 }
 
 .genus span {
@@ -84,11 +121,15 @@ table {
   font-size: 24px;
 }
 
+.symbol span {
+  margin-left: 4px;
+}
+
 tr.sequenced .symbol {
   color: green;
 }
 
-tr.choose .symbol {
+tr.chosen .symbol {
   color: green;
 }
 
@@ -96,6 +137,6 @@ tr.available .symbol {
   color: blue;
 }
 
-tr.reject .symbol {
+tr.rejected .symbol {
   color: red;
 }
