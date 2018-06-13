@@ -73,7 +73,8 @@ def main():
         'scientific_name': 'Scientific Name',
         'category': 'Category',
         'rapid_total_dna': 'Total DNA (ng)',
-        'samples': 'Samples',
+        'genus_count': 'Species in Genus',
+        'samples': 'Sampled',
         '2_sequenced': 'Sequenced',
         '3_chosen': 'Automatically Chosen',
         '4_available': 'Available to Choose',
@@ -110,7 +111,7 @@ def categorize_species(genus, species, genus_slots):
     rows = [header]
 
     for row in species:
-        set_row_category(row, rows, genus_slots)
+        set_row_category(row, rows, genus_slots['slots'])
         rows.append(row)
 
     count_row_categories(rows, genus_slots)
@@ -118,7 +119,7 @@ def categorize_species(genus, species, genus_slots):
     return sorted(rows, key=lambda r: (r['category'], r['scientific_name']))
 
 
-def set_row_category(row, rows, genus_slots):
+def set_row_category(row, rows, slots):
     """Set row category."""
     if row['rapid_total_dna'] < 100.0 and row['source_plate']:
         row['category'] = '6_rejected'
@@ -126,7 +127,7 @@ def set_row_category(row, rows, genus_slots):
         row['category'] = '5_unprocessed'
     elif False:  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! TODO
         row['category'] = '2_sequenced'
-    elif len([r for r in rows if r['category'] == '3_chosen']) < genus_slots:
+    elif len([r for r in rows if r['category'] == '3_chosen']) < slots:
         row['category'] = '3_chosen'
     else:
         row['category'] = '4_available'
@@ -138,10 +139,11 @@ def count_row_categories(rows, genus_slots):
         6_rejected""".split()
     for category in categories:
         rows[0][category] = len([r for r in rows if r['category'] == category])
-    rows[0]['slots'] = genus_slots
+    rows[0]['genus_count'] = genus_slots['genus_count']
+    rows[0]['slots'] = genus_slots['slots']
     rows[0]['samples'] = len(rows) - 1
     rows[0]['empty_slots'] = max(
-        0, genus_slots - rows[0]['2_sequenced'] - rows[0]['3_chosen'])
+        0, genus_slots['slots'] - rows[0]['2_sequenced'] - rows[0]['3_chosen'])
 
 
 def get_sampled_species():
@@ -174,7 +176,8 @@ def get_genera_slots():
     """
     genera = pd.read_sql(sql, db.connect())
     genera['slots'] = genera.genus_count.apply(get_slots)
-    return genera.set_index(['family', 'genus']).slots.to_dict()
+    genera = genera.set_index(['family', 'genus']).to_dict(orient='index')
+    return genera
 
 
 def get_slots(genus_count):

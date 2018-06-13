@@ -76,8 +76,8 @@ th, td {
   width: 80px;
 }
 
-td.num {
-  padding-right: 8px;
+td.num span {
+  margin-right: 4px;
 }
 
 th.thin,

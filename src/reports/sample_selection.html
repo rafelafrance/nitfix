@@ -19,7 +19,8 @@
       <tr class="header">
         <td class="thin"></td>
         <td class="l wide">Family Genus</td>
-        <td class="">Samples</td>
+        <td class="r">Species<br/>in Genus</td>
+        <td class="r">Sampled</td>
         <td class="">Sequenced</td>
         <td class="">Automatically<br/>Chosen</td>
         <td class="">Available<br/>to Choose</td>
@@ -35,6 +36,7 @@
           <tr class="genus">
             <td class="thin"><button class="toggle closed" data-genus="{{ row.family + ' ' + row.genus}}" title="Open or close this genus"></button></td>
             <td class="l wide">{{row.family}} {{row.genus}}</td>
+            <td class="r"><span>{{row.genus_count}}</span></td>
             <td class="r"><span>{{row.samples}}</span></td>
             <td class="r"><span>{{row['2_sequenced'] if row['2_sequenced'] else ''}}</span></td>
             <td class="r"><span>{{row['3_chosen'] if row['3_chosen'] else ''}}</span></td>
@@ -47,12 +49,10 @@
           <tr class="sub-header closed" data-genus="{{ row.family + ' ' + row.genus }}">
             <td class="empty thin"></td>
             <td class="l wide">Scientific Name</td>
-            <td>Total DNA (ng)</td>
+            <td class="r">Total DNA (ng)</td>
             <td>Plate</td>
             <td>Well</td>
-            <td>Sample ID</td>
-            <td class="empty"></td>
-            <td class="empty"></td>
+            <td colspan="4">Sample ID</td>
             <td class="empty"></td>
             <td class="empty"></td>
           </tr>
@@ -72,12 +72,10 @@
               {% endif %}
             </td>
             <td class="l wide">{{row.scientific_name}}</td>
-            <td class="r"><span>{{row.rapid_total_dna}}</span></td>
+            <td class="r num"><span>{{row.rapid_total_dna}}</span></td>
             <td>{{row.source_plate}}</td>
             <td>{{row.source_well}}</td>
-            <td>{{row.sample_id}}</td>
-            <td></td>
-            <td></td>
+            <td colspan="4">{{row.sample_id}}</td>
             <td></td>
             <td></td>
           </tr>
