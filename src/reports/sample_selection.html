@@ -17,17 +17,17 @@
   <table>
     <thead>
       <tr class="header">
-        <td class="thin"></td>
-        <td class="l wide">Family Genus</td>
-        <td class="r">Species<br/>in Genus</td>
-        <td class="r">Sampled</td>
-        <td class="">Sequenced</td>
-        <td class="">Automatically<br/>Chosen</td>
-        <td class="">Available<br/>to Choose</td>
-        <td class="">Unprocessed<br/>Samples</td>
-        <td class="">Rejected<br/>Samples</td>
-        <td class="">Slots</td>
-        <td class="">Empty<br/>Slots</td>
+        <th class="thin"></th>
+        <th class="l widest">Family Genus</th>
+        <th class="r">Species<br/>in Genus</th>
+        <th class="r">Sampled</th>
+        <th class="r">Sequenced</th>
+        <th class="r wider">Automatically<br/>Chosen</th>
+        <th class="r">Available<br/>to Choose</th>
+        <th class="r wide">Unprocessed<br/>Samples</th>
+        <th class="r">Rejected<br/>Samples</th>
+        <th class="r">Slots</th>
+        <th class="r">Empty<br/>Slots</th>
       </tr>
     </thead>
     <tbody>
@@ -35,13 +35,13 @@
         {% if row.category == '1_header' %}
           <tr class="genus">
             <td class="thin"><button class="toggle closed" data-genus="{{ row.family + ' ' + row.genus}}" title="Open or close this genus"></button></td>
-            <td class="l wide">{{row.family}} {{row.genus}}</td>
+            <td class="l widest">{{row.family}} {{row.genus}}</td>
             <td class="r"><span>{{row.genus_count}}</span></td>
             <td class="r"><span>{{row.samples}}</span></td>
             <td class="r"><span>{{row['2_sequenced'] if row['2_sequenced'] else ''}}</span></td>
-            <td class="r"><span>{{row['3_chosen'] if row['3_chosen'] else ''}}</span></td>
+            <td class="r wider"><span>{{row['3_chosen'] if row['3_chosen'] else ''}}</span></td>
             <td class="r"><span>{{row['4_available'] if row['4_available'] else ''}}</span></td>
-            <td class="r"><span>{{row['5_unprocessed'] if row['5_unprocessed'] else ''}}</span></td>
+            <td class="r wide"><span>{{row['5_unprocessed'] if row['5_unprocessed'] else ''}}</span></td>
             <td class="r"><span>{{row['6_rejected'] if row['6_rejected'] else ''}}</span></td>
             <td class="r"><span>{{row.slots}}</span></td>
             <td class="r"><span>{{row['empty_slots'] if row['empty_slots'] else ''}}</span></td>
@@ -71,8 +71,8 @@
                 <span title="Rejected sample">&otimes;</span>
               {% endif %}
             </td>
-            <td class="l wide">{{row.scientific_name}}</td>
-            <td class="r num"><span>{{row.rapid_total_dna}}</span></td>
+            <td class="l widest">{{row.scientific_name}}</td>
+            <td class="r"><span>{{'' if row.category == '5_unprocessed' else row.rapid_total_dna}}</span></td>
             <td>{{row.source_plate}}</td>
             <td>{{row.source_well}}</td>
             <td colspan="4">{{row.sample_id}}</td>
@@ -82,7 +82,7 @@
         {% endif %}
       {% endfor %}
     </tbody>
-  <table>
+  </table>
 
 <script>
 {% include 'sample_selection.js' -%}

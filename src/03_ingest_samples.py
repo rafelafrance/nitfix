@@ -37,9 +37,9 @@ def get_wells():
     notes:Text
     results:Text
     Plate row A                UUID?          ...     UUID?
-       .                        .            ...       .
-       .                        .            ...       .
-       .                        .            ...       .
+        .                        .            ...       .
+        .                        .            ...       .
+        .                        .            ...       .
     Plate row H                UUID?          ...     UUID?
     """
     step = 14

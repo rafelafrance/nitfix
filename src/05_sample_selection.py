@@ -60,7 +60,7 @@ def main():
         lambda x: 'Yes' if x in ['sequenced', 'chosen'] else 'No')
     df = df[['source_plate', 'source_well', 'sample_id', 'selected',
              'family', 'genus', 'scientific_name', 'category',
-             'rapid_total_dna', 'samples', '2_sequenced',
+             'rapid_total_dna', 'genus_count', 'samples', '2_sequenced',
              '3_chosen', '4_available', '5_unprocessed', '6_rejected',
              'slots', 'empty_slots']]
     df = df.rename(columns={

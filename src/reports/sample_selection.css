@@ -29,11 +29,12 @@ tr.closed {
   display: none;
 }
 
-
 th,
 td {
   text-align: center;
   padding: 4px 8px;
+  width: 80px;
+  min-width: 80px;
 }
 
 th.l,
@@ -44,6 +45,10 @@ td.l {
 th.r,
 td.r {
   text-align: right;
+}
+
+td.r span {
+  margin-right: 6px;
 }
 
 h1 {
@@ -72,22 +77,28 @@ tbody {
   overflow: auto;
 }
 
-th, td {
-  width: 80px;
-}
-
-td.num span {
-  margin-right: 4px;
-}
-
 th.thin,
 td.thin {
-    width: 40px;
+  width: 40px;
+  min-width: 40px;
 }
 
 th.wide,
 td.wide {
-    width: 220px;
+  width: 90px;
+  min-width: 90px;
+}
+
+th.wider,
+td.wider {
+  width: 100px;
+  min-width: 100px;
+}
+
+th.widest,
+td.widest {
+  width: 220px;
+  min-width: 220px;
 }
 
 .header {
