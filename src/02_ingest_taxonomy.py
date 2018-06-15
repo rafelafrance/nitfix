@@ -34,7 +34,6 @@ def ingest_taxonomy():
 
     taxonomy.to_sql('taxonomy', cxn, if_exists='replace', index=False)
     taxon_ids.to_sql('taxon_ids', cxn, if_exists='replace', index=False)
-    loci.to_sql('raw_loci', cxn, if_exists='replace', index=False)
     expeditions.to_sql('expeditions', cxn, if_exists='replace', index=False)
 
 
@@ -87,7 +86,7 @@ def get_master_taxonomy():
 
 def link_images_to_taxonomy(cxn, taxonomy, split_ids):
     """Link Images to Taxonomy IDs."""
-    images = pd.read_sql('SELECT * FROM raw_images', cxn)
+    images = pd.read_sql('SELECT * FROM images', cxn)
 
     taxon_ids = (taxonomy.melt(id_vars=['scientific_name'],
                                value_vars=split_ids.columns)

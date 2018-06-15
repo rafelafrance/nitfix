@@ -1,13 +1,11 @@
 """Extract, transform, and load data related to the images."""
 
 import os
-from os.path import join
 from glob import glob
 from pathlib import Path
 from itertools import chain
 import multiprocessing
 from collections import namedtuple
-import numpy as np
 import pandas as pd
 from PIL import Image, ImageFilter
 import zbarlight
@@ -18,40 +16,6 @@ import lib.google as google
 
 Dimensions = namedtuple('Dimensions', 'width height')
 
-RESOLUTIONS = [
-    ('DOE-nitfix_specimen_photos', 'R0000149', 1, 'OK: Genuine duplicate'),
-    ('DOE-nitfix_specimen_photos', 'R0000151', 1, 'OK: Genuine duplicate'),
-    ('DOE-nitfix_specimen_photos', 'R0000158', 1, 'OK: Genuine duplicate'),
-    ('DOE-nitfix_specimen_photos', 'R0000165', 1, 'OK: Genuine duplicate'),
-    ('DOE-nitfix_specimen_photos', 'R0000674', 1, 'OK: Duplicate of R0000473'),
-    ('DOE-nitfix_specimen_photos', 'R0000835', 1,
-     'OK: Is a duplicate of R0000836'),
-    ('DOE-nitfix_specimen_photos', 'R0000895', 1, 'OK: Genuine duplicate'),
-    ('DOE-nitfix_specimen_photos', 'R0000937', 1, 'OK: Genuine duplicate'),
-    ('DOE-nitfix_specimen_photos', 'R0001055', 1, 'OK: Genuine duplicate'),
-
-    ('HUH_DOE-nitfix_specimen_photos', 'R0001262', 1,
-     'OK: Duplicate of R0001263'),
-    ('HUH_DOE-nitfix_specimen_photos', 'R0001729', 1,
-     'OK: Duplicate of R0001728'),
-
-    ('OS_DOE-nitfix_specimen_photos', 'R0000229', 1, 'OK: Genuine duplicate'),
-    ('OS_DOE-nitfix_specimen_photos', 'R0001835', 1, 'OK: Genuine duplicate'),
-    ('OS_DOE-nitfix_specimen_photos', 'R0001898', 1, 'OK: Genuine duplicate'),
-
-    ('CAS-DOE-nitfix_specimen_photos', 'R0001361', 1, 'OK: Genuine duplicate'),
-    ('CAS-DOE-nitfix_specimen_photos', 'R0002349', 1, 'OK: Genuine duplicate'),
-
-    ('MO-DOE-nitfix_specimen_photos', 'R0002933', 1, 'OK: Genuine duplicate'),
-    ('MO-DOE-nitfix_specimen_photos', 'R0003226', 1, 'OK: Genuine duplicate'),
-    ('MO-DOE-nitfix_specimen_photos', 'R0003663', 1, 'OK: Manually fixed'),
-    ('MO-DOE-nitfix_specimen_photos', 'R0003509', 0, 'ERROR: Blurry image')]
-
-# MANUAL_INSERTS = [
-#     {
-#         'image_file': join('MO-DOE-nitfix_specimen_photos', 'R0003663'),
-#         'sample_id': '2eea159f-3c25-42ef-837d-27ad545a6779'}]
-
 PROCESSES = min(10, os.cpu_count() - 4 if os.cpu_count() > 4 else 1)
 BATCH_SIZE = 100
 INTERIM_DATA = Path('.') / 'data' / 'interim'
@@ -61,6 +25,10 @@ def ingest_images():
     """Process image files."""
     cxn = db.connect()
 
+    # We take the list of all images and split it into roughly equal batches.
+    # We then send each batch to a subprocess. The subprocess returns a list of
+    # successfully processed images and a list of images that errored which are
+    # both combined into their own dataframes.
     old_images, old_errors = get_old_images(cxn)
     image_files = get_images_to_process(old_images, old_errors)
     batches = [image_files[i:i + BATCH_SIZE]
@@ -75,43 +43,50 @@ def ingest_images():
     new_images = pd.DataFrame(new_images)
     new_errors = pd.DataFrame(new_errors)
 
+    # Now we finalize the image and error tables. We also handle any errors
+    # that can only be caught when the batches are combined. In this case it's
+    # looking for duplicate UUID errors.
     images = pd.concat([old_images, new_images], ignore_index=True)
     images, dupes = find_duplicate_uuids(images)
     errors = pd.concat(
         [old_errors, new_errors, dupes], ignore_index=True, sort=True)
 
+    # Add image records that don't have an image file.
     images = read_pilot_data(cxn, images)
     images = read_corrales_data(cxn, images)
 
-    errors = resolve_errors(errors)
-    # images = manually_insert_images(images)
-
-    images.to_sql('raw_images', cxn, if_exists='replace', index=False)
+    images.to_sql('images', cxn, if_exists='replace', index=False)
     errors.to_sql('image_errors', cxn, if_exists='replace', index=False)
 
 
 def get_old_images(cxn):
     """Get images already in the database."""
+    # Handle the case where there is no image or error table in the DB.
+    # NOTE: There will always be an error table if there is an image table.
     try:
-        images = pd.read_sql('SELECT * FROM raw_images', cxn)
+        images = pd.read_sql('SELECT * FROM images', cxn)
         errors = pd.read_sql('SELECT * FROM image_errors', cxn)
         images.image_file = images.image_file.apply(util.normalize_file_name)
         errors.image_file = errors.image_file.apply(util.normalize_file_name)
     except pd.io.sql.DatabaseError:
         images = pd.DataFrame(columns=['image_file', 'sample_id'])
         errors = pd.DataFrame(
-            columns=['image_file', 'msg', 'ok', 'resolution'])
+            columns=['image_file', 'msg'])
     return images, errors
 
 
 def find_duplicate_uuids(images):
-    """Create error records for UUID duplicates."""
+    """
+    Create error records for UUID duplicates.
+
+    There is no real way to figure out which is the correct image to keep, so
+    we keep the first one and mark all of the others as an error. We also
+    remove the images with duplicate UUIDs from the image dataframe.
+    """
     dupe_mask = images.sample_id.duplicated(keep='first')
     dupes = images.loc[dupe_mask, ['image_file', 'sample_id']]
     images = images[~dupe_mask]
-    dupes['ok'] = np.nan
-    dupes['resolution'] = None
-    dupes['msg'] = ''
+    dupes['msg'] = ''   # Handle the case where there are no duplicates
     if dupes.shape[0]:
         dupes['msg'] = dupes.apply(
             lambda dupe:
@@ -138,9 +113,7 @@ def ingest_batch(image_batch):
         else:
             new_errors.append({
                 'image_file': image_file,
-                'msg': f'MISSING: QR code missing in {image_file}',
-                'ok': 0,
-                'resolution': ''})
+                'msg': f'MISSING: QR code missing in {image_file}'})
 
     return new_images, new_errors
 
@@ -167,7 +140,12 @@ def get_image_data(image_file):
 
 
 def get_qr_code(image):
-    """Extract QR code from image."""
+    """
+    Extract QR code from image.
+
+    Try various methods to find the QR code in the image. Starting from
+    quickest and moving to the most unlikely method.
+    """
     qr_code = zbarlight.scan_codes('qrcode', image)
     if qr_code:
         return qr_code[0].decode('utf-8')
@@ -241,14 +219,13 @@ def read_pilot_data(cxn, images):
     google.sheet_to_csv('UFBI_identifiers_photos', csv_path)
     pilot = pd.read_csv(csv_path)
 
+    # Create a fake path for the file name
     pilot['image_file'] = pilot['File'].apply(
         lambda x: f'UFBI_sample_photos/{x}')
 
     pilot = (pilot.drop(['File'], axis=1)
                   .rename(columns={'Identifier': 'pilot_id'}))
     pilot.pilot_id = pilot.pilot_id.str.lower().str.split().str.join(' ')
-
-    pilot.to_sql('raw_pilot', cxn, if_exists='replace', index=False)
 
     already_in = pilot.sample_id.isin(images.sample_id)
     pilot = pilot[~already_in]
@@ -265,29 +242,11 @@ def read_corrales_data(cxn, images):
     corrales = pd.read_csv(csv_path)
     corrales.corrales_id = corrales.corrales_id.str.lower()
 
-    corrales.to_sql('raw_corrales', cxn, if_exists='replace', index=False)
-
     already_in = corrales.sample_id.isin(images.sample_id)
     corrales = corrales[~already_in]
 
     corrales = corrales.drop('corrales_id', axis=1)
     return pd.concat([images, corrales], ignore_index=True, sort=True)
-
-
-def resolve_errors(errors):
-    """Update errors with their resolutions."""
-    for resolution in RESOLUTIONS:
-        path = join(resolution[0], resolution[1])
-        error = errors.image_file == path
-        errors.loc[error, 'ok'] = resolution[2]
-        errors.loc[error, 'resolution'] = resolution[3]
-    return errors
-
-
-# def manually_insert_images(images):
-#     """Resolve some errors via a manual insert."""
-#     df = pd.DataFrame(MANUAL_INSERTS)
-#     return pd.concat([images, df], ignore_index=True)
 
 
 if __name__ == '__main__':

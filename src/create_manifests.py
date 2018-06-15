@@ -14,9 +14,9 @@ INTERIM_DATA = Path('data') / 'interim'
 def nybg234():
     """Make a manifest."""
     sql = """
-        SELECT image_file, raw_images.sample_id, scientific_name
-          FROM raw_images
-          JOIN taxon_ids ON (taxon_ids.id = raw_images.sample_id)
+        SELECT image_file, images.sample_id, scientific_name
+          FROM images
+          JOIN taxon_ids ON (taxon_ids.id = images.sample_id)
          WHERE image_file LIKE 'NY_visit_2/%'
             OR image_file LIKE 'NY_DOE-nitfix_visit3/%'
             OR image_file LIKE 'NY_DOE-nitfix_visit4/%'
@@ -38,9 +38,9 @@ def nybg234():
 def CalAcademy():
     """Make a manifest."""
     sql = """
-        SELECT image_file, raw_images.sample_id, scientific_name
-          FROM raw_images
-          JOIN taxon_ids ON (taxon_ids.id = raw_images.sample_id)
+        SELECT image_file, images.sample_id, scientific_name
+          FROM images
+          JOIN taxon_ids ON (taxon_ids.id = images.sample_id)
          WHERE image_file LIKE '%/CAS-DOE-nitfix_specimen_photos/%'
       ORDER BY image_file
     """
