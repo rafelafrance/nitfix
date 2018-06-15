@@ -146,6 +146,10 @@ h2 {
   text-align: right;
 }
 
+.search-right .search-control label {
+  width: 230px;
+}
+
 .search-left input {
   padding: 4px;
   width: 300px;
