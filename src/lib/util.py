@@ -2,8 +2,11 @@
 
 import uuid
 from pathlib import Path
+from os.path import split, basename, join
+
 
 IMAGE_ROOT = Path('..') / 'Dropbox'
+IMAGE_ROOT_UP = Path('..') / '..' / 'Dropbox'
 IMAGE_DIRS = [
     'OS_DOE-nitfix_specimen_photos',
     'CAS-DOE-nitfix_specimen_photos',
@@ -25,3 +28,9 @@ def is_uuid(guid):
         return True
     except (ValueError, AttributeError):
         return False
+
+
+def normalize_file_name(path):
+    """Normalize the file name for consistency."""
+    dir_name, file_name = split(path)
+    return join(basename(dir_name), file_name)

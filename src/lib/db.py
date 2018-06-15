@@ -4,11 +4,13 @@ from pathlib import Path
 import sqlite3
 import lib.util as util
 
+DB_NAME = 'nitfix.sqlite.db'
+
 
 def connect(path=None):
     """Connect to the SQLite3 DB."""
     if not path:
-        path = str(Path('data') / 'processed' / 'nitfix.sqlite.db')
+        path = str(Path('data') / 'processed' / DB_NAME)
 
     cxn = sqlite3.connect(path)
 
@@ -20,3 +22,9 @@ def connect(path=None):
 
     cxn.create_function('IS_UUID', 1, util.is_uuid)
     return cxn
+
+
+def connect_up():
+    """Allow notebooks and other utilities to connect from local dirs."""
+    path = str(Path('..') / 'data' / 'processed' / DB_NAME)
+    return connect(path)

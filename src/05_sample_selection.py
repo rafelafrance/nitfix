@@ -24,126 +24,102 @@ from jinja2 import Environment, FileSystemLoader
 import lib.db as db
 
 
-COLUMNS = """family genus scientific_name category rapid_total_dna
-       sample_id local_no plate_id well_no well""".split()
+pd.options.mode.chained_assignment = None
 
 
 def main():
     """Generate the report."""
-    pd.options.mode.chained_assignment = None
+    totals = get_genera()
+    samples = get_sampled_species()
+    species = categorize_samples(samples, totals)
+    totals = totals.reset_index()
+
+    report_path = output_html(species, totals)
+    # output_csv(report_path, species)
+
+
+def categorize_samples(samples, totals):
+    """Put the samples into to their category and accumulate totals."""
+    groups = []
+    for genus, species in samples.groupby(['family', 'genus']):
+        slots = totals.at[genus, 'slots']
+        is_available = species.category == '4_available'
+        species.iloc[:slots].loc[is_available, 'category'] = '3_chosen'
+        totals.at[genus, 'samples'] = species.shape[0]
+        flds = """2_sequenced 3_chosen 4_available 5_unprocessed 6_rejected"""
+        for field in flds.split():
+            field_mask = species.category == field
+            totals.at[genus, field] = field_mask.sum()
+        totals.at[genus, 'empty_slots'] = max(
+            0,
+            totals.at[genus, 'slots']
+            - totals.at[genus, '2_sequenced'] - totals.at[genus, '3_chosen'])
+        groups.append(species)
+    return pd.concat(groups)
+
+
+def output_html(species, totals):
+    """Output the HTML report."""
     now = datetime.now()
-
-    genera = get_sampled_species()
-    genera_slots = get_genera_slots()
-
-    species = []
-    for genus, samples in genera:
-        species += categorize_species(genus, samples, genera_slots[genus])
-
     template_dir = os.fspath(Path('src') / 'reports')
     env = Environment(loader=FileSystemLoader(template_dir))
     template = env.get_template('sample_selection.html')
 
-    report = template.render(now=now, species=species)
+    totals['scientific_name'] = ''
+    grand = totals.sum(axis=0, numeric_only=True)
+    print(grand)
+    import sys
+    sys.exit()
+
+    data = list(species.to_dict(orient='index').values())
+    data += list(totals.to_dict(orient='index').values())
+    data = sorted(
+        data, key=lambda x: (x['family'], x['genus'],
+                             x['category'], x['scientific_name']))
+
+    report = template.render(now=now, species=data)
 
     report_name = f'sample_selection_report_{now.strftime("%Y-%m-%d")}.html'
     report_path = Path('output') / report_name
     with report_path.open('w') as out_file:
         out_file.write(report)
 
-    csv_path, _ = os.path.splitext(report_path)
-    csv_path += '.csv'
-    csv_rows = build_csv(species)
-    df = pd.DataFrame(csv_rows).sort_values(['source_plate', 'source_well'])
-    df.category = df.category.str[2:]
-    df['selected'] = df.category.apply(
-        lambda x: 'Yes' if x in ['sequenced', 'chosen'] else 'No')
-    df = df[['source_plate', 'source_well', 'sample_id', 'selected',
-             'family', 'genus', 'scientific_name', 'category',
-             'rapid_total_dna', 'genus_count', 'samples', '2_sequenced',
-             '3_chosen', '4_available', '5_unprocessed', '6_rejected',
-             'slots', 'empty_slots']]
-    df = df.rename(columns={
-        'source_plate': 'Plate',
-        'source_well': 'Well',
-        'sample_id': 'Sample ID',
-        'selected': 'Selected',
-        'family': 'Family',
-        'genus': 'Genus',
-        'scientific_name': 'Scientific Name',
-        'category': 'Category',
-        'rapid_total_dna': 'Total DNA (ng)',
-        'genus_count': 'Species in Genus',
-        'samples': 'Sampled',
-        '2_sequenced': 'Sequenced',
-        '3_chosen': 'Automatically Chosen',
-        '4_available': 'Available to Choose',
-        '5_unprocessed': 'Unprocessed Samples',
-        '6_rejected': 'Rejected Samples',
-        'slots': 'Slots',
-        'empty_slots': 'Empty Slots'})
-    df.to_csv(csv_path, index=False)
+    return report_path
 
 
-def build_csv(species):
-    """Create the rows that will go into the CSV."""
-    plated = '2_sequenced 3_chosen 4_available 6_rejected'.split()
-    rows = []
-
-    for row in species:
-        if row['category'] == '1_header':
-            header = row
-        elif row['category'] in plated:
-            rows.append({**header, **row})
-
-    return rows
-
-
-def categorize_species(genus, species, genus_slots):
-    """Put species rows into their categories."""
-    species = species.to_dict(orient='records')
-
-    header = {k: '' for k, v in species[0].items()}
-    header['family'] = genus[0]
-    header['genus'] = genus[1]
-    header['category'] = '1_header'
-
-    rows = [header]
-
-    for row in species:
-        set_row_category(row, rows, genus_slots['slots'])
-        rows.append(row)
-
-    count_row_categories(rows, genus_slots)
-
-    return sorted(rows, key=lambda r: (r['category'], r['scientific_name']))
-
-
-def set_row_category(row, rows, slots):
-    """Set row category."""
-    if row['rapid_total_dna'] < 100.0 and row['source_plate']:
-        row['category'] = '6_rejected'
-    elif row['rapid_total_dna'] < 100.0 and not row['source_plate']:
-        row['category'] = '5_unprocessed'
-    elif False:  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! TODO
-        row['category'] = '2_sequenced'
-    elif len([r for r in rows if r['category'] == '3_chosen']) < slots:
-        row['category'] = '3_chosen'
-    else:
-        row['category'] = '4_available'
-
-
-def count_row_categories(rows, genus_slots):
-    """Get row counts for each category."""
-    categories = """2_sequenced 3_chosen 4_available 5_unprocessed
-        6_rejected""".split()
-    for category in categories:
-        rows[0][category] = len([r for r in rows if r['category'] == category])
-    rows[0]['genus_count'] = genus_slots['genus_count']
-    rows[0]['slots'] = genus_slots['slots']
-    rows[0]['samples'] = len(rows) - 1
-    rows[0]['empty_slots'] = max(
-        0, genus_slots['slots'] - rows[0]['2_sequenced'] - rows[0]['3_chosen'])
+def output_csv(report_path, species):
+    """Output the CSV sidecar file."""
+    # csv_path = os.path.splitext(report_path)[0] + '.csv'
+    # # csv_rows = build_csv(species)
+    # df = pd.DataFrame(csv_rows).sort_values(['source_plate', 'source_well'])
+    # df.category = df.category.str[2:]
+    # df['selected'] = df.category.apply(
+    #     lambda x: 'Yes' if x in ['sequenced', 'chosen'] else 'No')
+    # df = df[['source_plate', 'source_well', 'sample_id', 'selected',
+    #          'family', 'genus', 'scientific_name', 'category',
+    #          'rapid_total_dna', 'genus_count', 'samples', '2_sequenced',
+    #          '3_chosen', '4_available', '5_unprocessed', '6_rejected',
+    #          'slots', 'empty_slots']]
+    # df = df.rename(columns={
+    #     'source_plate': 'Plate',
+    #     'source_well': 'Well',
+    #     'sample_id': 'Sample ID',
+    #     'selected': 'Selected',
+    #     'family': 'Family',
+    #     'genus': 'Genus',
+    #     'scientific_name': 'Scientific Name',
+    #     'category': 'Category',
+    #     'rapid_total_dna': 'Total DNA (ng)',
+    #     'genus_count': 'Species in Genus',
+    #     'samples': 'Sampled',
+    #     '2_sequenced': 'Sequenced',
+    #     '3_chosen': 'Automatically Chosen',
+    #     '4_available': 'Available to Choose',
+    #     '5_unprocessed': 'Unprocessed Samples',
+    #     '6_rejected': 'Rejected Samples',
+    #     'slots': 'Slots',
+    #     'empty_slots': 'Empty Slots'})
+    # df.to_csv(csv_path, index=False)
 
 
 def get_sampled_species():
@@ -151,22 +127,30 @@ def get_sampled_species():
     pd.options.display.float_format = '{:.0f}'.format
     sql = """
         SELECT family, genus, scientific_name, rapid_total_dna, source_plate,
-               source_well, rapid_input.sample_id, rapid_id
+               source_well, rapid_input.sample_id
           FROM taxonomy
           JOIN taxon_ids USING (scientific_name)
      LEFT JOIN rapid_input ON (rapid_input.sample_id = taxon_ids.id)
       ORDER BY family, genus, rapid_total_dna DESC, scientific_name
     """
     taxons = pd.read_sql(sql, db.connect())
+    taxons['category'] = '4_available'  # Use this as the default
+
     taxons.rapid_total_dna = pd.to_numeric(
         taxons.rapid_total_dna.fillna('0'), errors='coerce')
-    cols = ['sample_id', 'source_plate', 'source_well', 'rapid_id']
+
+    cols = ['sample_id', 'source_plate', 'source_well']
     taxons.update(taxons[cols].fillna(''))
 
-    return taxons.groupby(['family', 'genus'])
+    processed = taxons.source_plate != ''
+    below_threshold = taxons.rapid_total_dna < 100.0
+    taxons.loc[processed & below_threshold, 'category'] = '6_rejected'
+    taxons.loc[~processed & below_threshold, 'category'] = '5_unprocessed'
+
+    return taxons
 
 
-def get_genera_slots():
+def get_genera():
     """Get the fraction of species in a genus we want to cover."""
     sql = """
         SELECT family, genus, COUNT(*) AS genus_count
@@ -176,7 +160,12 @@ def get_genera_slots():
     """
     genera = pd.read_sql(sql, db.connect())
     genera['slots'] = genera.genus_count.apply(get_slots)
-    genera = genera.set_index(['family', 'genus']).to_dict(orient='index')
+    genera['empty_slots'] = genera.slots
+    genera['category'] = '1_header'
+    for field in """2_sequenced 3_chosen 4_available 5_unprocessed 6_rejected
+            samples""".split():
+        genera[field] = 0
+    genera = genera.set_index(['family', 'genus'])
     return genera
 
 

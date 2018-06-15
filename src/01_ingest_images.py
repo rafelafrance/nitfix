@@ -1,7 +1,7 @@
 """Extract, transform, and load data related to the images."""
 
 import os
-from os.path import split, basename, join
+from os.path import join
 from glob import glob
 from pathlib import Path
 from itertools import chain
@@ -95,8 +95,8 @@ def get_old_images(cxn):
     try:
         images = pd.read_sql('SELECT * FROM raw_images', cxn)
         errors = pd.read_sql('SELECT * FROM image_errors', cxn)
-        images.image_file = images.image_file.apply(normalize_file_name)
-        errors.image_file = errors.image_file.apply(normalize_file_name)
+        images.image_file = images.image_file.apply(util.normalize_file_name)
+        errors.image_file = errors.image_file.apply(util.normalize_file_name)
     except pd.io.sql.DatabaseError:
         images = pd.DataFrame(columns=['image_file', 'sample_id'])
         errors = pd.DataFrame(
@@ -122,12 +122,6 @@ def find_duplicate_uuids(images):
             axis=1)
     dupes = dupes.drop(['sample_id'], axis=1)
     return images, dupes
-
-
-def normalize_file_name(path):
-    """Normalize the file name for consistency."""
-    dir_name, file_name = split(path)
-    return join(basename(dir_name), file_name)
 
 
 def ingest_batch(image_batch):
@@ -159,7 +153,7 @@ def get_images_to_process(old_images, old_errors):
     for image_dir in util.IMAGE_DIRS:
         pattern = os.fspath(util.IMAGE_ROOT / image_dir / '*.JPG')
         file_names = glob(pattern)
-        image_files += map(normalize_file_name, file_names)
+        image_files += map(util.normalize_file_name, file_names)
     image_files = [f for f in image_files if f not in skip_images]
     return sorted(image_files)
 
