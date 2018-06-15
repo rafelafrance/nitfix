@@ -82,7 +82,10 @@ def get_wells():
                                 6: 'sample_id', 7: 'row', 8: 'col'}))
     wells['well_no'] = wells.apply(
         lambda well: 'ABCDEFGH'.find(well.row.upper()) * 12 + well.col, axis=1)
-    wells['local_no'] = wells.local_id.str.replace(r'\D+', '').astype('int')
+    wells['local_no'] = (pd.to_numeric(
+        wells.local_id.str.replace(r'\D+', ''), errors='coerce')
+                         .fillna(0)
+                         .astype('int'))
     wells['well'] = wells.apply(lambda w: f'{w.row}{w.col:02d}', axis=1)
 
     return wells
