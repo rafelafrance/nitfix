@@ -18,6 +18,7 @@ INTERIM_DATA = Path('data') / 'interim'
 EXTERNAL_DATA = Path('..') / 'data' / 'external'
 ORDERS = ['Cucurbitales', 'Fagales', 'Fabales', 'Rosales']
 
+
 def ingest_taxonomy():
     """Ingest data related to the taxonomy."""
     cxn = db.connect()
