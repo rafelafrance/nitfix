@@ -16,8 +16,8 @@ def get_wells(cxn):
                family,
                rapid_input.concentration AS input_concentration,
                rapid_input.volume        AS rapid_input_volume,
-               rapid_input.rapid_concentration,
-               rapid_input.rapid_total_dna,
+               rapid_input.concentration,
+               rapid_input.total_dna,
                rapid_wells.volume        AS rapid_well_volume
           FROM wells
           JOIN taxon_ids   ON    (wells.sample_id = taxon_ids.id)
@@ -116,8 +116,8 @@ def generate_excel_report(cxn, now, wells, plates, genera):
          'row', 'col', 'results', 'rapid_well_volume'], axis=1)
     wells = wells.reindex(
         """local_no well_no well family scientific_name sample_id
-           input_concentration rapid_input_volume rapid_concentration
-           rapid_total_dna""".split(), axis=1)
+           input_concentration rapid_input_volume concentration
+           total_dna""".split(), axis=1)
     expeditions = pd.read_sql('SELECT * FROM expeditions', cxn)
     wells = wells.merge(right=expeditions, how='left', on='sample_id')
     wells = wells.drop(['subject_id'], axis=1)
@@ -131,9 +131,9 @@ def generate_excel_report(cxn, now, wells, plates, genera):
         'input_concentration': 'Concentration (ng / uL)',
         'rapid_input_volume': 'Volume (uL)',
         'sample_id': 'Sample ID',
-        'rapid_concentration':
+        'concentration':
             'RAPiD Genomics Lab Use ONLY\nConcentration (ng / uL)',
-        'rapid_total_dna': 'RAPiD Genomics Lab Use ONLY\nTotal DNA (ng)',
+        'total_dna': 'RAPiD Genomics Lab Use ONLY\nTotal DNA (ng)',
         'subject_id': 'subject_id',
         'country': 'Country',
         'state_province': 'State/Province',

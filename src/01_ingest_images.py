@@ -25,8 +25,8 @@ def ingest_images():
     """Process image files."""
     cxn = db.connect()
 
-    # We take the list of all images and split it into roughly equal batches.
-    # We then send each batch to a subprocess. The subprocess returns a list of
+    # Get a list of all images and split it into roughly equal batches.
+    # Then send each batch to a subprocess. The subprocess returns a list of
     # successfully processed images and a list of images that errored which are
     # both combined into their own dataframes.
     old_images, old_errors = get_old_images(cxn)
@@ -43,9 +43,9 @@ def ingest_images():
     new_images = pd.DataFrame(new_images)
     new_errors = pd.DataFrame(new_errors)
 
-    # Now we finalize the image and error tables. We also handle any errors
-    # that can only be caught when the batches are combined. In this case it's
-    # looking for duplicate UUID errors.
+    # Now finalize the image and error tables. Also handle any errors that can
+    # only be caught when the batches are combined. In this case it's looking
+    # for duplicate UUID errors.
     images = pd.concat([old_images, new_images], ignore_index=True)
     images, dupes = find_duplicate_uuids(images)
     errors = pd.concat(
@@ -227,6 +227,8 @@ def read_pilot_data(cxn, images):
                   .rename(columns={'Identifier': 'pilot_id'}))
     pilot.pilot_id = pilot.pilot_id.str.lower().str.split().str.join(' ')
 
+    pilot.to_sql('raw_pilot', cxn, if_exists='replace', index=False)
+
     already_in = pilot.sample_id.isin(images.sample_id)
     pilot = pilot[~already_in]
 
@@ -241,6 +243,8 @@ def read_corrales_data(cxn, images):
     google.sheet_to_csv('corrales_data', csv_path)
     corrales = pd.read_csv(csv_path)
     corrales.corrales_id = corrales.corrales_id.str.lower()
+
+    corrales.to_sql('raw_corrales', cxn, if_exists='replace', index=False)
 
     already_in = corrales.sample_id.isin(images.sample_id)
     corrales = corrales[~already_in]

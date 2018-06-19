@@ -15,7 +15,8 @@ import lib.google as google
 
 load_dotenv(find_dotenv())
 INTERIM_DATA = Path('data') / 'interim'
-
+EXTERNAL_DATA = Path('..') / 'data' / 'external'
+ORDERS = ['Cucurbitales', 'Fagales', 'Fabales', 'Rosales']
 
 def ingest_taxonomy():
     """Ingest data related to the taxonomy."""
@@ -29,7 +30,8 @@ def ingest_taxonomy():
     taxon_ids = merge_pilot_data(cxn, taxon_ids)
     taxon_ids = merge_corrales_data(cxn, taxon_ids)
     taxonomy = rollup_id_data(taxonomy, taxon_ids)
-    taxonomy, loci = merge_genbank_loci_data(taxonomy)
+    taxonomy = merge_genbank_loci_data(taxonomy)
+    taxonomy = merge_werner_data(taxonomy)
     taxon_ids, expeditions = get_expedition_data(dbx, taxon_ids)
 
     taxonomy.to_sql('taxonomy', cxn, if_exists='replace', index=False)
@@ -174,7 +176,56 @@ def merge_genbank_loci_data(taxonomy):
 
     taxonomy = taxonomy.merge(right=loci, how='left', on='scientific_name')
 
-    return taxonomy, loci
+    return taxonomy
+
+
+def merge_werner_data(taxonomy):
+    """Read the Werner Excel sheet stored on Google drive."""
+    sci_names = taxonomy.scientific_name.tolist()
+    synonyms = get_synonyms(taxonomy)
+    werner = read_werner_data()
+
+    is_sci_name = werner.scientific_name.isin(sci_names)
+    is_synonym = werner.scientific_name.isin(synonyms)
+    update_it = ~is_sci_name & is_synonym
+    werner.loc[update_it, 'scientific_name'] = \
+        werner.loc[update_it, 'scientific_name'].apply(lambda x: synonyms[x])
+
+    taxonomy = taxonomy.merge(right=werner, how='left', on='scientific_name')
+    return taxonomy
+
+
+def read_werner_data():
+    """Read the Werner Excel spreadsheet data."""
+    excel_path = EXTERNAL_DATA / 'NitFixWernerEtAl2014.xlsx'
+    werner = pd.read_excel(excel_path)
+    drops = """NFC Legume Likelihood_non-precursor
+        Likelihood_precursor Likelihood_fixer Likelihood_stable_fixer
+        Most_likely_state Corrected_lik_precursor
+        Corrected_lik_stable_fixer""".split()
+    werner = werner.drop(drops, axis=1).rename(columns={
+        'Species': 'scientific_name',
+        'Family': 'family',
+        'Order': 'order'})
+    in_orders = werner.order.isin(ORDERS)
+    return werner[in_orders]
+
+
+def get_synonyms(taxonomy):
+    """Extract synonyms from the Master Taxonomy."""
+    synonyms = taxonomy.synonyms.str.split(r'\s*[;,]\s*', expand=True)
+    taxons = taxonomy[['scientific_name', 'synonyms']]
+
+    taxons = pd.concat([taxons, synonyms], axis=1)
+    synonyms = taxons.melt(
+        id_vars=['scientific_name'],
+        value_vars=synonyms.columns,
+        value_name='synonym')
+
+    synonyms = synonyms[synonyms.synonym.notna()].drop('variable', axis=1)
+    synonyms = synonyms.set_index('synonym').scientific_name.to_dict()
+
+    return synonyms
 
 
 def get_expedition_data(dbx, taxon_ids):

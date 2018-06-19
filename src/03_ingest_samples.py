@@ -103,8 +103,9 @@ def get_rapid_input():
         header=0,
         skiprows=1,
         names=[
-            'row_sort', 'col_sort', 'rapid_id', 'sample_id', 'concentration',
-            'volume', 'comments', 'rapid_concentration', 'rapid_total_dna'])
+            'row_sort', 'col_sort', 'rapid_id', 'sample_id', 'old_conc',
+            'volume', 'comments', 'concentration', 'total_dna'])
+    rapid_input = rapid_input.drop('old_conc', axis=1)
 
     source_plate = re.compile(r'^[A-Za-z]+_\d+_(P\d+)_W\w+$')
     rapid_input['source_plate'] = rapid_input.rapid_id.str.extract(

@@ -97,7 +97,7 @@ def output_csv(report_path, species):
     #     lambda x: 'Yes' if x in ['sequenced', 'chosen'] else 'No')
     # df = df[['source_plate', 'source_well', 'sample_id', 'selected',
     #          'family', 'genus', 'scientific_name', 'category',
-    #          'rapid_total_dna', 'genus_count', 'samples', '2_sequenced',
+    #          'total_dna', 'genus_count', 'samples', '2_sequenced',
     #          '3_chosen', '4_available', '5_unprocessed', '6_rejected',
     #          'slots', 'empty_slots']]
     # df = df.rename(columns={
@@ -109,7 +109,7 @@ def output_csv(report_path, species):
     #     'genus': 'Genus',
     #     'scientific_name': 'Scientific Name',
     #     'category': 'Category',
-    #     'rapid_total_dna': 'Total DNA (ng)',
+    #     'total_dna': 'Total DNA (ng)',
     #     'genus_count': 'Species in Genus',
     #     'samples': 'Sampled',
     #     '2_sequenced': 'Sequenced',
@@ -126,24 +126,24 @@ def get_sampled_species():
     """Read from database and format the data for further processing."""
     pd.options.display.float_format = '{:.0f}'.format
     sql = """
-        SELECT family, genus, scientific_name, rapid_total_dna, source_plate,
+        SELECT family, genus, scientific_name, total_dna, source_plate,
                source_well, rapid_input.sample_id
           FROM taxonomy
           JOIN taxon_ids USING (scientific_name)
      LEFT JOIN rapid_input ON (rapid_input.sample_id = taxon_ids.id)
-      ORDER BY family, genus, rapid_total_dna DESC, scientific_name
+      ORDER BY family, genus, total_dna DESC, scientific_name
     """
     taxons = pd.read_sql(sql, db.connect())
     taxons['category'] = '4_available'  # Use this as the default
 
-    taxons.rapid_total_dna = pd.to_numeric(
-        taxons.rapid_total_dna.fillna('0'), errors='coerce')
+    taxons.total_dna = pd.to_numeric(
+        taxons.total_dna.fillna('0'), errors='coerce')
 
     cols = ['sample_id', 'source_plate', 'source_well']
     taxons.update(taxons[cols].fillna(''))
 
     processed = taxons.source_plate != ''
-    below_threshold = taxons.rapid_total_dna < 100.0
+    below_threshold = taxons.total_dna < 100.0
     taxons.loc[processed & below_threshold, 'category'] = '6_rejected'
     taxons.loc[~processed & below_threshold, 'category'] = '5_unprocessed'
 

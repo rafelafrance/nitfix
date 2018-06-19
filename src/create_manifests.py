@@ -58,9 +58,6 @@ def CalAcademy():
     errors = pd.read_sql(sql, CXN)
     errors.image_file = errors.image_file.str.extract(r'.*/(.*)', expand=False)
 
-    print(len(errors))
-    errors
-
     images.to_csv(INTERIM_DATA / 'cas_manifest.csv', index=False)
     errors.to_csv(INTERIM_DATA / 'cas_manifest_missing.csv', index=False)
 

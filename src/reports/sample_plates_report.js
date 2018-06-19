@@ -64,7 +64,7 @@ function filterWells(plate) {
     .filter(function (well) { return sample_id ? well.sample_id.toLowerCase().indexOf(sample_id) > -1 : true; })
     .filter(function (well) { return scientific_name ? well.scientific_name.toLowerCase().indexOf(scientific_name) > -1 : true; })
     .filter(function (well) { return family ? well.family.toLowerCase().indexOf(family) > -1 : true; })
-    .filter(function (well) { return sent2Rapid ? well.rapid_concentration : true; })
+    .filter(function (well) { return sent2Rapid ? well.concentration : true; })
     .filter(function (well) { return seqReturned ? well.seqReturned : true; });
 }
 
@@ -232,11 +232,11 @@ function buildWellHeader() {
 }
 
 function buildWellData(well) {
-  const sent2Rapid = well.rapid_concentration ? 'Yes' : '';
+  const sent2Rapid = well.concentration ? 'Yes' : '';
   const seqReturned = '';
-  var concentration = parseFloat(well.rapid_concentration).toFixed(2);
+  var concentration = parseFloat(well.concentration).toFixed(2);
   concentration = concentration == 'NaN' ? '' : concentration;
-  var totalDna = parseFloat(well.rapid_total_dna).toFixed(2);
+  var totalDna = parseFloat(well.total_dna).toFixed(2);
   totalDna = totalDna == 'NaN' ? '' : totalDna;
   return {
     cls: 'well',
