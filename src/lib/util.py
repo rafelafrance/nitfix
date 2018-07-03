@@ -14,6 +14,7 @@ IMAGE_DIRS = [
     'NY_visit_2',
     'NY_DOE-nitfix_visit3',
     'NY_DOE-nitfix_visit4',
+    'NY_DOE-nitfix_visit5',
     'HUH_DOE-nitfix_specimen_photos',
     'MO-DOE-nitfix_specimen_photos',
     'MO-DOE-nitfix_visit2']

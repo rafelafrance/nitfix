@@ -122,7 +122,7 @@ def get_rapid_wells():
     """Get replated Rapid rata from Google sheet."""
     csv_path = INTERIM_DATA / 'rapid_wells.csv'
 
-    google.sheet_to_csv('Standard Reformatting Template.xlsx', csv_path)
+    google.sheet_to_csv('FMN_131001_Reformatting_Template.xlsx', csv_path)
 
     rapid_wells = pd.read_csv(
         csv_path,

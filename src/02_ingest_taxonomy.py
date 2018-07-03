@@ -15,7 +15,7 @@ import lib.google as google
 
 load_dotenv(find_dotenv())
 INTERIM_DATA = Path('data') / 'interim'
-EXTERNAL_DATA = Path('..') / 'data' / 'external'
+EXTERNAL_DATA = Path('data') / 'external'
 ORDERS = ['Cucurbitales', 'Fagales', 'Fabales', 'Rosales']
 
 
@@ -200,16 +200,17 @@ def read_werner_data():
     """Read the Werner Excel spreadsheet data."""
     excel_path = EXTERNAL_DATA / 'NitFixWernerEtAl2014.xlsx'
     werner = pd.read_excel(excel_path)
-    drops = """NFC Legume Likelihood_non-precursor
+    drops = """Legume Likelihood_non-precursor
         Likelihood_precursor Likelihood_fixer Likelihood_stable_fixer
         Most_likely_state Corrected_lik_precursor
         Corrected_lik_stable_fixer""".split()
     werner = werner.drop(drops, axis=1).rename(columns={
+        'NFC': 'nfc',
         'Species': 'scientific_name',
-        'Family': 'family',
+        'Family': 'family_w',
         'Order': 'order'})
-    in_orders = werner.order.isin(ORDERS)
-    return werner[in_orders]
+    is_nfc = werner.nfc == 'Yes'
+    return werner[is_nfc]
 
 
 def get_synonyms(taxonomy):
