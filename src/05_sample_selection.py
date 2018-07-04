@@ -29,13 +29,13 @@ pd.options.mode.chained_assignment = None
 
 def main():
     """Generate the report."""
-    totals = get_genera()
     samples = get_sampled_species()
+    totals = get_genera_totals()
     species = categorize_samples(samples, totals)
-    totals = totals.reset_index()
+    totals = accum_totals(totals)
 
     report_path = output_html(species, totals)
-    # output_csv(report_path, species)
+    output_csv(report_path, species)
 
 
 def categorize_samples(samples, totals):
@@ -66,10 +66,6 @@ def output_html(species, totals):
     template = env.get_template('sample_selection.html')
 
     totals['scientific_name'] = ''
-    grand = totals.sum(axis=0, numeric_only=True)
-    print(grand)
-    import sys
-    sys.exit()
 
     data = list(species.to_dict(orient='index').values())
     data += list(totals.to_dict(orient='index').values())
@@ -77,7 +73,7 @@ def output_html(species, totals):
         data, key=lambda x: (x['family'], x['genus'],
                              x['category'], x['scientific_name']))
 
-    report = template.render(now=now, species=data)
+    report = template.render(now=now, data=data)
 
     report_name = f'sample_selection_report_{now.strftime("%Y-%m-%d")}.html'
     report_path = Path('output') / report_name
@@ -133,24 +129,47 @@ def get_sampled_species():
      LEFT JOIN rapid_input ON (rapid_input.sample_id = taxon_ids.id)
       ORDER BY family, genus, total_dna DESC, scientific_name
     """
-    taxons = pd.read_sql(sql, db.connect())
-    taxons['category'] = '4_available'  # Use this as the default
+    species = pd.read_sql(sql, db.connect())
+    species['category'] = '4_available'  # Use this as the default
 
-    taxons.total_dna = pd.to_numeric(
-        taxons.total_dna.fillna('0'), errors='coerce')
+    species.total_dna = pd.to_numeric(
+        species.total_dna.fillna('0'), errors='coerce')
 
     cols = ['sample_id', 'source_plate', 'source_well']
-    taxons.update(taxons[cols].fillna(''))
+    species.update(species[cols].fillna(''))
 
-    processed = taxons.source_plate != ''
-    below_threshold = taxons.total_dna < 100.0
-    taxons.loc[processed & below_threshold, 'category'] = '6_rejected'
-    taxons.loc[~processed & below_threshold, 'category'] = '5_unprocessed'
+    processed = species.source_plate != ''
+    below_threshold = species.total_dna < 100.0
+    species.loc[processed & below_threshold, 'category'] = '6_rejected'
+    species.loc[~processed & below_threshold, 'category'] = '5_unprocessed'
 
-    return taxons
+    return species
 
 
-def get_genera():
+def accum_totals(genera):
+    """Calculate the family totals from the genera totals."""
+    genera = genera.reset_index()
+
+    families = genera.copy().groupby('family').sum()
+    families = families.reset_index()
+    families['category'] = '0_family'
+    families['genus'] = ''
+
+    grand = genera.copy()
+    grand.family = '~Total~'
+    grand = grand.groupby('family').sum()
+    grand = grand.reset_index()
+    grand['category'] = '9_total'
+    grand['genus'] = ''
+
+    totals = pd.concat([genera, families, grand], sort=True)
+    totals = totals.set_index(['family', 'genus'], drop=False)
+    totals = totals.sort_index()
+
+    return totals
+
+
+def get_genera_totals():
     """Get the fraction of species in a genus we want to cover."""
     sql = """
         SELECT family, genus, COUNT(*) AS genus_count
@@ -161,7 +180,7 @@ def get_genera():
     genera = pd.read_sql(sql, db.connect())
     genera['slots'] = genera.genus_count.apply(get_slots)
     genera['empty_slots'] = genera.slots
-    genera['category'] = '1_header'
+    genera['category'] = '1_genus'
     for field in """2_sequenced 3_chosen 4_available 5_unprocessed 6_rejected
             samples""".split():
         genera[field] = 0

@@ -9,7 +9,8 @@
 }
 
 button.toggle {
-  margin-right: 1em;
+  text-align: center;
+  width: 23px;
 }
 
 button.toggle:before {
@@ -66,41 +67,6 @@ table {
   border-collapse: collapse;
 }
 
-thead {
-  display: block;
-  overflow: auto;
-}
-
-tbody {
-  display: block;
-  height: 720px;
-  overflow: auto;
-}
-
-th.thin,
-td.thin {
-  width: 40px;
-  min-width: 40px;
-}
-
-th.wide,
-td.wide {
-  width: 90px;
-  min-width: 90px;
-}
-
-th.wider,
-td.wider {
-  width: 100px;
-  min-width: 100px;
-}
-
-th.widest,
-td.widest {
-  width: 220px;
-  min-width: 220px;
-}
-
 .header {
   font-weight: bold;
   background-color: #eeeeee;
@@ -115,6 +81,11 @@ td.widest {
   background-color: white;
 }
 
+.family td {
+  background-color: cornsilk;
+}
+
+.family td,
 .genus td {
   border-top: 1px solid lightgray;
 }
