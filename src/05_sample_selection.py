@@ -35,7 +35,7 @@ def main():
     totals = accum_totals(totals)
 
     report_path = output_html(species, totals)
-    output_csv(report_path, species)
+    output_csv(report_path, species, totals)
 
 
 def categorize_samples(samples, totals):
@@ -67,12 +67,7 @@ def output_html(species, totals):
 
     totals['scientific_name'] = ''
 
-    data = list(species.to_dict(orient='index').values())
-    data += list(totals.to_dict(orient='index').values())
-    data = sorted(
-        data, key=lambda x: (x['family'], x['genus'],
-                             x['category'], x['scientific_name']))
-
+    data = get_html_data(species, totals)
     report = template.render(now=now, data=data)
 
     report_name = f'sample_selection_report_{now.strftime("%Y-%m-%d")}.html'
@@ -83,39 +78,72 @@ def output_html(species, totals):
     return report_path
 
 
-def output_csv(report_path, species):
+def get_html_data(species, totals):
+    """Build report lines for the HTML report."""
+    data = list(species.to_dict(orient='index').values())
+    data += list(totals.to_dict(orient='index').values())
+    data = sorted(
+        data, key=lambda x: (x['family'], x['genus'],
+                             x['category'], x['scientific_name']))
+    return data
+
+
+def get_csv_data(species, totals):
+    """Build report lines for the CSV report."""
+    plated = '2_sequenced 3_chosen 4_available 6_rejected'.split()
+    rows = []
+
+    totals = totals[totals.category == '1_genus']
+    data = get_html_data(species, totals)
+
+    for row in data:
+        if row['category'] == '1_genus':
+            header = row
+        elif row['category'] in plated:
+            rows.append({**header, **row})
+
+    return rows
+
+
+def output_csv(report_path, species, totals):
     """Output the CSV sidecar file."""
-    # csv_path = os.path.splitext(report_path)[0] + '.csv'
-    # # csv_rows = build_csv(species)
-    # df = pd.DataFrame(csv_rows).sort_values(['source_plate', 'source_well'])
-    # df.category = df.category.str[2:]
-    # df['selected'] = df.category.apply(
-    #     lambda x: 'Yes' if x in ['sequenced', 'chosen'] else 'No')
-    # df = df[['source_plate', 'source_well', 'sample_id', 'selected',
-    #          'family', 'genus', 'scientific_name', 'category',
-    #          'total_dna', 'genus_count', 'samples', '2_sequenced',
-    #          '3_chosen', '4_available', '5_unprocessed', '6_rejected',
-    #          'slots', 'empty_slots']]
-    # df = df.rename(columns={
-    #     'source_plate': 'Plate',
-    #     'source_well': 'Well',
-    #     'sample_id': 'Sample ID',
-    #     'selected': 'Selected',
-    #     'family': 'Family',
-    #     'genus': 'Genus',
-    #     'scientific_name': 'Scientific Name',
-    #     'category': 'Category',
-    #     'total_dna': 'Total DNA (ng)',
-    #     'genus_count': 'Species in Genus',
-    #     'samples': 'Sampled',
-    #     '2_sequenced': 'Sequenced',
-    #     '3_chosen': 'Automatically Chosen',
-    #     '4_available': 'Available to Choose',
-    #     '5_unprocessed': 'Unprocessed Samples',
-    #     '6_rejected': 'Rejected Samples',
-    #     'slots': 'Slots',
-    #     'empty_slots': 'Empty Slots'})
-    # df.to_csv(csv_path, index=False)
+    csv_path = os.path.splitext(report_path)[0] + '.csv'
+
+    data = get_csv_data(species, totals)
+
+    df = pd.DataFrame(data).sort_values(['source_plate', 'source_well'])
+
+    df.category = df.category.str[2:]
+    df['selected'] = df.category.apply(
+        lambda x: 'Yes' if x in ['sequenced', 'chosen'] else 'No')
+
+    df = df[['source_plate', 'source_well', 'sample_id', 'selected',
+             'family', 'genus', 'scientific_name', 'category',
+             'total_dna', 'genus_count', 'samples', '2_sequenced',
+             '3_chosen', '4_available', '5_unprocessed', '6_rejected',
+             'slots', 'empty_slots']]
+
+    df = df.rename(columns={
+        'source_plate': 'Plate',
+        'source_well': 'Well',
+        'sample_id': 'Sample ID',
+        'selected': 'Selected',
+        'family': 'Family',
+        'genus': 'Genus',
+        'scientific_name': 'Scientific Name',
+        'category': 'Category',
+        'total_dna': 'Total DNA (ng)',
+        'genus_count': 'Species in Genus',
+        'samples': 'Sampled',
+        '2_sequenced': 'Sequenced',
+        '3_chosen': 'Automatically Chosen',
+        '4_available': 'Available to Choose',
+        '5_unprocessed': 'Unprocessed Samples',
+        '6_rejected': 'Rejected Samples',
+        'slots': 'Slots',
+        'empty_slots': 'Empty Slots'})
+
+    df.to_csv(csv_path, index=False)
 
 
 def get_sampled_species():
