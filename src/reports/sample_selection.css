@@ -9,12 +9,11 @@
 }
 
 button.toggle {
-  text-align: center;
-  width: 23px;
+  padding: 0 4px;
 }
 
 button.toggle:before {
-  content: '-';
+  content: '\2013';
 }
 
 button.toggle.closed:before {
