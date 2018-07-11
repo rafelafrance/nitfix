@@ -7,24 +7,25 @@ from functools import partial
 import numpy as np
 import pandas as pd
 from pandas.api.types import is_number
-import dropbox
-from dotenv import load_dotenv, find_dotenv
+# import dropbox
+# from dotenv import load_dotenv, find_dotenv
 import lib.db as db
 import lib.google as google
 
 
-load_dotenv(find_dotenv())
+# load_dotenv(find_dotenv())
 INTERIM_DATA = Path('data') / 'interim'
 EXTERNAL_DATA = Path('data') / 'external'
-ORDERS = ['Cucurbitales', 'Fagales', 'Fabales', 'Rosales']
+EXPEDITION_DATA = Path('data') / 'raw' / 'expeditions'
+# ORDERS = ['Cucurbitales', 'Fagales', 'Fabales', 'Rosales']
 
 
 def ingest_taxonomy():
     """Ingest data related to the taxonomy."""
     cxn = db.connect()
 
-    my_dropbox = os.getenv('DROPBOX')
-    dbx = dropbox.Dropbox(my_dropbox)
+    # my_dropbox = os.getenv('DROPBOX')
+    # dbx = dropbox.Dropbox(my_dropbox)
 
     taxonomy, split_ids = get_master_taxonomy()
     taxon_ids = link_images_to_taxonomy(cxn, taxonomy, split_ids)
@@ -33,7 +34,7 @@ def ingest_taxonomy():
     taxonomy = rollup_id_data(taxonomy, taxon_ids)
     taxonomy = merge_genbank_loci_data(taxonomy)
     taxonomy = merge_werner_data(taxonomy)
-    taxon_ids, expeditions = get_expedition_data(dbx, taxon_ids)
+    taxon_ids, expeditions = get_expedition_data(taxon_ids)
 
     taxonomy.to_sql('taxonomy', cxn, if_exists='replace', index=False)
     taxon_ids.to_sql('taxon_ids', cxn, if_exists='replace', index=False)
@@ -230,12 +231,12 @@ def get_synonyms(taxonomy):
     return synonyms
 
 
-def get_expedition_data(dbx, taxon_ids):
+def get_expedition_data(taxon_ids):
     """Get NitFix 1 expedition data."""
-    csv_path = os.fspath(INTERIM_DATA / 'expedition_01.csv')
-    dbx_path = 'id:zSBrtnqOfSAAAAAAAAAAKw/5657_Nit_Fix_I.reconcile.4.2.csv'
+    csv_path = os.fspath(EXPEDITION_DATA / '5657_Nit_Fix_I.reconcile.4.2.csv')
+    # dbx_path = 'id:zSBrtnqOfSAAAAAAAAAAKw/5657_Nit_Fix_I.reconcile.4.2.csv'
 
-    dbx.files_download_to_file(csv_path, dbx_path)
+    # dbx.files_download_to_file(csv_path, dbx_path)
 
     expedition_01 = pd.read_csv(csv_path)
     columns = {}
