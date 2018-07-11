@@ -24,5 +24,6 @@ data/processed/*
 !data/processed/.gitkeep
 data/raw/*
 !data/raw/.gitkeep
+!data/raw/expeditions/
 data/secrets/*
 !data/secrets/.gitkeep
