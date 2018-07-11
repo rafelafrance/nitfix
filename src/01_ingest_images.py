@@ -1,6 +1,7 @@
 """Extract, transform, and load data related to the images."""
 
 import os
+from os.path import join
 from glob import glob
 from pathlib import Path
 from itertools import chain
@@ -54,6 +55,10 @@ def ingest_images():
     # Add image records that don't have an image file.
     images = read_pilot_data(cxn, images)
     images = read_corrales_data(cxn, images)
+
+    # Fix images where we have solutions to errors
+    errors = resolve_errors(errors)
+    images = manually_insert_images(images)
 
     images.to_sql('images', cxn, if_exists='replace', index=False)
     errors.to_sql('image_errors', cxn, if_exists='replace', index=False)
@@ -113,7 +118,9 @@ def ingest_batch(image_batch):
         else:
             new_errors.append({
                 'image_file': image_file,
-                'msg': f'MISSING: QR code missing in {image_file}'})
+                'msg': f'MISSING: QR code missing in {image_file}',
+                'ok': 0,
+                'resolution': ''})
 
     return new_images, new_errors
 
@@ -251,6 +258,73 @@ def read_corrales_data(cxn, images):
 
     corrales = corrales.drop('corrales_id', axis=1)
     return pd.concat([images, corrales], ignore_index=True, sort=True)
+
+
+def resolve_errors(errors):
+    """Update errors with their resolutions."""
+    for resolution in get_resolutions():
+        path = join(resolution[0], resolution[1])
+        error = errors[errors.image_file == path]
+        error.ok = resolution[2]
+        error.resolution = resolution[3]
+    return errors
+
+
+def manually_insert_images(images):
+    """Resolve some errors via a manual insert."""
+    df = pd.DataFrame(get_manual_inserts())
+    return pd.concat([images, df], ignore_index=True)
+
+
+def get_manual_inserts():
+    """Get images that can need to be added manually."""
+    return [
+        {'image_file': join('CAS-DOE-nitfix_specimen_photos', 'R0002092'),
+         'sample_id': '8b6e0223-7fbe-4efc-a1e2-6c934da06685'},
+        {'image_file': join('MO-DOE-nitfix_specimen_photos', 'R0003663'),
+         'sample_id': '2eea159f-3c25-42ef-837d-27ad545a6779'}]
+
+
+def get_resolutions():
+    """Get the resolutions for some image errors."""
+    return [
+        ('DOE-nitfix_specimen_photos', 'R0000149', 1, 'OK: Genuine duplicate'),
+        ('DOE-nitfix_specimen_photos', 'R0000151', 1, 'OK: Genuine duplicate'),
+        ('DOE-nitfix_specimen_photos', 'R0000158', 1, 'OK: Genuine duplicate'),
+        ('DOE-nitfix_specimen_photos', 'R0000165', 1, 'OK: Genuine duplicate'),
+        ('DOE-nitfix_specimen_photos', 'R0000674', 1,
+         'OK: Duplicate of R0000473'),
+        ('DOE-nitfix_specimen_photos', 'R0000835', 1,
+         'OK: Is a duplicate of R0000836'),
+        ('DOE-nitfix_specimen_photos', 'R0000895', 1, 'OK: Genuine duplicate'),
+        ('DOE-nitfix_specimen_photos', 'R0000937', 1, 'OK: Genuine duplicate'),
+        ('DOE-nitfix_specimen_photos', 'R0001055', 1, 'OK: Genuine duplicate'),
+
+        ('HUH_DOE-nitfix_specimen_photos', 'R0001262', 1,
+         'OK: Duplicate of R0001263'),
+        ('HUH_DOE-nitfix_specimen_photos', 'R0001729', 1,
+         'OK: Duplicate of R0001728'),
+
+        ('OS_DOE-nitfix_specimen_photos', 'R0000229', 1,
+         'OK: Genuine duplicate'),
+        ('OS_DOE-nitfix_specimen_photos', 'R0001835', 1,
+         'OK: Genuine duplicate'),
+        ('OS_DOE-nitfix_specimen_photos', 'R0001898', 1,
+         'OK: Genuine duplicate'),
+
+        ('CAS-DOE-nitfix_specimen_photos', 'R0001361', 1,
+         'OK: Genuine duplicate'),
+        ('CAS-DOE-nitfix_specimen_photos', 'R0002349', 1,
+         'OK: Genuine duplicate'),
+
+        ('MO-DOE-nitfix_specimen_photos', 'R0002933', 1,
+         'OK: Genuine duplicate'),
+        ('MO-DOE-nitfix_specimen_photos', 'R0003226', 1,
+         'OK: Genuine duplicate'),
+        ('MO-DOE-nitfix_specimen_photos', 'R0003663', 1,
+         'OK: Manually fixed'),
+        ('MO-DOE-nitfix_specimen_photos', 'R0003509', 0,
+         'ERROR: Blurry image')]
 
 
 if __name__ == '__main__':
