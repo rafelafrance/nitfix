@@ -17,6 +17,7 @@ def ingest_samples():
     wells = get_wells()
     rapid_input = get_rapid_input()
     rapid_wells = get_rapid_wells()
+    rapid_input = assign_plate_ids(wells, rapid_input)
 
     wells.to_sql('wells', cxn, if_exists='replace', index=False)
     rapid_input.to_sql('rapid_input', cxn, if_exists='replace', index=False)
@@ -84,8 +85,7 @@ def get_wells():
         lambda well: 'ABCDEFGH'.find(well.row.upper()) * 12 + well.col, axis=1)
     wells['local_no'] = (pd.to_numeric(
         wells.local_id.str.replace(r'\D+', ''), errors='coerce')
-                         .fillna(0)
-                         .astype('int'))
+        .fillna(0).astype('int'))
     wells['well'] = wells.apply(lambda w: f'{w.row}{w.col:02d}', axis=1)
 
     return wells
@@ -116,6 +116,26 @@ def get_rapid_input():
         source_well, expand=False)
 
     return rapid_input
+
+
+def assign_plate_ids(wells, rapid_input):
+    """Figure out which Rapid source plate corresponds to our plate IDs."""
+    our_plates = get_plate_fingerprint(wells, 'plate_id')
+    rapid_plates = get_plate_fingerprint(rapid_input, 'source_plate')
+    for fingerprint, source_plate in rapid_plates.items():
+        print(source_plate, our_plates.get(fingerprint))
+    return rapid_input
+
+
+def get_plate_fingerprint(df, plate_col):
+    """Fingerprint the plates in the dataframe."""
+    fingerprints = {}
+    for _, row in df.iterrows():
+        if not fingerprints.get(row[plate_col]):
+            fingerprints[row[plate_col]] = []
+        if len(str(row.sample_id)) == 36:
+            fingerprints[row[plate_col]].append(row.sample_id)
+    return {','.join(sorted(v[:72])): k for k, v in fingerprints.items() if v}
 
 
 def get_rapid_wells():
