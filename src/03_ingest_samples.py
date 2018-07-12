@@ -120,11 +120,26 @@ def get_rapid_input():
 
 def assign_plate_ids(wells, rapid_input):
     """Figure out which Rapid source plate corresponds to our plate IDs."""
-    our_plates = get_plate_fingerprint(wells, 'plate_id')
-    rapid_plates = get_plate_fingerprint(rapid_input, 'source_plate')
-    for fingerprint, source_plate in rapid_plates.items():
-        print(source_plate, our_plates.get(fingerprint))
+    all_samples = get_sample_plates(wells)
+    for sample_id, samples in all_samples.items():
+        if len(samples) > 1:
+            print(sample_id, samples)
+    # our_plates = get_plate_fingerprint(wells, 'plate_id')
+    # rapid_plates = get_plate_fingerprint(rapid_input, 'source_plate')
+    # for fingerprint, source_plate in rapid_plates.items():
+    #     print(source_plate, our_plates.get(fingerprint))
     return rapid_input
+
+
+def get_sample_plates(wells):
+    """Find where each sample has been plated."""
+    all_samples = {}
+    for _, row in wells.iterrows():
+        if not all_samples.get(row.sample_id):
+            all_samples[row.sample_id] = []
+        if len(str(row.sample_id)) == 36:
+            all_samples[row.sample_id].append((row.plate_id, row.well))
+    return all_samples
 
 
 def get_plate_fingerprint(df, plate_col):
@@ -135,7 +150,7 @@ def get_plate_fingerprint(df, plate_col):
             fingerprints[row[plate_col]] = []
         if len(str(row.sample_id)) == 36:
             fingerprints[row[plate_col]].append(row.sample_id)
-    return {','.join(sorted(v[:72])): k for k, v in fingerprints.items() if v}
+    return {','.join(sorted(v)): k for k, v in fingerprints.items() if v}
 
 
 def get_rapid_wells():
