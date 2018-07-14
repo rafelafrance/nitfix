@@ -24,6 +24,7 @@ def is_uuid(guid):
     """Create a function to determine if a string is a valid UUID."""
     if not guid:
         guid = ''
+    guid = str(guid)
     try:
         uuid.UUID(guid)
         return True

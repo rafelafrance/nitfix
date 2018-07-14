@@ -4,6 +4,7 @@ import re
 from pathlib import Path
 import pandas as pd
 import lib.db as db
+import lib.util as util
 import lib.google as google
 
 
@@ -119,38 +120,74 @@ def get_rapid_input():
 
 
 def assign_plate_ids(wells, rapid_input):
-    """Figure out which Rapid source plate corresponds to our plate IDs."""
-    all_samples = get_sample_plates(wells)
-    for sample_id, samples in all_samples.items():
-        if len(samples) > 1:
-            print(sample_id, samples)
-    # our_plates = get_plate_fingerprint(wells, 'plate_id')
-    # rapid_plates = get_plate_fingerprint(rapid_input, 'source_plate')
-    # for fingerprint, source_plate in rapid_plates.items():
-    #     print(source_plate, our_plates.get(fingerprint))
+    """
+    Map Rapid source plate wells to sample plate and well.
+
+    1) Find RAPiD plate's fingerprint using the RAPiD source_plate and
+    source_row. {(source_well, source_row) -> fingerprint}
+
+    2) Find the sample plate and row using the fingerprint.
+    {fingerprint -> {source_row's plate_id, row, list of sample_ids in order}}
+
+    3) Get the first sample_id in the row that matches the RAPiD sample_id. Use
+       its index to get the column number.
+
+    4) Blank out the sample_id in the list of sample_ids so the next one will
+       be found when there are duplicate sample IDs in a row.
+
+    NOTE: that rows can be permuted between the samples and what is sent to
+    Rapid, so we need to sort the fingerprint of sample IDs.
+    """
+    rapid_input['source_row'] = rapid_input.source_well.str[0]
+    rapid_input['source_col'] = rapid_input.source_well.str[1:].astype(int)
+
+    sample_prints = _get_sample_fingerprints(wells)
+    rapid_prints = _get_rapid_fingerprints(rapid_input)
+
+    rapid_input['plate_id'] = ''
+    rapid_input['well'] = ''
+
+    # Trying to vectorize this loop was more trouble than it's worth
+    for idx, rapid_well in rapid_input.iterrows():
+        rapid_key = (rapid_well.source_plate, rapid_well.source_row)
+        fingerprint = rapid_prints.get(rapid_key)
+
+        if not fingerprint or not util.is_uuid(rapid_well.sample_id):
+            continue
+
+        sample_row = sample_prints[fingerprint]
+        col = sample_row['sample_ids'].index(rapid_well.sample_id)
+
+        sample_row['sample_ids'][col] = ''
+
+        rapid_input.at[idx, 'plate_id'] = sample_row['plate_id']
+        rapid_input.at[idx, 'well'] = f"{sample_row['row']}{(col + 1):02d}"
+
     return rapid_input
 
 
-def get_sample_plates(wells):
-    """Find where each sample has been plated."""
-    all_samples = {}
-    for _, row in wells.iterrows():
-        if not all_samples.get(row.sample_id):
-            all_samples[row.sample_id] = []
-        if len(str(row.sample_id)) == 36:
-            all_samples[row.sample_id].append((row.plate_id, row.well))
-    return all_samples
-
-
-def get_plate_fingerprint(df, plate_col):
-    """Fingerprint the plates in the dataframe."""
+def _get_rapid_fingerprints(df):
     fingerprints = {}
     for _, row in df.iterrows():
-        if not fingerprints.get(row[plate_col]):
-            fingerprints[row[plate_col]] = []
-        if len(str(row.sample_id)) == 36:
-            fingerprints[row[plate_col]].append(row.sample_id)
-    return {','.join(sorted(v)): k for k, v in fingerprints.items() if v}
+        key = (row.source_plate, row.source_row)
+        if not fingerprints.get(key):
+            fingerprints[key] = [''] * 12
+        if util.is_uuid(row.sample_id):
+            fingerprints[key][row.source_col - 1] = row.sample_id
+    return {k: tuple(sorted(v)) for k, v in fingerprints.items() if any(v)}
+
+
+def _get_sample_fingerprints(df):
+    fingerprints = {}
+    for _, row in df.iterrows():
+        key = (row.plate_id, row.row)
+        if not fingerprints.get(key):
+            fingerprints[key] = [''] * 12
+        if util.is_uuid(row.sample_id):
+            fingerprints[key][row.col - 1] = row.sample_id
+
+    return {tuple(sorted(v)): {'plate_id': k[0], 'row': k[1], 'sample_ids': v}
+            for k, v in fingerprints.items() if any(v)}
 
 
 def get_rapid_wells():
