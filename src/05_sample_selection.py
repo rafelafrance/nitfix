@@ -152,9 +152,11 @@ def get_sampled_species():
     sql = """
         SELECT family, genus, scientific_name, total_dna, source_plate,
                source_well, rapid_input.sample_id
-          FROM taxonomy
-          JOIN taxon_ids USING (scientific_name)
-     LEFT JOIN rapid_input ON (rapid_input.sample_id = taxon_ids.id)
+          FROM wells
+          JOIN taxon_ids   ON    (wells.sample_id = taxon_ids.id)
+          JOIN taxonomy    USING (scientific_name)
+     LEFT JOIN rapid_input USING (plate_id, well)
+     LEFT JOIN rapid_wells USING (source_plate, source_well)
       ORDER BY family, genus, total_dna DESC, scientific_name
     """
     species = pd.read_sql(sql, db.connect())

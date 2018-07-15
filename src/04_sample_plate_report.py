@@ -22,7 +22,7 @@ def get_wells(cxn):
           FROM wells
           JOIN taxon_ids   ON    (wells.sample_id = taxon_ids.id)
           JOIN taxonomy    USING (scientific_name)
-     LEFT JOIN rapid_input USING (sample_id)
+     LEFT JOIN rapid_input USING (plate_id, well)
      LEFT JOIN rapid_wells USING (source_plate, source_well)
       ORDER BY local_no, row, col
     """
