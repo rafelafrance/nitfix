@@ -3,35 +3,26 @@
 import os
 import re
 from pathlib import Path
-from functools import partial
 import numpy as np
 import pandas as pd
 from pandas.api.types import is_number
-# import dropbox
-# from dotenv import load_dotenv, find_dotenv
 import lib.db as db
+import lib.util as util
 import lib.google as google
 
 
-# load_dotenv(find_dotenv())
 INTERIM_DATA = Path('data') / 'interim'
 EXTERNAL_DATA = Path('data') / 'external'
 EXPEDITION_DATA = Path('data') / 'raw' / 'expeditions'
-# ORDERS = ['Cucurbitales', 'Fagales', 'Fabales', 'Rosales']
 
 
 def ingest_taxonomy():
     """Ingest data related to the taxonomy."""
     cxn = db.connect()
 
-    # my_dropbox = os.getenv('DROPBOX')
-    # dbx = dropbox.Dropbox(my_dropbox)
-
     taxonomy, split_ids = get_master_taxonomy()
     taxon_ids = link_images_to_taxonomy(cxn, taxonomy, split_ids)
-    taxon_ids = merge_pilot_data(cxn, taxon_ids)
-    taxon_ids = merge_corrales_data(cxn, taxon_ids)
-    taxonomy = rollup_id_data(taxonomy, taxon_ids)
+    taxonomy = merge_taxons_and_ids(taxonomy, taxon_ids)
     taxonomy = merge_genbank_loci_data(taxonomy)
     taxonomy = merge_werner_data(taxonomy)
     taxon_ids, expeditions = get_expedition_data(taxon_ids)
@@ -39,18 +30,6 @@ def ingest_taxonomy():
     taxonomy.to_sql('taxonomy', cxn, if_exists='replace', index=False)
     taxon_ids.to_sql('taxon_ids', cxn, if_exists='replace', index=False)
     expeditions.to_sql('expeditions', cxn, if_exists='replace', index=False)
-
-
-def join_columns(columns, row):
-    """Combine data from multiple columns into a single value."""
-    value = ','.join([row[c] for c in columns if not is_number(row[c])])
-    return value if value else np.nan
-
-
-def join_aggregate(values):
-    """Combine a group of values into a single value."""
-    value = ','.join([v for v in values if not is_number(v)])
-    return value if value else np.nan
 
 
 def get_master_taxonomy():
@@ -62,16 +41,9 @@ def get_master_taxonomy():
     taxonomy = pd.read_csv(
         csv_path,
         header=0,
-        names=[
-            'column_a',
-            'family',
-            'scientific_name',
-            'authority',
-            'synonyms',
-            'ids',
-            'provider_acronym',
-            'provider_id',
-            'quality_notes'])
+        names=['column_a', 'family', 'scientific_name', 'authority',
+               'synonyms', 'ids', 'provider_acronym', 'provider_id',
+               'quality_notes'])
     taxonomy = taxonomy[taxonomy.scientific_name.notna()]
 
     taxonomy.scientific_name = \
@@ -92,71 +64,24 @@ def link_images_to_taxonomy(cxn, taxonomy, split_ids):
     """Link Images to Taxonomy IDs."""
     images = pd.read_sql('SELECT * FROM images', cxn)
 
-    taxon_ids = (taxonomy.melt(id_vars=['scientific_name'],
-                               value_vars=split_ids.columns)
-                 .rename(columns={'value': 'id'}))
+    taxon_ids = taxonomy.melt(
+        id_vars='scientific_name',
+        value_vars=split_ids.columns,
+        value_name='sample_id').drop('variable', axis=1)
 
-    has_id = taxon_ids.id.str.len() > 4
+    taxon_ids.sample_id = taxon_ids.sample_id.str.split().str.join(' ')
+    has_id = taxon_ids.sample_id.apply(lambda x: util.is_uuid(x))
     taxon_ids = taxon_ids[has_id]
 
-    taxon_ids.id = taxon_ids.id.str.split().str.join(' ')
-
-    taxon_ids = taxon_ids.merge(
-        right=images, how='left', left_on='id', right_on='sample_id')
+    taxon_ids = taxon_ids.merge(right=images, how='left', on='sample_id')
 
     return taxon_ids
 
 
-def merge_pilot_data(cxn, taxon_ids):
-    """Link pilot data to taxonomy IDs."""
-    pilot = pd.read_sql('SELECT * FROM raw_pilot', cxn)
-
-    taxon_ids = taxon_ids.merge(
-        right=pilot, how='left', left_on='id', right_on='pilot_id')
-
-    columns = ['image_file_x', 'image_file_y']
-    taxon_ids['image_file'] = taxon_ids.apply(
-        partial(join_columns, columns), axis=1)
-    taxon_ids = taxon_ids.drop(columns, axis=1)
-
-    columns = ['sample_id_x', 'sample_id_y']
-    taxon_ids['sample_id'] = taxon_ids.apply(
-        partial(join_columns, columns), axis=1)
-    taxon_ids = taxon_ids.drop(columns, axis=1)
-
-    return taxon_ids
-
-
-def merge_corrales_data(cxn, taxon_ids):
-    """Link Corrales data to taxonomy IDs."""
-    corrales = pd.read_sql('SELECT * FROM raw_corrales', cxn)
-
-    taxon_ids = taxon_ids.merge(
-        right=corrales, how='left', left_on='id', right_on='corrales_id')
-
-    columns = ['image_file_x', 'image_file_y']
-    taxon_ids['image_files'] = taxon_ids.apply(
-        partial(join_columns, columns), axis=1)
-    taxon_ids = taxon_ids.drop(columns, axis=1)
-
-    columns = ['sample_id_x', 'sample_id_y']
-    taxon_ids['sample_ids'] = taxon_ids.apply(
-        partial(join_columns, columns), axis=1)
-    taxon_ids = taxon_ids.drop(columns, axis=1)
-
-    not_an_id = taxon_ids.id.str.contains('corrales: corrales no voucher')
-    taxon_ids = taxon_ids[~not_an_id]
-
-    return taxon_ids
-
-
-def rollup_id_data(taxonomy, taxon_ids):
+def merge_taxons_and_ids(taxonomy, taxon_ids):
     """Merge per ID data into the taxonomy data."""
     groups = taxon_ids.groupby('scientific_name').aggregate({
-        'id': join_aggregate,
-        'pilot_id': join_aggregate,
-        'sample_ids': join_aggregate,
-        'image_files': join_aggregate})
+        'sample_id': join_aggregate, 'image_file': join_aggregate})
 
     taxonomy = taxonomy.merge(
         right=groups, how='left', left_on='scientific_name', right_index=True)
@@ -234,9 +159,6 @@ def get_synonyms(taxonomy):
 def get_expedition_data(taxon_ids):
     """Get NitFix 1 expedition data."""
     csv_path = os.fspath(EXPEDITION_DATA / '5657_Nit_Fix_I.reconcile.4.2.csv')
-    # dbx_path = 'id:zSBrtnqOfSAAAAAAAAAAKw/5657_Nit_Fix_I.reconcile.4.2.csv'
-
-    # dbx.files_download_to_file(csv_path, dbx_path)
 
     expedition_01 = pd.read_csv(csv_path)
     columns = {}
@@ -252,10 +174,21 @@ def get_expedition_data(taxon_ids):
 
     expeditions = expedition_01.rename(columns=columns)
 
-    taxon_ids = taxon_ids.merge(
-        right=expeditions, how='left', left_on='id', right_on='sample_id')
+    taxon_ids = taxon_ids.merge(right=expeditions, how='left', on='sample_id')
 
     return taxon_ids, expeditions
+
+
+def join_columns(columns, row):
+    """Combine data from multiple columns into a single value."""
+    value = ','.join([row[c] for c in columns if not is_number(row[c])])
+    return value if value else np.nan
+
+
+def join_aggregate(values):
+    """Combine a group of values into a single value."""
+    value = ','.join([v for v in values if not is_number(v)])
+    return value if value else np.nan
 
 
 if __name__ == '__main__':

@@ -153,7 +153,7 @@ def get_sampled_species():
         SELECT family, genus, scientific_name, total_dna, source_plate,
                source_well, rapid_input.sample_id
           FROM wells
-          JOIN taxon_ids   ON    (wells.sample_id = taxon_ids.id)
+          JOIN taxon_ids   USING (sample_id)
           JOIN taxonomy    USING (scientific_name)
      LEFT JOIN rapid_input USING (plate_id, well)
      LEFT JOIN rapid_wells USING (source_plate, source_well)

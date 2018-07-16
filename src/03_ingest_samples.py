@@ -147,7 +147,7 @@ def assign_plate_ids(wells, rapid_input):
     rapid_input['plate_id'] = ''
     rapid_input['well'] = ''
 
-    # Trying to vectorize this loop was more trouble than it's worth
+    # Vectorizing this loop is more trouble than it's worth
     for idx, rapid_well in rapid_input.iterrows():
         rapid_key = (rapid_well.source_plate, rapid_well.source_row)
         fingerprint = rapid_prints.get(rapid_key)

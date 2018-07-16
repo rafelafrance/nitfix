@@ -20,7 +20,7 @@ def get_wells(cxn):
                rapid_input.total_dna,
                rapid_wells.volume        AS rapid_well_volume
           FROM wells
-          JOIN taxon_ids   ON    (wells.sample_id = taxon_ids.id)
+          JOIN taxon_ids   USING (sample_id)
           JOIN taxonomy    USING (scientific_name)
      LEFT JOIN rapid_input USING (plate_id, well)
      LEFT JOIN rapid_wells USING (source_plate, source_well)
@@ -53,7 +53,7 @@ def get_genus_coverage(cxn):
     """Get family and genus coverage."""
     taxonomy = (pd.read_sql('SELECT * FROM taxonomy', cxn)
                   .rename(columns={'scientific_name': 'total',
-                                   'image_files': 'imaged'}))
+                                   'image_file': 'imaged'}))
     taxonomy = taxonomy[['family', 'genus', 'total', 'imaged']]
 
     genera = taxonomy.groupby(['family', 'genus']).count()

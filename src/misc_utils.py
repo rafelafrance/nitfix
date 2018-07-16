@@ -12,7 +12,7 @@ INTERIM_DATA = Path('.') / 'data' / 'interim'
 
 def image_zip():
     """Get the images for the files associated with the image IDs."""
-    sample_ids = [f"'{id}'" for id in _get_ids()]
+    sample_ids = [f"'{id}'" for id in _get_sample_ids()]
     sql = f"SELECT * FROM images WHERE sample_id IN ({','.join(sample_ids)})"
     images = pd.read_sql(sql, db.connect())
 
@@ -30,7 +30,7 @@ def image_zip():
                 path, arcname=image, compress_type=zipfile.ZIP_DEFLATED)
 
 
-def _get_ids():
+def _get_sample_ids():
     return [
             'a89546ed-2278-4e25-a9a2-0836d223fb6b',
             'c84c6871-887f-479e-bf1e-ff1c68b1c490',

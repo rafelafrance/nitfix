@@ -16,7 +16,7 @@ def nybg234():
     sql = """
         SELECT image_file, images.sample_id, scientific_name
           FROM images
-          JOIN taxon_ids ON (taxon_ids.id = images.sample_id)
+          JOIN taxon_ids USING (sample_id)
          WHERE image_file LIKE 'NY_visit_2/%'
             OR image_file LIKE 'NY_DOE-nitfix_visit3/%'
             OR image_file LIKE 'NY_DOE-nitfix_visit4/%'
@@ -40,7 +40,7 @@ def CalAcademy():
     sql = """
         SELECT image_file, images.sample_id, scientific_name
           FROM images
-          JOIN taxon_ids ON (taxon_ids.id = images.sample_id)
+          JOIN taxon_ids USING (sample_id)
          WHERE image_file LIKE '%/CAS-DOE-nitfix_specimen_photos/%'
       ORDER BY image_file
     """
