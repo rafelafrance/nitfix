@@ -170,8 +170,7 @@ def _get_rapid_fingerprints(df):
     fingerprints = {}
     for _, row in df.iterrows():
         key = (row.source_plate, row.source_row)
-        if not fingerprints.get(key):
-            fingerprints[key] = [''] * 12
+        fingerprints.setdefault(key, [''] * 12)
         if util.is_uuid(row.sample_id):
             fingerprints[key][row.source_col - 1] = row.sample_id
     return {k: tuple(sorted(v)) for k, v in fingerprints.items() if any(v)}
@@ -181,8 +180,7 @@ def _get_sample_fingerprints(df):
     fingerprints = {}
     for _, row in df.iterrows():
         key = (row.plate_id, row.row)
-        if not fingerprints.get(key):
-            fingerprints[key] = [''] * 12
+        fingerprints.setdefault(key, [''] * 12)
         if util.is_uuid(row.sample_id):
             fingerprints[key][row.col - 1] = row.sample_id
 
