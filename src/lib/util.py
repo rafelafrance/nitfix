@@ -17,7 +17,8 @@ IMAGE_DIRS = [
     'NY_DOE-nitfix_visit5',
     'HUH_DOE-nitfix_specimen_photos',
     'MO-DOE-nitfix_specimen_photos',
-    'MO-DOE-nitfix_visit2']
+    'MO-DOE-nitfix_visit2',
+    'MO-DOE-nitfix_visit3']
 
 
 def is_uuid(guid):
