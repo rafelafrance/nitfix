@@ -8,19 +8,19 @@ PYTHON=python
 all: image_ingest taxonomy_ingest sample_ingest plate_report select_samples
 
 image_ingest:
-	$(PYTHON) ./src/01_ingest_images.py
+	$(PYTHON) ./src/ingest_images.py
 
 taxonomy_ingest:
-	$(PYTHON) ./src/02_ingest_taxonomy.py
+	$(PYTHON) ./src/ingest_taxonomy.py
 
 sample_ingest:
-	$(PYTHON) ./src/03_ingest_samples.py
+	$(PYTHON) ./src/ingest_samples.py
 
 plate_report:
-	$(PYTHON) ./src/04_sample_plate_report.py
+	$(PYTHON) ./src/sample_plate_report.py
 
 select_samples:
-	$(PYTHON) ./src/05_sample_selection.py
+	$(PYTHON) ./src/sample_selection.py
 
 backup:
 	cp $(SRC) $(DST)
