@@ -5,7 +5,11 @@ SRC="$(PROCESSED)/$(DB)"
 DST="$(PROCESSED)/$(basename $(DB))_$(DATE).db"
 PYTHON=python
 
-all: image_ingest taxonomy_ingest sample_ingest plate_report select_samples
+all: image_ingest\
+		 taxonomy_ingest\
+		 sample_ingest\
+		 plate_report\
+		 select_samples
 
 image_ingest:
 	$(PYTHON) ./src/ingest_images.py

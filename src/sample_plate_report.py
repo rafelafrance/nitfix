@@ -12,7 +12,7 @@ def get_wells(cxn):
     """Get well data from the database."""
     sql = """
         SELECT wells.*,
-               scientific_name,
+               sci_name,
                family,
                rapid_input.concentration AS input_concentration,
                rapid_input.volume        AS rapid_input_volume,
@@ -21,7 +21,7 @@ def get_wells(cxn):
                rapid_wells.volume        AS rapid_well_volume
           FROM wells
           JOIN taxon_ids   USING (sample_id)
-          JOIN taxonomy    USING (scientific_name)
+          JOIN taxonomy    USING (sci_name)
      LEFT JOIN rapid_input USING (plate_id, well)
      LEFT JOIN rapid_wells USING (source_plate, source_well)
       ORDER BY local_no, row, col
@@ -52,7 +52,7 @@ def get_plate_wells(wells):
 def get_genus_coverage(cxn):
     """Get family and genus coverage."""
     taxonomy = (pd.read_sql('SELECT * FROM taxonomy', cxn)
-                  .rename(columns={'scientific_name': 'total',
+                  .rename(columns={'sci_name': 'total',
                                    'image_file': 'imaged'}))
     taxonomy = taxonomy[['family', 'genus', 'total', 'imaged']]
 
@@ -115,7 +115,7 @@ def generate_excel_report(cxn, now, wells, plates, genera):
         ['entry_date', 'local_id', 'protocol', 'notes', 'plate_id',
          'row', 'col', 'results', 'rapid_well_volume'], axis=1)
     wells = wells.reindex(
-        """local_no well_no well family scientific_name sample_id
+        """local_no well_no well family sci_name sample_id
            input_concentration rapid_input_volume concentration
            total_dna""".split(), axis=1)
     expeditions = pd.read_sql('SELECT * FROM expeditions', cxn)
@@ -127,7 +127,7 @@ def generate_excel_report(cxn, now, wells, plates, genera):
         'well_no': 'Well Offset',
         'well': 'Well',
         'family': 'Family',
-        'scientific_name': 'Scientific Name',
+        'sci_name': 'Scientific Name',
         'input_concentration': 'Concentration (ng / uL)',
         'rapid_input_volume': 'Volume (uL)',
         'sample_id': 'Sample ID',

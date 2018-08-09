@@ -23,9 +23,13 @@ def ingest_taxonomy():
     taxonomy, split_ids = get_master_taxonomy()
     taxon_ids = link_images_to_taxonomy(cxn, taxonomy, split_ids)
     taxonomy = merge_taxons_and_ids(taxonomy, taxon_ids)
+    taxonomy = merge_genbank_loci_data(taxonomy)
+    taxonomy = merge_werner_data(taxonomy)
+    taxon_ids, expeditions = get_expedition_data(taxon_ids)
 
     taxonomy.to_sql('taxonomy', cxn, if_exists='replace', index=False)
     taxon_ids.to_sql('taxon_ids', cxn, if_exists='replace', index=False)
+    expeditions.to_sql('expeditions', cxn, if_exists='replace', index=False)
 
 
 def get_master_taxonomy():

@@ -65,7 +65,7 @@ def output_html(species, totals):
     env = Environment(loader=FileSystemLoader(template_dir))
     template = env.get_template('sample_selection.html')
 
-    totals['scientific_name'] = ''
+    totals['sci_name'] = ''
 
     data = get_html_data(species, totals)
     report = template.render(now=now, data=data)
@@ -84,7 +84,7 @@ def get_html_data(species, totals):
     data += list(totals.to_dict(orient='index').values())
     data = sorted(
         data, key=lambda x: (x['family'], x['genus'],
-                             x['category'], x['scientific_name']))
+                             x['category'], x['sci_name']))
     return data
 
 
@@ -118,7 +118,7 @@ def output_csv(report_path, species, totals):
         lambda x: 'Yes' if x in ['sequenced', 'chosen'] else 'No')
 
     df = df[['source_plate', 'source_well', 'sample_id', 'selected',
-             'family', 'genus', 'scientific_name', 'category',
+             'family', 'genus', 'sci_name', 'category',
              'total_dna', 'genus_count', 'samples', '2_sequenced',
              '3_chosen', '4_available', '5_unprocessed', '6_rejected',
              'slots', 'empty_slots']]
@@ -130,7 +130,7 @@ def output_csv(report_path, species, totals):
         'selected': 'Selected',
         'family': 'Family',
         'genus': 'Genus',
-        'scientific_name': 'Scientific Name',
+        'sci_name': 'Scientific Name',
         'category': 'Category',
         'total_dna': 'Total DNA (ng)',
         'genus_count': 'Species in Genus',
@@ -150,14 +150,14 @@ def get_sampled_species():
     """Read from database and format the data for further processing."""
     pd.options.display.float_format = '{:.0f}'.format
     sql = """
-        SELECT family, genus, scientific_name, total_dna, source_plate,
+        SELECT family, genus, sci_name, total_dna, source_plate,
                source_well, rapid_input.sample_id
           FROM wells
           JOIN taxon_ids   USING (sample_id)
-          JOIN taxonomy    USING (scientific_name)
+          JOIN taxonomy    USING (sci_name)
      LEFT JOIN rapid_input USING (plate_id, well)
      LEFT JOIN rapid_wells USING (source_plate, source_well)
-      ORDER BY family, genus, total_dna DESC, scientific_name
+      ORDER BY family, genus, total_dna DESC, sci_name
     """
     species = pd.read_sql(sql, db.connect())
     species['category'] = '4_available'  # Use this as the default
@@ -204,7 +204,7 @@ def get_genera_totals():
     sql = """
         SELECT family, genus, COUNT(*) AS genus_count
           FROM taxonomy
-         WHERE scientific_name IS NOT NULL
+         WHERE sci_name IS NOT NULL
       GROUP BY family, genus
     """
     genera = pd.read_sql(sql, db.connect())

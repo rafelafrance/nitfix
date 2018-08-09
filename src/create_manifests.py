@@ -14,7 +14,7 @@ INTERIM_DATA = Path('data') / 'interim'
 def nybg234():
     """Make a manifest."""
     sql = """
-        SELECT image_file, images.sample_id, scientific_name
+        SELECT image_file, images.sample_id, sci_name
           FROM images
           JOIN taxon_ids USING (sample_id)
          WHERE image_file LIKE 'NY_visit_2/%'
@@ -38,7 +38,7 @@ def nybg234():
 def CalAcademy():
     """Make a manifest."""
     sql = """
-        SELECT image_file, images.sample_id, scientific_name
+        SELECT image_file, images.sample_id, sci_name
           FROM images
           JOIN taxon_ids USING (sample_id)
          WHERE image_file LIKE '%/CAS-DOE-nitfix_specimen_photos/%'
@@ -76,7 +76,7 @@ def mobot():
     for key, taxon in taxonomy.iterrows():
         guids = util.split_uuids(taxon.sample_ids)
         for guid in guids:
-            taxons[guid] = taxon.scientific_name
+            taxons[guid] = taxon.sci_name
 
     for key, image in images.iterrows():
         images.loc[key, 'resolved_name'] = taxons.get(image.sample_id)

@@ -12,7 +12,6 @@ from PIL import Image, ImageFilter
 import zbarlight
 import lib.db as db
 import lib.util as util
-import lib.google as google
 
 
 Dimensions = namedtuple('Dimensions', 'width height')
@@ -51,10 +50,6 @@ def ingest_images():
     images, dupes = find_duplicate_uuids(images)
     errors = pd.concat(
         [old_errors, new_errors, dupes], ignore_index=True, sort=True)
-
-    # Add image records that don't have an image file.
-    images = read_pilot_data(cxn, images)
-    images = read_corrales_data(cxn, images)
 
     # Fix images where we have solutions to errors
     errors = resolve_errors(errors)
@@ -217,47 +212,6 @@ def window_slider(image_size, window=None, stride=None):
             box = (left, top, right, bottom)
 
             yield box
-
-
-def read_pilot_data(cxn, images):
-    """Read pilot data."""
-    csv_path = INTERIM_DATA / 'pilot.csv'
-
-    google.sheet_to_csv('UFBI_identifiers_photos', csv_path)
-    pilot = pd.read_csv(csv_path)
-
-    # Create a fake path for the file name
-    pilot['image_file'] = pilot['File'].apply(
-        lambda x: f'UFBI_sample_photos/{x}')
-
-    pilot = (pilot.drop(['File'], axis=1)
-                  .rename(columns={'Identifier': 'pilot_id'}))
-    pilot.pilot_id = pilot.pilot_id.str.lower().str.split().str.join(' ')
-
-    pilot.to_sql('raw_pilot', cxn, if_exists='replace', index=False)
-
-    already_in = pilot.sample_id.isin(images.sample_id)
-    pilot = pilot[~already_in]
-
-    pilot = pilot.drop('pilot_id', axis=1)
-    return pd.concat([images, pilot], ignore_index=True, sort=True)
-
-
-def read_corrales_data(cxn, images):
-    """Read Corrales data."""
-    csv_path = INTERIM_DATA / 'corrales.csv'
-
-    google.sheet_to_csv('corrales_data', csv_path)
-    corrales = pd.read_csv(csv_path)
-    corrales.corrales_id = corrales.corrales_id.str.lower()
-
-    corrales.to_sql('raw_corrales', cxn, if_exists='replace', index=False)
-
-    already_in = corrales.sample_id.isin(images.sample_id)
-    corrales = corrales[~already_in]
-
-    corrales = corrales.drop('corrales_id', axis=1)
-    return pd.concat([images, corrales], ignore_index=True, sort=True)
 
 
 def resolve_errors(errors):
