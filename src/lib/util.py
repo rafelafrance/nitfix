@@ -5,8 +5,8 @@ from pathlib import Path
 from os.path import split, basename, join
 
 
-IMAGE_ROOT = Path('..') / 'Dropbox'
-IMAGE_ROOT_UP = Path('..') / '..' / 'Dropbox'
+DROPBOX = Path('..') / 'Dropbox'
+DROPBOX_UP = Path('..') / '..' / 'Dropbox'
 IMAGE_DIRS = [
     'OS_DOE-nitfix_specimen_photos',
     'CAS-DOE-nitfix_specimen_photos',

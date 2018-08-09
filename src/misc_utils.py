@@ -6,7 +6,7 @@ import pandas as pd
 import lib.db as db
 
 
-IMAGE_ROOT = Path('..') / 'Dropbox'
+DROPBOX = Path('..') / 'Dropbox'
 INTERIM_DATA = Path('.') / 'data' / 'interim'
 
 
@@ -25,7 +25,7 @@ def image_zip():
                     arcname=basename(csv_file),
                     compress_type=zipfile.ZIP_DEFLATED)
         for image in images.image_file:
-            path = IMAGE_ROOT / image
+            path = DROPBOX / image
             zippy.write(
                 path, arcname=image, compress_type=zipfile.ZIP_DEFLATED)
 

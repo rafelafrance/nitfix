@@ -126,7 +126,7 @@ def get_images_to_process(old_images, old_errors):
 
     image_files = []
     for image_dir in util.IMAGE_DIRS:
-        pattern = os.fspath(util.IMAGE_ROOT / image_dir / '*.JPG')
+        pattern = os.fspath(util.DROPBOX / image_dir / '*.JPG')
         file_names = glob(pattern)
         image_files += map(util.normalize_file_name, file_names)
     image_files = [f for f in image_files if f not in skip_images]
@@ -135,7 +135,7 @@ def get_images_to_process(old_images, old_errors):
 
 def get_image_data(image_file):
     """Read and process image."""
-    with open(util.IMAGE_ROOT / image_file, 'rb') as image_file:
+    with open(util.DROPBOX / image_file, 'rb') as image_file:
         image = Image.open(image_file)
         image.load()
     return get_qr_code(image)
@@ -233,9 +233,9 @@ def manually_insert_images(images):
 def get_manual_inserts():
     """Get images that can need to be added manually."""
     return [
-        {'image_file': join('CAS-DOE-nitfix_specimen_photos', 'R0002092'),
+        {'image_file': join('CAS-DOE-nitfix_specimen_photos', 'R0002092.JPG'),
          'sample_id': '8b6e0223-7fbe-4efc-a1e2-6c934da06685'},
-        {'image_file': join('MO-DOE-nitfix_specimen_photos', 'R0003663'),
+        {'image_file': join('MO-DOE-nitfix_specimen_photos', 'R0003663.JPG'),
          'sample_id': '2eea159f-3c25-42ef-837d-27ad545a6779'}]
 
 
