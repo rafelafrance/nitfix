@@ -1,190 +1,83 @@
 """Extract, transform, and load data related to the taxonomy."""
 
-import os
-import re
-from pathlib import Path
-import numpy as np
-import pandas as pd
-from pandas.api.types import is_number
 import lib.db as db
 import lib.util as util
 import lib.google as google
-
-
-INTERIM_DATA = Path('data') / 'interim'
-EXTERNAL_DATA = Path('data') / 'external'
-EXPEDITION_DATA = Path('data') / 'raw' / 'expeditions'
+import pandas as pd
 
 
 def ingest_taxonomy():
     """Ingest data related to the taxonomy."""
     cxn = db.connect()
 
-    taxonomy, split_ids = get_master_taxonomy()
-    taxon_ids = link_images_to_taxonomy(cxn, taxonomy, split_ids)
-    taxonomy = merge_taxons_and_ids(taxonomy, taxon_ids)
+    taxonomy = get_master_taxonomy()
+    taxonomy = split_sample_ids(taxonomy)
 
+    create_taxonomy_table(cxn, taxonomy)
+    create_taxon_ids_table(cxn, taxonomy)
+
+
+def create_taxonomy_table(cxn, taxonomy):
+    """Create taxonomy table."""
     taxonomy.to_sql('taxonomy', cxn, if_exists='replace', index=False)
-    taxon_ids.to_sql('taxon_ids', cxn, if_exists='replace', index=False)
+
+    sql = """CREATE UNIQUE INDEX IF NOT EXISTS
+             taxonomy_sci_name ON taxonomy (sci_name)"""
+    cxn.execute(sql)
 
 
 def get_master_taxonomy():
     """Get the master taxonomy google sheet."""
-    csv_path = INTERIM_DATA / 'taxonomy.csv'
+    csv_path = util.INTERIM_DATA / 'taxonomy.csv'
 
     google.sheet_to_csv('NitFixMasterTaxonomy', csv_path)
 
     taxonomy = pd.read_csv(
         csv_path,
         header=0,
-        names=['column_a', 'family', 'sci_name', 'authority',
-               'synonyms', 'ids', 'provider_acronym', 'provider_id',
-               'quality_notes'])
+        names=[
+            'column_a', 'family', 'sci_name', 'authority', 'synonyms',
+            'sample_ids', 'provider_acronym', 'provider_id', 'quality_notes'])
     taxonomy = taxonomy[taxonomy.sci_name.notna()]
 
     taxonomy.sci_name = \
         taxonomy.sci_name.str.split().str.join(' ')
-    taxonomy.ids = taxonomy.ids.str.lower().str.split().str.join(' ')
     taxonomy['genus'] = taxonomy.sci_name.str.split().str[0]
 
-    split_ids = taxonomy.ids.str.split(r'\s*[;,]\s*', expand=True)
-    id_cols = {i: f'id_{i + 1}' for i in split_ids.columns}
+    return taxonomy
+
+
+def split_sample_ids(taxonomy):
+    """Split the sample IDs so each one in a row has its own column."""
+    # Fix inconsistent sample IDs: Remove extra spaces and lower case them
+    taxonomy.sample_ids = (taxonomy.sample_ids.str.lower()
+                           .str.split().str.join(' '))
+
+    split_ids = taxonomy.sample_ids.str.split(r'\s*[;,]\s*', expand=True)
+    id_cols = {i: f'sample_id_{i + 1}' for i in split_ids.columns}
     split_ids = split_ids.rename(columns=id_cols)
 
     taxonomy = pd.concat([taxonomy, split_ids], axis=1)
 
-    return taxonomy, split_ids
+    return taxonomy
 
 
-def link_images_to_taxonomy(cxn, taxonomy, split_ids):
-    """Link Images to Taxonomy IDs."""
-    images = pd.read_sql('SELECT * FROM images', cxn)
-
+def create_taxon_ids_table(cxn, taxonomy):
+    """Create a way to link sample IDs to the master taxonomy record."""
+    columns = [c for c in taxonomy.columns if c.startswith('sample_id_')]
     taxon_ids = taxonomy.melt(
-        id_vars='sci_name',
-        value_vars=split_ids.columns,
-        value_name='sample_id').drop('variable', axis=1)
+        id_vars='sci_name', value_vars=columns, value_name='sample_id')
+    taxon_ids = taxon_ids.loc[
+        taxon_ids.sample_id.notna(), ['sci_name', 'sample_id']]
+    taxon_ids.to_sql('taxon_ids', cxn, if_exists='replace', index=False)
 
-    taxon_ids.sample_id = taxon_ids.sample_id.str.split().str.join(' ')
-    has_id = taxon_ids.sample_id.apply(lambda x: util.is_uuid(x))
-    taxon_ids = taxon_ids[has_id]
+    sql = """CREATE INDEX IF NOT EXISTS
+             taxon_ids_sci_name ON taxon_ids (sci_name)"""
+    cxn.execute(sql)
 
-    taxon_ids = taxon_ids.merge(right=images, how='left', on='sample_id')
-
-    return taxon_ids
-
-
-def merge_taxons_and_ids(taxonomy, taxon_ids):
-    """Merge per ID data into the taxonomy data."""
-    groups = taxon_ids.groupby('sci_name').aggregate({
-        'sample_id': join_aggregate, 'image_file': join_aggregate})
-
-    taxonomy = taxonomy.merge(
-        right=groups, how='left', left_on='sci_name', right_index=True)
-
-    return taxonomy
-
-
-def merge_genbank_loci_data(taxonomy):
-    """Read the Genbank loci Google sheet."""
-    csv_path = INTERIM_DATA / 'loci.csv'
-
-    google.sheet_to_csv('genbank_loci', csv_path)
-
-    loci = pd.read_csv(
-        csv_path,
-        header=0,
-        names=['sci_name', 'its', 'atpb', 'matk', 'matr', 'rbcl'])
-    loci.sci_name = loci.sci_name.str.split().str.join(' ')
-
-    taxonomy = taxonomy.merge(right=loci, how='left', on='sci_name')
-
-    return taxonomy
-
-
-def merge_werner_data(taxonomy):
-    """Read the Werner Excel sheet stored on Google drive."""
-    sci_names = taxonomy.sci_name.tolist()
-    synonyms = get_synonyms(taxonomy)
-    werner = read_werner_data()
-
-    is_sci_name = werner.sci_name.isin(sci_names)
-    is_synonym = werner.sci_name.isin(synonyms)
-    update_it = ~is_sci_name & is_synonym
-    werner.loc[update_it, 'sci_name'] = \
-        werner.loc[update_it, 'sci_name'].apply(lambda x: synonyms[x])
-
-    taxonomy = taxonomy.merge(right=werner, how='left', on='sci_name')
-    return taxonomy
-
-
-def read_werner_data():
-    """Read the Werner Excel spreadsheet data."""
-    excel_path = EXTERNAL_DATA / 'NitFixWernerEtAl2014.xlsx'
-    werner = pd.read_excel(excel_path)
-    drops = """Legume Likelihood_non-precursor
-        Likelihood_precursor Likelihood_fixer Likelihood_stable_fixer
-        Most_likely_state Corrected_lik_precursor
-        Corrected_lik_stable_fixer""".split()
-    werner = werner.drop(drops, axis=1).rename(columns={
-        'NFC': 'nfc',
-        'Species': 'sci_name',
-        'Family': 'family_w',
-        'Order': 'order'})
-    is_nfc = werner.nfc == 'Yes'
-    return werner[is_nfc]
-
-
-def get_synonyms(taxonomy):
-    """Extract synonyms from the Master Taxonomy."""
-    synonyms = taxonomy.synonyms.str.split(r'\s*[;,]\s*', expand=True)
-    taxons = taxonomy[['sci_name', 'synonyms']]
-
-    taxons = pd.concat([taxons, synonyms], axis=1)
-    synonyms = taxons.melt(
-        id_vars=['sci_name'],
-        value_vars=synonyms.columns,
-        value_name='synonym')
-
-    synonyms = synonyms[synonyms.synonym.notna()].drop('variable', axis=1)
-    synonyms = synonyms.set_index('synonym').sci_name.to_dict()
-
-    return synonyms
-
-
-def get_expedition_data(taxon_ids):
-    """Get NitFix 1 expedition data."""
-    csv_path = os.fspath(EXPEDITION_DATA / '5657_Nit_Fix_I.reconcile.4.2.csv')
-
-    expedition_01 = pd.read_csv(csv_path)
-    columns = {}
-    for old in expedition_01.columns:
-        new = old.lower()
-        new = new.replace('⁰', 'deg')
-        new = new.replace("''", 'sec')
-        new = new.replace("'", 'min')
-        new = re.sub(r'[^a-z0-9_]+', '_', new)
-        new = re.sub(r'^_|_$', '', new)
-        columns[old] = new
-    columns['subject_qr_code'] = 'sample_id'
-
-    expeditions = expedition_01.rename(columns=columns)
-
-    taxon_ids = taxon_ids.merge(right=expeditions, how='left', on='sample_id')
-
-    return taxon_ids, expeditions
-
-
-def join_columns(columns, row):
-    """Combine data from multiple columns into a single value."""
-    value = ','.join([row[c] for c in columns if not is_number(row[c])])
-    return value if value else np.nan
-
-
-def join_aggregate(values):
-    """Combine a group of values into a single value."""
-    value = ','.join([v for v in values if not is_number(v)])
-    return value if value else np.nan
+    sql = """CREATE INDEX IF NOT EXISTS
+             taxon_ids_sample_id ON taxon_ids (sample_id)"""
+    cxn.execute(sql)
 
 
 if __name__ == '__main__':

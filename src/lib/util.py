@@ -5,20 +5,25 @@ from pathlib import Path
 from os.path import split, basename, join
 
 
-DROPBOX = Path('..') / 'Dropbox'
-DROPBOX_UP = Path('..') / '..' / 'Dropbox'
+EXPEDITION_DATA = Path('data') / 'raw' / 'expeditions'
+INTERIM_DATA = Path('data') / 'interim'
+PROCESSED_DATA = Path('data') / 'processed'
+RAW_DATA = Path('data') / 'raw'
+
+PHOTOS = RAW_DATA / 'photos'
 IMAGE_DIRS = [
-    'OS_DOE-nitfix_specimen_photos',
     'CAS-DOE-nitfix_specimen_photos',
     'DOE-nitfix_specimen_photos',
-    'NY_visit_2',
-    'NY_DOE-nitfix_visit3',
-    'NY_DOE-nitfix_visit4',
-    'NY_DOE-nitfix_visit5',
+    'FLAS-DOE-nitfix_group1',
     'HUH_DOE-nitfix_specimen_photos',
     'MO-DOE-nitfix_specimen_photos',
     'MO-DOE-nitfix_visit2',
-    'MO-DOE-nitfix_visit3']
+    'MO-DOE-nitfix_visit3',
+    'NY_DOE-nitfix_visit3',
+    'NY_DOE-nitfix_visit4',
+    'NY_DOE-nitfix_visit5',
+    'NY_visit_2',
+    'OS_DOE-nitfix_specimen_photos']
 
 
 def is_uuid(guid):

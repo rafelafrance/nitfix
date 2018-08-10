@@ -3,7 +3,6 @@
 import os
 from os.path import join
 from glob import glob
-from pathlib import Path
 from itertools import chain
 import multiprocessing
 from collections import namedtuple
@@ -16,9 +15,8 @@ import lib.util as util
 
 Dimensions = namedtuple('Dimensions', 'width height')
 
-PROCESSES = min(10, os.cpu_count() - 4 if os.cpu_count() > 4 else 1)
+PROCESSES = max(1, min(10, os.cpu_count() - 4))
 BATCH_SIZE = 100
-INTERIM_DATA = Path('.') / 'data' / 'interim'
 
 
 def ingest_images():
@@ -52,11 +50,32 @@ def ingest_images():
         [old_errors, new_errors, dupes], ignore_index=True, sort=True)
 
     # Fix images where we have solutions to errors
-    errors = resolve_errors(errors)
-    images = manually_insert_images(images)
+    errors = resolve_errors(errors).drop_duplicates('image_file')
+    images = manually_insert_images(images).drop_duplicates()
 
+    create_image_table(cxn, images)
+    create_image_errors_table(cxn, errors)
+
+
+def create_image_table(cxn, images):
+    """Create images table."""
     images.to_sql('images', cxn, if_exists='replace', index=False)
+
+    sql = """CREATE UNIQUE INDEX IF NOT EXISTS
+             images_sample_id ON images (sample_id)"""
+    cxn.execute(sql)
+
+    sql = """CREATE UNIQUE INDEX IF NOT EXISTS
+             images_image_file ON images (image_file)"""
+    cxn.execute(sql)
+
+
+def create_image_errors_table(cxn, errors):
+    """Create image errors table."""
     errors.to_sql('image_errors', cxn, if_exists='replace', index=False)
+    sql = """CREATE UNIQUE INDEX IF NOT EXISTS
+             image_errors_image_file ON image_errors (image_file)"""
+    cxn.execute(sql)
 
 
 def get_old_images(cxn):
@@ -64,15 +83,17 @@ def get_old_images(cxn):
     # Handle the case where there is no image or error table in the DB.
     # NOTE: There will always be an error table if there is an image table.
     try:
-        images = pd.read_sql('SELECT * FROM images', cxn)
-        errors = pd.read_sql('SELECT * FROM image_errors', cxn)
-        images.image_file = images.image_file.apply(util.normalize_file_name)
-        errors.image_file = errors.image_file.apply(util.normalize_file_name)
+        old_images = pd.read_sql('SELECT * FROM images', cxn)
+        old_errors = pd.read_sql('SELECT * FROM image_errors', cxn)
+        old_images.image_file = old_images.image_file.apply(
+            util.normalize_file_name)
+        old_errors.image_file = old_errors.image_file.apply(
+            util.normalize_file_name)
     except pd.io.sql.DatabaseError:
-        images = pd.DataFrame(columns=['image_file', 'sample_id'])
-        errors = pd.DataFrame(
+        old_images = pd.DataFrame(columns=['image_file', 'sample_id'])
+        old_errors = pd.DataFrame(
             columns=['image_file', 'msg'])
-    return images, errors
+    return old_images, old_errors
 
 
 def find_duplicate_uuids(images):
@@ -126,7 +147,7 @@ def get_images_to_process(old_images, old_errors):
 
     image_files = []
     for image_dir in util.IMAGE_DIRS:
-        pattern = os.fspath(util.DROPBOX / image_dir / '*.JPG')
+        pattern = os.fspath(util.PHOTOS / image_dir / '*.[Jj][Pp][Gg]')
         file_names = glob(pattern)
         image_files += map(util.normalize_file_name, file_names)
     image_files = [f for f in image_files if f not in skip_images]
@@ -135,7 +156,7 @@ def get_images_to_process(old_images, old_errors):
 
 def get_image_data(image_file):
     """Read and process image."""
-    with open(util.DROPBOX / image_file, 'rb') as image_file:
+    with open(util.PHOTOS / image_file, 'rb') as image_file:
         image = Image.open(image_file)
         image.load()
     return get_qr_code(image)

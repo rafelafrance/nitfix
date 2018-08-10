@@ -10,7 +10,7 @@ DB_NAME = 'nitfix.sqlite.db'
 def connect(path=None):
     """Connect to the SQLite3 DB."""
     if not path:
-        path = str(Path('data') / 'processed' / DB_NAME)
+        path = str(util.PROCESSED_DATA / DB_NAME)
 
     cxn = sqlite3.connect(path)
 
@@ -26,5 +26,5 @@ def connect(path=None):
 
 def connect_up():
     """Allow notebooks and other utilities to connect from local dirs."""
-    path = str(Path('..') / 'data' / 'processed' / DB_NAME)
+    path = str(Path('..') / util.PROCESSED_DATA / DB_NAME)
     return connect(path)

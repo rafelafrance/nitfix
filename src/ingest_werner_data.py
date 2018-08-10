@@ -1,11 +1,8 @@
-"""Extract, transform, and load data related to the taxonomy."""
+"""Extract, transform, and load data related to the Werner data."""
 
-from pathlib import Path
 import pandas as pd
 import lib.db as db
-
-
-EXTERNAL_DATA = Path('data') / 'external'
+import lib.util as util
 
 
 def ingest_werner_data():
@@ -26,12 +23,21 @@ def ingest_werner_data():
     werner.loc[update_it, 'sci_name'] = \
         werner.loc[update_it, 'sci_name'].apply(lambda x: synonyms[x])
 
+    create_werner_data_table(cxn, werner)
+
+
+def create_werner_data_table(cxn, werner):
+    """Create Werner data table."""
     werner.to_sql('werner_data', cxn, if_exists='replace', index=False)
+
+    sql = """CREATE UNIQUE INDEX IF NOT EXISTS
+             werner_data_sci_name ON werner_data (sci_name)"""
+    cxn.execute(sql)
 
 
 def read_werner_data():
     """Read the Werner Excel spreadsheet data."""
-    excel_path = EXTERNAL_DATA / 'NitFixWernerEtAl2014.xlsx'
+    excel_path = util.RAW_DATA / 'werner' / 'NitFixWernerEtAl2014.xlsx'
 
     drops = """Legume Likelihood_non-precursor
         Likelihood_precursor Likelihood_fixer Likelihood_stable_fixer

@@ -5,19 +5,17 @@ SRC="$(PROCESSED)/$(DB)"
 DST="$(PROCESSED)/$(basename $(DB))_$(DATE).db"
 PYTHON=python
 
-all: image_ingest\
-		 taxonomy_ingest\
-		 sample_ingest\
-		 plate_report\
-		 select_samples
+all: image_qr_codes master_taxonomy sample_data plate_report select_samples
 
-image_ingest:
+image_qr_codes:
 	$(PYTHON) ./src/ingest_images.py
+	$(PYTHON) ./src/ingest_pilot_data.py
+	$(PYTHON) ./src/ingest_corrales_data.py
 
-taxonomy_ingest:
+master_taxonomy:
 	$(PYTHON) ./src/ingest_taxonomy.py
 
-sample_ingest:
+sample_data:
 	$(PYTHON) ./src/ingest_samples.py
 
 plate_report:
