@@ -24,7 +24,7 @@ def ingest_loci_data():
 
 
 def create_genbank_loci_table(cxn, loci):
-    """Create Werner data table."""
+    """Create Genbank loci data table."""
     loci.to_sql('genbank_loci', cxn, if_exists='replace', index=False)
 
     sql = """CREATE UNIQUE INDEX IF NOT EXISTS

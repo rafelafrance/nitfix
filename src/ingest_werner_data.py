@@ -23,6 +23,9 @@ def ingest_werner_data():
     werner.loc[update_it, 'sci_name'] = \
         werner.loc[update_it, 'sci_name'].apply(lambda x: synonyms[x])
 
+    dups = werner.sci_name.duplicated()
+    werner = werner.loc[~dups, :]
+
     create_werner_data_table(cxn, werner)
 
 
