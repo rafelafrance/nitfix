@@ -2,6 +2,7 @@
 
 import os
 import re
+import string
 import pandas as pd
 import lib.db as db
 import lib.util as util
@@ -21,6 +22,7 @@ def ingest_nfn_data():
     exps = [get_expedition(e) for e in EXPEDITIONS]
     nfn = pd.concat(exps, ignore_index=True, sort=False).fillna('')
     nfn = fixup_data(nfn)
+    nfn = update_collector_data(nfn)
 
     create_nfn_table(cxn, nfn)
 
@@ -63,6 +65,44 @@ def fixup_data(nfn):
 def agg_concat(group):
     """Concatenate the group into a string of unique values."""
     return ', '.join(set(group))
+
+
+def update_collector_data(nfn):
+    """Normalize the collector data as much as possible."""
+    nfn['collection_no'] = nfn.apply(get_collection_no, axis=1)
+    nfn['collected_by'] = nfn.apply(
+        lambda x: x.collected_by_first_collector_last_name_only
+        or x.primary_collector_last_first_middle, axis=1)
+    nfn['last_name'] = nfn.collected_by.apply(get_last_name)
+    return nfn
+
+
+def get_last_name(collected_by):
+    """Extract the last name from the collected by field."""
+    if not collected_by:
+        return collected_by
+
+    last_name = collected_by.split(',')[0]
+
+    while (last_name[-1] in string.punctuation
+           or (len(last_name) > 4 and last_name[-2] == ' ')):
+        if last_name[-1] in string.punctuation:
+            last_name = last_name[:-1]
+        if len(last_name) > 4 and last_name[-2] == ' ':
+            last_name = last_name[:-2]
+
+    return last_name
+
+
+def get_collection_no(row):
+    """Get the collection number from an expedition row."""
+    if row.get('collector_number'):
+        return row.collector_number
+    num = row.get('collector_number_numeric_only', '')
+    verb = row.get('collector_number_verbatim', '')
+    if verb and len(num) < 2:
+        return row.collector_number_verbatim
+    return row.collector_number_numeric_only
 
 
 def create_nfn_table(cxn, nfn):
