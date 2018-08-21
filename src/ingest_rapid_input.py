@@ -1,100 +1,24 @@
 """Extract, transform, and load data related to the samples."""
 
 import re
-from pathlib import Path
 import pandas as pd
 import lib.db as db
 import lib.util as util
 import lib.google as google
 
 
-INTERIM_DATA = Path('data') / 'interim'
-
-
 def ingest_samples():
     """Ingest data related to the samples."""
     cxn = db.connect()
-
-    wells = get_wells()
+    samples = select_samples(cxn)
     rapid_input = get_rapid_input()
-    rapid_wells = get_rapid_wells()
-    rapid_input = assign_plate_ids(wells, rapid_input)
-
-    wells.to_sql('wells', cxn, if_exists='replace', index=False)
+    rapid_input = assign_plate_ids(samples, rapid_input)
     rapid_input.to_sql('rapid_input', cxn, if_exists='replace', index=False)
-    rapid_wells.to_sql('rapid_wells', cxn, if_exists='replace', index=False)
-
-
-def get_wells():
-    """
-    Get the Sample plates from the Google sheet.
-
-    Get the entered data from the sample_plates Google sheet.
-    There is a fixed format to the plates:
-                           Plate column 1  ...     Plate column 12
-    plate_id:UUID
-    entry_date:ISO_Date
-    local_id:Text
-    protocol:Text
-    notes:Text
-    results:Text
-    Plate row A                UUID?          ...     UUID?
-        .                        .            ...       .
-        .                        .            ...       .
-        .                        .            ...       .
-    Plate row H                UUID?          ...     UUID?
-    """
-    step = 14
-    csv_path = INTERIM_DATA / 'sample_plates.csv'
-
-    google.sheet_to_csv('sample_plates', csv_path)
-
-    sample_plates = pd.read_csv(csv_path)
-
-    has_data = sample_plates['Plate ID'].notna()
-    sample_plates = sample_plates[has_data]
-    sample_plates = sample_plates.reset_index(drop=True)
-
-    # Get all of the per plate information into a data frame
-    plates = []
-    for i in range(6):
-        plate = sample_plates.iloc[i::step, [0]]
-        plate = plate.reset_index(drop=True)
-        plates.append(plate)
-
-    plates = pd.concat(plates, axis=1, ignore_index=True)
-
-    # Append per well information with the per plate information for each well
-    row_start = 6
-    rows = 'ABCDEFGH'
-    wells = []
-    for row in range(row_start, row_start + len(rows)):
-        for col in range(1, 13):
-            well = pd.DataFrame(sample_plates.iloc[row::step, col])
-            well = well.reset_index(drop=True)
-            row_offset = row - row_start
-            well['row'] = rows[row_offset:row_offset + 1]
-            well['col'] = col
-            well = pd.concat([plates, well], axis=1, ignore_index=True)
-            wells.append(well)
-
-    wells = (pd.concat(wells, axis=0, ignore_index=True)
-               .rename(columns={0: 'plate_id', 1: 'entry_date', 2: 'local_id',
-                                3: 'protocol', 4: 'notes', 5: 'results',
-                                6: 'sample_id', 7: 'row', 8: 'col'}))
-    wells['well_no'] = wells.apply(
-        lambda well: 'ABCDEFGH'.find(well.row.upper()) * 12 + well.col, axis=1)
-    wells['local_no'] = (pd.to_numeric(
-        wells.local_id.str.replace(r'\D+', ''), errors='coerce')
-        .fillna(0).astype('int'))
-    wells['well'] = wells.apply(lambda w: f'{w.row}{w.col:02d}', axis=1)
-
-    return wells
 
 
 def get_rapid_input():
     """Get data sent to Rapid from Google sheet."""
-    csv_path = INTERIM_DATA / 'rapid_input.csv'
+    csv_path = util.INTERIM_DATA / 'rapid_input.csv'
 
     google.sheet_to_csv(
         'FMN_131001_QC_Normal_Plate_Layout.xlsx', csv_path)
@@ -119,7 +43,7 @@ def get_rapid_input():
     return rapid_input
 
 
-def assign_plate_ids(wells, rapid_input):
+def assign_plate_ids(samples, rapid_input):
     """
     Map Rapid source plate wells to sample plate and well.
 
@@ -141,7 +65,7 @@ def assign_plate_ids(wells, rapid_input):
     rapid_input['source_row'] = rapid_input.source_well.str[0]
     rapid_input['source_col'] = rapid_input.source_well.str[1:].astype(int)
 
-    sample_prints = _get_sample_fingerprints(wells)
+    sample_prints = _get_sample_fingerprints(samples)
     rapid_prints = _get_rapid_fingerprints(rapid_input)
 
     rapid_input['plate_id'] = ''
@@ -188,20 +112,9 @@ def _get_sample_fingerprints(df):
             for k, v in fingerprints.items() if any(v)}
 
 
-def get_rapid_wells():
-    """Get replated Rapid rata from Google sheet."""
-    csv_path = INTERIM_DATA / 'rapid_wells.csv'
-
-    google.sheet_to_csv('FMN_131001_Reformatting_Template.xlsx', csv_path)
-
-    rapid_wells = pd.read_csv(
-        csv_path,
-        header=0,
-        names=[
-            'row_sort', 'source_plate', 'source_well', 'source_well_no',
-            'dest_plate', 'dest_well', 'dest_well_no', 'volume', 'comments'])
-
-    return rapid_wells
+def select_samples(cxn):
+    """Get samples from the database."""
+    return pd.read_sql('SELECT * FROM samples', cxn)
 
 
 if __name__ == '__main__':
