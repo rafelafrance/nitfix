@@ -2,7 +2,7 @@
 
 from collections import namedtuple
 import pandas as pd
-# import lib.db as db
+import lib.db as db
 import lib.google as google
 import lib.util as util
 
@@ -23,15 +23,40 @@ def ingest_samples():
     sample_rows = build_sample_rows(plate_groups)
     sample_wells = build_sample_wells(sample_rows)
 
-    print(sample_plates.head())
-    print()
-    print(sample_rows.head(24))
-    print()
-    print(sample_wells.head())
+    cxn = db.connect()
+    create_sample_plates_table(cxn, sample_plates)
+    create_sample_rows_table(cxn, sample_rows)
+    create_sample_wells_table(cxn, sample_wells)
 
-    # cxn = db.connect()
-    # wells = get_wells()
-    # wells.to_sql('wells', cxn, if_exists='replace', index=False)
+
+def create_sample_plates_table(cxn, sample_plates):
+    """Create sample plates table table."""
+    sample_plates.to_sql(
+        'sample_plates', cxn, if_exists='replace', index=False)
+
+    sql = """CREATE UNIQUE INDEX IF NOT EXISTS
+             sample_plates_plate_id ON sample_plates (plate_id)"""
+    cxn.execute(sql)
+
+
+def create_sample_rows_table(cxn, sample_rows):
+    """Create sample plate rows table table."""
+    sample_rows.to_sql(
+        'sample_rows', cxn, if_exists='replace', index=False)
+
+    sql = """CREATE UNIQUE INDEX IF NOT EXISTS
+             sample_rows_plate_id_row ON sample_rows (plate_id, row)"""
+    cxn.execute(sql)
+
+
+def create_sample_wells_table(cxn, sample_wells):
+    """Create sample plate wells table table."""
+    sample_wells.to_sql(
+        'sample_wells', cxn, if_exists='replace', index=False)
+
+    sql = """CREATE UNIQUE INDEX IF NOT EXISTS
+             sample_wells_plate_id_well ON sample_wells (plate_id, well)"""
+    cxn.execute(sql)
 
 
 def get_plate_groups():
@@ -112,48 +137,19 @@ def build_sample_wells(sample_rows):
     """Build the sample wells from the sample rows."""
     sample_wells = sample_rows.melt(
         id_vars=(c for c in sample_rows if not c.startswith('col_')),
-        value_vars=(c for c in sample_rows if c.startswith('col_')))
+        value_vars=(c for c in sample_rows if c.startswith('col_')),
+        value_name='sample_id',
+        var_name='col')
+
+    sample_wells['well'] = sample_wells['row'] + sample_wells['col'].str[-2:]
+    sample_wells['col'] = sample_wells['col'].str[-2:].astype('int')
+
+    rows = 'ABCDEFGH'
+    wells_per_row = 12
+    sample_wells['well_no'] = sample_wells.apply(
+        lambda well: rows.find(well.row) * wells_per_row + well.col, axis=1)
 
     return sample_wells
-    # plate_id sample_id row col well well_no
-
-
-# # Get all of the per plate information into a data frame
-# plates = []
-# for i in range(6):
-#     plate = sample_plates.iloc[i::rows_per_plate, [0]]
-#     plate = plate.reset_index(drop=True)
-#     plates.append(plate)
-#
-# plates = pd.concat(plates, axis=1, ignore_index=True)
-#
-# # Append per plate data to the per well data
-# row_start = 6
-# rows = 'ABCDEFGH'
-# col_end = 13  # columns [1, 12] have data, i.e. [1, 13)
-# wells = []
-# for row in range(row_start, row_start + len(rows)):
-#     for col in range(1, col_end):
-#         well = pd.DataFrame(sample_plates.iloc[row::rows_per_plate, col])
-#         well = well.reset_index(drop=True)
-#         row_offset = row - row_start
-#         well['row'] = rows[row_offset:row_offset + 1]
-#         well['col'] = col
-#         well = pd.concat([plates, well], axis=1, ignore_index=True)
-#         wells.append(well)
-#
-# wells = (pd.concat(wells, axis=0, ignore_index=True)
-#           .rename(columns={0: 'plate_id', 1: 'entry_date', 2: 'local_id',
-#                             3: 'rapid_info', 4: 'notes', 5: 'results',
-#                             6: 'sample_id', 7: 'row', 8: 'col'}))
-# wells['well_no'] = wells.apply(
-#   lambda well: 'ABCDEFGH'.find(well.row.upper()) * 12 + well.col, axis=1)
-# wells['local_no'] = (pd.to_numeric(
-#     wells.local_id.str.replace(r'\D+', ''), errors='coerce')
-#     .fillna(0).astype('int'))
-# wells['well'] = wells.apply(lambda w: f'{w.row}{w.col:02d}', axis=1)
-#
-# return wells
 
 
 if __name__ == '__main__':
