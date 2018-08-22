@@ -19,34 +19,11 @@ def ingest_samples():
     """Ingest data related to the samples."""
     plate_groups = get_plate_groups()
 
-    sample_plates = build_sample_plates(plate_groups)
     sample_rows = build_sample_rows(plate_groups)
     sample_wells = build_sample_wells(sample_rows)
 
     cxn = db.connect()
-    create_sample_plates_table(cxn, sample_plates)
-    create_sample_rows_table(cxn, sample_rows)
     create_sample_wells_table(cxn, sample_wells)
-
-
-def create_sample_plates_table(cxn, sample_plates):
-    """Create sample plates table table."""
-    sample_plates.to_sql(
-        'sample_plates', cxn, if_exists='replace', index=False)
-
-    sql = """CREATE UNIQUE INDEX IF NOT EXISTS
-             sample_plates_plate_id ON sample_plates (plate_id)"""
-    cxn.execute(sql)
-
-
-def create_sample_rows_table(cxn, sample_rows):
-    """Create sample plate rows table table."""
-    sample_rows.to_sql(
-        'sample_rows', cxn, if_exists='replace', index=False)
-
-    sql = """CREATE UNIQUE INDEX IF NOT EXISTS
-             sample_rows_plate_id_row ON sample_rows (plate_id, row)"""
-    cxn.execute(sql)
 
 
 def create_sample_wells_table(cxn, sample_wells):
@@ -102,23 +79,6 @@ def get_plate_groups():
 
     # Group by plate which is just a group of N rows
     return plates.groupby(plates.index // PLATE_SHAPE.rows)
-
-
-def build_sample_plates(plate_groups):
-    """Build the sample plates from the plate groups."""
-    plates = []
-    for idx, group in plate_groups:
-        plates.append({
-            'plate_id': group.iat[PLATE_ROWS.plate_id, 0],
-            'entry_date': group.iat[PLATE_ROWS.entry_date, 0],
-            'local_id': group.iat[PLATE_ROWS.local_id, 0],
-            'rapid_plates': group.iat[PLATE_ROWS.rapid_plates, 0],
-            'notes': group.iat[PLATE_ROWS.notes, 0],
-            'results': group.iat[PLATE_ROWS.results, 0]})
-    sample_plates = pd.DataFrame(plates)
-    sample_plates['local_no'] = (pd.to_numeric(
-        sample_plates.local_id.str.replace(r'\D+', ''), errors='coerce'))
-    return sample_plates
 
 
 def build_sample_rows(plate_groups):

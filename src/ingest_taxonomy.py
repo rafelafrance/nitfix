@@ -25,6 +25,14 @@ def create_taxonomy_table(cxn, taxonomy):
              taxonomy_sci_name ON taxonomy (sci_name)"""
     cxn.execute(sql)
 
+    sql = """CREATE UNIQUE INDEX IF NOT EXISTS
+             taxonomy_genus ON taxonomy (genus)"""
+    cxn.execute(sql)
+
+    sql = """CREATE UNIQUE INDEX IF NOT EXISTS
+             taxonomy_family ON taxonomy (family)"""
+    cxn.execute(sql)
+
 
 def get_master_taxonomy():
     """Get the master taxonomy google sheet."""
