@@ -1,9 +1,9 @@
 """Extract, transform, and load data related to the taxonomy."""
 
+import pandas as pd
 import lib.db as db
 import lib.util as util
 import lib.google as google
-import pandas as pd
 
 
 def ingest_taxonomy():
@@ -25,11 +25,11 @@ def create_taxonomy_table(cxn, taxonomy):
              taxonomy_sci_name ON taxonomy (sci_name)"""
     cxn.execute(sql)
 
-    sql = """CREATE UNIQUE INDEX IF NOT EXISTS
+    sql = """CREATE INDEX IF NOT EXISTS
              taxonomy_genus ON taxonomy (genus)"""
     cxn.execute(sql)
 
-    sql = """CREATE UNIQUE INDEX IF NOT EXISTS
+    sql = """CREATE INDEX IF NOT EXISTS
              taxonomy_family ON taxonomy (family)"""
     cxn.execute(sql)
 

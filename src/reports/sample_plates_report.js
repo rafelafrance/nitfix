@@ -193,7 +193,7 @@ function buildPlateHeader() {
       { content: 'Plate ID' },
       { content: 'Entry Date' },
       { content: 'Local ID' },
-      { content: 'Protocol' },
+      { content: 'Rapid Plates' },
       { content: 'Notes' },
       { content: '' },
       { content: '' },
@@ -209,7 +209,7 @@ function buildPlateData(plate) {
       { content: plate.plate_id, cls: 'l' },
       { content: plate.entry_date },
       { content: plate.local_id, cls: 'l' },
-      { content: plate.protocol, cls: 'l' },
+      { content: plate.rapid_plates, cls: 'l' },
       { content: plate.notes,    cls: 'l' },
     ],
   };

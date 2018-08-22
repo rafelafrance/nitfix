@@ -10,7 +10,7 @@ import lib.google as google
 WELLS_PER_ROW = 12
 
 
-def ingest_samples():
+def ingest_rapid_qc_wells():
     """Ingest data related to the samples."""
     cxn = db.connect()
 
@@ -131,4 +131,4 @@ def _get_sample_fingerprints(df):
 
 
 if __name__ == '__main__':
-    ingest_samples()
+    ingest_rapid_qc_wells()

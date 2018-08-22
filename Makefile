@@ -6,7 +6,7 @@ DB_BACKUP="$(PROCESSED)/$(basename $(DB))_$(DATE).db"
 PYTHON=python
 SRC="./src"
 
-all: images taxonomy sample_plates plate_report select_samples
+all: images taxonomy sample_plates plate_report
 
 images:
 	$(PYTHON) $(SRC)/ingest_images.py && $(PYTHON) $(SRC)/ingest_pilot_data.py && $(PYTHON) $(SRC)/ingest_corrales_data.py
