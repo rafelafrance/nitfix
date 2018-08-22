@@ -26,3 +26,7 @@ data/raw/*
 !data/raw/.gitkeep
 data/secrets/*
 !data/secrets/.gitkeep
+
+# Temporarily hide Julia code
+julia/*
+*.toml
