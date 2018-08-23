@@ -1,3 +1,4 @@
+apiclient==1.0.3
 asn1crypto==0.24.0
 attrs==18.1.0
 Automat==0.7.0
@@ -40,7 +41,7 @@ mistune==0.8.3
 nbconvert==5.3.1
 nbformat==4.4.0
 notebook==5.6.0
-numpy==1.15.0
+numpy==1.15.1
 oauth2client==4.1.2
 openpyxl==2.5.5
 pandas==0.23.4
@@ -68,7 +69,7 @@ qtconsole==4.4.0
 queuelib==1.5.0
 requests==2.19.1
 rsa==3.4.2
-Scrapy==1.5.1
+selenium==3.14.0
 Send2Trash==1.5.0
 service-identity==17.0.0
 simplegeneric==0.8.1

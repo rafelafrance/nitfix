@@ -33,6 +33,11 @@ def create_taxonomy_table(cxn, taxonomy):
              taxonomy_family ON taxonomy (family)"""
     cxn.execute(sql)
 
+    for i in range(1, 6):
+        sql = f"""CREATE INDEX IF NOT EXISTS
+                  taxonomy_sample_id_{i} ON taxonomy (sample_id_{i})"""
+        cxn.execute(sql)
+
 
 def get_master_taxonomy():
     """Get the master taxonomy google sheet."""
