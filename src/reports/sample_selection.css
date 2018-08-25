@@ -106,18 +106,18 @@ table {
   margin-left: 4px;
 }
 
-tr.sequenced .symbol {
+tr.status-1 .symbol {
   color: green;
 }
 
-tr.chosen .symbol {
+tr.status-2 .symbol {
   color: green;
 }
 
-tr.available .symbol {
+tr.status-3 .symbol {
   color: blue;
 }
 
-tr.rejected .symbol {
+tr.status-5 .symbol {
   color: red;
 }
