@@ -152,8 +152,8 @@ def sum_grand_totals(families):
 
 def put_samples_in_genus(samples, genus):
     """Move the samples into the genus dictionary."""
-    genus['samples'] = samples.drop(['family', 'genus'], axis=1).sort_values(
-        ['status', 'sci_name']).to_dict(orient='records')
+    genus['samples'] = samples.fillna('').sort_values(
+        ['status', 'sci_name', 'total_dna']).to_dict(orient='records')
 
 
 def get_families(cxn):
