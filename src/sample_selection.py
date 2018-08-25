@@ -53,12 +53,7 @@ def select_samples():
         family = families[family_name]
         genus = family['genera'][genus_name]
 
-        rule_mark_already_sequenced(samples, genus)
-        rule_reject_low_priority_taxa(samples, genus)
-        rule_mark_unprocessed(samples, genus)
-        rule_reject_total_dna_too_low(samples, genus, threshold=10.0)
-        rule_mark_available(samples, genus)
-        rule_select_by_genus_count(samples, genus)
+        apply_rules_to_genus(samples, genus)
 
         sum_genus_totals(samples, genus)
         put_samples_in_genus(samples, genus)
@@ -70,23 +65,33 @@ def select_samples():
     output_csv(report_path, families)
 
 
+def apply_rules_to_genus(samples, genus):
+    """Update the samples according to the rules."""
+    rule_mark_already_sequenced(samples, genus)
+    rule_reject_low_priority_taxa(samples, genus)
+    rule_mark_unprocessed(samples, genus)
+    rule_reject_total_dna_too_low(samples, genus, threshold=10.0)
+    rule_mark_available(samples, genus)
+    rule_select_by_genus_count(samples, genus)
+
+
 def rule_mark_already_sequenced(samples, genus):
     """Identify samples sequenced by RAPiD."""
-    # samples[samples.qq.notna(), 'status'] = Status.sequenced.value
+    # samples[samples.qq.notna(), 'status'] = Status.sequenced
 
 
 def rule_mark_unprocessed(samples, genus):
     """Identify unprocessed samples."""
     no_status = samples.status.isna()
     unprocessed = samples.source_plate.isna()
-    samples.loc[no_status & unprocessed, 'status'] = Status.unprocessed.value
+    samples.loc[no_status & unprocessed, 'status'] = Status.unprocessed
 
 
 def rule_reject_total_dna_too_low(samples, genus, threshold=10.0):
     """Toss every sample with a total DNA < 10 ng."""
     no_status = samples.status.isna()
     too_low = samples.total_dna < threshold
-    samples.loc[no_status & too_low, 'status'] = Status.rejected.value
+    samples.loc[no_status & too_low, 'status'] = Status.rejected
 
 
 def rule_reject_low_priority_taxa(samples, genus):
@@ -96,7 +101,7 @@ def rule_reject_low_priority_taxa(samples, genus):
     2a) Reject samples whose genus is not in the table.
     2b) Accept samples whose genus has a Priority of "High" in the table.
     """
-    status = None if genus['priority'] else Status.rejected.value
+    status = None if genus['priority'] else Status.rejected
     no_status = samples.status.isna()
     samples.loc[no_status, 'status'] = status
 
@@ -104,15 +109,15 @@ def rule_reject_low_priority_taxa(samples, genus):
 def rule_mark_available(samples, genus):
     """Everything else is available."""
     no_status = samples.status.isna()
-    samples.loc[no_status, 'status'] = Status.available.value
+    samples.loc[no_status, 'status'] = Status.available
 
 
 def rule_select_by_genus_count(samples, genus):
     """Select samples based on the available slots and available samples."""
     end = samples.index[0] + genus['slots']
     slots = samples.index < end
-    available = samples.status == Status.available.value
-    samples.loc[slots & available, 'status'] = Status.selected.value
+    available = samples.status == Status.available
+    samples.loc[slots & available, 'status'] = Status.selected
 
 
 def sum_genus_totals(samples, genus):
@@ -120,7 +125,7 @@ def sum_genus_totals(samples, genus):
     genus['sampled'] = samples.shape[0]
     for status_name, status in Status.__members__.items():
         genus[status_name] = samples.loc[
-            samples.status == status.value, 'status'].count()
+            samples.status == status, 'status'].count()
 
 
 def sum_family_totals(families):
@@ -152,20 +157,21 @@ def sum_grand_totals(families):
 
 def put_samples_in_genus(samples, genus):
     """Move the samples into the genus dictionary."""
+    samples['status_value'] = samples.status.apply(lambda x: x.value)
     genus['samples'] = samples.fillna('').sort_values(
-        ['status', 'sci_name', 'total_dna']).to_dict(orient='records')
+        ['status_value', 'sci_name']).to_dict(orient='records')
 
 
 def get_families(cxn):
     """Extract the families from the taxonomy table."""
-    sql = """SELECT family FROM taxonomy GROUP BY family"""
+    sql = """SELECT DISTINCT family FROM taxonomy"""
     families = pd.read_sql(sql, cxn).set_index('family')
 
     families['species_count'] = 0
     families['slots'] = 0
     families['empty_slots'] = 0
     families['sampled'] = 0
-    for status_name, status in Status.__members__.items():
+    for status_name in Status.__members__.keys():
         families[status_name] = 0
 
     return families.to_dict(orient='index', into=OrderedDict)
@@ -191,7 +197,7 @@ def get_genera(cxn, families):
 
     genera['empty_slots'] = genera['slots']
     genera['sampled'] = 0
-    for status_name, status in Status.__members__.items():
+    for status_name in Status.__members__.keys():
         genera[status_name] = 0
 
     for family_name, group in genera.groupby('family'):
@@ -253,6 +259,40 @@ def output_html(families, totals):
 
 def output_csv(report_path, families):
     """Output the CSV sidecar file."""
+    csv_path = os.path.splitext(report_path)[0] + '.csv'
+
+    all_samples = []
+    for family_name, family in families.items():
+        for genus_name, genus in family['genera'].items():
+            samples = []
+            for sample in genus.get('samples', []):
+                if not sample['source_plate']:
+                    continue
+                row = OrderedDict()
+                row['Plate'] = sample['source_plate']
+                row['Well'] = sample['source_well']
+                row['Sample ID'] = sample['sample_id']
+                row['Family'] = family_name
+                row['Genus'] = genus_name
+                row['Scientific Name'] = sample['sci_name']
+                row['Selected'] = ('Yes' if sample['status'].name
+                                   in ['sequenced', 'selected'] else '')
+                row['Status'] = sample['status'].name
+                row['Total DNA (ng)'] = sample['total_dna']
+                row['Species in Genus'] = genus['species_count']
+                row['Sampled'] = genus['sampled']
+                row['Sequenced'] = genus['sequenced']
+                row['Automatically Selected'] = genus['selected']
+                row['Available to Select'] = genus['available']
+                row['Unprocessed Samples'] = genus['unprocessed']
+                row['Rejected Samples'] = genus['rejected']
+                row['Slots'] = genus['slots']
+                row['Empty Slots'] = genus['empty_slots']
+                samples.append(row)
+            all_samples.append(pd.DataFrame(samples))
+
+    all_samples = pd.concat(all_samples).sort_values(['Plate', 'Well'])
+    all_samples.to_csv(csv_path, index=False)
 
 
 if __name__ == '__main__':

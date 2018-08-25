@@ -74,23 +74,23 @@
           <td class="l" colspan="3">Sample ID</td>
         </tr>
           {% for sample in genus.samples %}
-          <tr class="status-{{sample.status}} detail closed" data-family="{{ family_name }}" data-genus="{{ genus_name }}" data-closed="closed">
+          <tr class="{{sample.status.name}} detail closed" data-family="{{ family_name }}" data-genus="{{ genus_name }}" data-closed="closed">
             <td class="empty" colspan="2"></td>
             <td class="symbol r">
-              {% if sample.status == Status.sequenced.value %}
+              {% if sample.status == Status.sequenced %}
                 <span title="Already sequenced">&check;</span>
-              {% elif sample.status == Status.selected.value %}
+              {% elif sample.status == Status.selected %}
                 <span title="Automatically chosen">&oast;</span>
-              {% elif sample.status == Status.available.value %}
+              {% elif sample.status == Status.available %}
                 <span title="Available to choose">&oplus;</span>
-              {% elif sample.status == Status.unprocessed.value %}
+              {% elif sample.status == Status.unprocessed %}
                 <span title="Unprocessed sample">&odot;</span>
-              {% elif sample.status == Status.rejected.value %}
+              {% elif sample.status == Status.rejected %}
                 <span title="Rejected sample">&otimes;</span>
               {% endif %}
             </td>
             <td class="l" colspan="4">{{sample.sci_name}}</td>
-            <td class="r"><span>{{'' if sample.status == Status.unprocessed.value else sample.total_dna}}</span></td>
+            <td class="r"><span>{{'' if sample.status == Status.unprocessed else sample.total_dna}}</span></td>
             <td>{{sample.source_plate}}</td>
             <td>{{sample.source_well}}</td>
             <td colspan="3">{{sample.sample_id}}</td>
