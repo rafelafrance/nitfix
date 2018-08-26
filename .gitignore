@@ -7,9 +7,9 @@ output/*
 !output/.gitkeep
 
 .ipynb_checkpoints
-
 .ropeproject
 .idea
+.spyproject
 
 __pycache__
 

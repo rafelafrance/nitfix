@@ -24,11 +24,11 @@ import os
 import math
 from enum import Enum, auto
 from collections import OrderedDict
-from pathlib import Path
 from datetime import datetime
 import pandas as pd
 from jinja2 import Environment, FileSystemLoader
 import lib.db as db
+import lib.util as util
 
 
 pd.options.mode.chained_assignment = None
@@ -243,7 +243,7 @@ def calculate_available_slots(count):
 def output_html(families, totals):
     """Output the HTML report."""
     now = datetime.now()
-    template_dir = os.fspath(Path('src') / 'reports')
+    template_dir = util.get_reports_dir()
     env = Environment(loader=FileSystemLoader(template_dir))
     template = env.get_template('sample_selection.html')
 
@@ -251,7 +251,7 @@ def output_html(families, totals):
         now=now, families=families, Status=Status, totals=totals)
 
     report_name = f'sample_selection_report_{now.strftime("%Y-%m-%d")}.html'
-    report_path = Path('output') / report_name
+    report_path = util.get_output_dir() / report_name
     with report_path.open('w') as out_file:
         out_file.write(report)
 

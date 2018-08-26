@@ -1,8 +1,9 @@
 """Holds miscellaneous utility function."""
 
-import uuid
-from pathlib import Path
+import os
 from os.path import split, basename, join
+from pathlib import Path
+import uuid
 
 
 EXPEDITION_DATA = Path('data') / 'raw' / 'expeditions'
@@ -45,3 +46,16 @@ def normalize_file_name(path):
     """Normalize the file name for consistency."""
     dir_name, file_name = split(path)
     return join(basename(dir_name), file_name)
+
+
+def get_reports_dir():
+    """Find the directory containing the report templates."""
+    _, cwd = split(os.getcwd())
+    return 'reports' if cwd == 'src' else os.fspath(Path('src') / 'reports')
+
+
+def get_output_dir():
+    """Find the output reports directory."""
+    up = Path('..') / 'output'
+    _, cwd = split(os.getcwd())
+    return up if cwd == 'src' else  Path('output')

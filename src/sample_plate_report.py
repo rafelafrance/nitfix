@@ -1,11 +1,11 @@
 """Print project status report."""
 
-import os
 from pathlib import Path
 from datetime import datetime
 import pandas as pd
 from jinja2 import Environment, FileSystemLoader
 import lib.db as db
+import lib.util as util
 
 
 def generate_reports():
@@ -104,7 +104,7 @@ def get_genus_coverage(cxn):
 
 def generate_html_report(now, sample_wells, plates, genera):
     """Generate the HTML version of the report."""
-    template_dir = os.fspath(Path('src') / 'reports')
+    template_dir = util.get_reports_dir()
     env = Environment(loader=FileSystemLoader(template_dir))
     template = env.get_template('sample_plates_report.html')
 
@@ -115,7 +115,7 @@ def generate_html_report(now, sample_wells, plates, genera):
         genera=genera.to_dict(orient='records'))
 
     report_name = f'sample_plates_report_{now.strftime("%Y-%m-%d")}.html'
-    report_path = Path('output') / report_name
+    report_path = util.get_output_dir() / report_name
     with report_path.open('w') as out_file:
         out_file.write(report)
 
@@ -185,8 +185,6 @@ def generate_excel_report(cxn, now, sample_wells, plates, genera):
             'Primary Collector (Last Name Only)',
         'collector_number': 'Collector Number',
         'collection_no': 'Collection Number'}
-    # print([x for x in renames.keys() if x not in sample_wells.columns])
-    # print([x for x in sample_wells.columns if x not in renames.keys()])
     sample_wells = sample_wells.rename(columns=renames)
 
     with pd.ExcelWriter(report_path) as writer:

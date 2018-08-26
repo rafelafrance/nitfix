@@ -1,5 +1,6 @@
 """SQL functions."""
 
+from os.path import exists
 from pathlib import Path
 import sqlite3
 import lib.util as util
@@ -12,6 +13,9 @@ def connect(path=None):
     if not path:
         path = str(util.PROCESSED_DATA / DB_NAME)
 
+    if not exists(path):
+        path = str(Path('..') / util.PROCESSED_DATA / DB_NAME)
+
     cxn = sqlite3.connect(path)
 
     cxn.execute("PRAGMA page_size = {}".format(2**16))
@@ -22,9 +26,3 @@ def connect(path=None):
 
     cxn.create_function('IS_UUID', 1, util.is_uuid)
     return cxn
-
-
-def connect_up():
-    """Allow notebooks and other utilities to connect from local dirs."""
-    path = str(Path('..') / util.PROCESSED_DATA / DB_NAME)
-    return connect(path)
