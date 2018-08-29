@@ -2,8 +2,9 @@ venv/
 .env
 
 old/
-
 output/
+notebooks/
+
 !output/.gitkeep
 
 .ipynb_checkpoints
@@ -15,7 +16,6 @@ __pycache__
 
 junk*
 temp/
-notebooks/
 
 data/external/
 !data/external/.gitkeep
