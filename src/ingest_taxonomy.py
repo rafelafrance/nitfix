@@ -78,18 +78,22 @@ def split_sample_ids(taxonomy):
 def create_taxon_ids_table(cxn, taxonomy):
     """Create a way to link sample IDs to the master taxonomy record."""
     columns = [c for c in taxonomy.columns if c.startswith('sample_id_')]
-    taxon_ids = taxonomy.melt(
+
+    taxonomy_ids = taxonomy.melt(
         id_vars='sci_name', value_vars=columns, value_name='sample_id')
-    taxon_ids = taxon_ids.loc[
-        taxon_ids.sample_id.notna(), ['sci_name', 'sample_id']]
-    taxon_ids.to_sql('taxon_ids', cxn, if_exists='replace', index=False)
+    not_na = taxonomy_ids.sample_id.notna()
+    not_blank = taxonomy_ids.sample_id != ''
+    taxonomy_ids = taxonomy_ids.loc[
+        not_na & not_blank, ['sci_name', 'sample_id']]
+
+    taxonomy_ids.to_sql('taxonomy_ids', cxn, if_exists='replace', index=False)
 
     sql = """CREATE INDEX IF NOT EXISTS
-             taxon_ids_sci_name ON taxon_ids (sci_name)"""
+             taxon_ids_sci_name ON taxonomy_ids (sci_name)"""
     cxn.execute(sql)
 
     sql = """CREATE INDEX IF NOT EXISTS
-             taxon_ids_sample_id ON taxon_ids (sample_id)"""
+             taxon_ids_sample_id ON taxonomy_ids (sample_id)"""
     cxn.execute(sql)
 
 

@@ -6,6 +6,7 @@ httplib2==0.11.3
 Jinja2==2.10
 MarkupSafe==1.0
 numpy==1.15.1
+oauth2client==4.1.2
 pandas==0.23.4
 Pillow==5.2.0
 pyasn1==0.4.4

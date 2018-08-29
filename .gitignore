@@ -1,22 +1,26 @@
+# Environment data
 venv/
 .env
 
-old/
+# Output
 output/
-notebooks/
-
 !output/.gitkeep
 
+# IDE directories
 .ipynb_checkpoints
 .ropeproject
 .idea
 .spyproject
 
+# Compiled python modules
 __pycache__
 
+# Temp data
 junk*
+old/
 temp/
 
+# Data files
 data/external/
 !data/external/.gitkeep
 data/interim/

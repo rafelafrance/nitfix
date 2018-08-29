@@ -212,7 +212,7 @@ def get_sampled_species(cxn):
         SELECT family, genus, sci_name, total_dna, NULL as status,
                source_plate, source_well, rapid_qc_wells.sample_id
           FROM sample_wells
-          JOIN taxon_ids           USING (sample_id)
+          JOIN taxonomy_ids        USING (sample_id)
           JOIN taxonomy            USING (sci_name)
      LEFT JOIN rapid_qc_wells      USING (plate_id, well)
      LEFT JOIN rapid_reformat_data USING (source_plate, source_well)
