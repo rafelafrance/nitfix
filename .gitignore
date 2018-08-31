@@ -32,6 +32,6 @@ data/raw/
 data/secrets/
 !data/secrets/.gitkeep
 
-# Temporarily hide Julia code
+# Julia code
 julia/
 *.toml
