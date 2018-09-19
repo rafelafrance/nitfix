@@ -5,12 +5,15 @@ Create a list of samples to select given the criteria below.
 
 2. Toss every sample with a total DNA < 10 ng.
 
-3. Priority taxa rules based off of the priority_taxa table:
+3. All outgroups are high priority. An outgroup will have a ":" in its family
+   field.
+
+4. Priority taxa rules based off of the priority_taxa table:
     2a) Reject samples whose genus is not in the table.
     2b) Accept samples whose genus has a Priority of "High" in the table.
     2c) Medium priority genera are filtered in step 3.
 
-4. Genus count rules, given the above:
+5. Genus count rules, given the above:
     3a. If we have <= 5 species TOTAL in a genus, submit everything we have.
     3b. If we have > 5 but <= 12 species TOTAL of genus, submit 50% of them.
     3c. If we have > 12 species in a genus, submit 25% of what we have.
@@ -18,7 +21,7 @@ Create a list of samples to select given the criteria below.
     ** NOTE: These cutoff rules are not consistent. A genus with 12 species
        will have 6 slots but a genus with 13 species will have 4 (rounding up).
 
-5. Also have to keep samples that have already been submitted for sequencing.
+6. Also have to keep samples that have already been submitted for sequencing.
    So the sort order is submitted then yield grouped by genus.
 """
 
@@ -38,6 +41,8 @@ pd.options.display.float_format = '{:.0f}'.format
 
 
 class Status(Enum):
+    """Sample status based upon the above criteria."""
+
     sequenced = auto()
     selected = auto()
     available = auto()
@@ -79,6 +84,7 @@ def apply_rules_to_genus(samples, genus, taxonomy_errors):
     rule_mark_available(samples, genus)
     rule_reject_too_many_sci_names(samples, genus, taxonomy_errors)
     rule_reject_total_dna_too_low(samples, genus, threshold=10.0)
+    rule_select_all_outgroups(samples, genus)
     rule_reject_no_priority(samples, genus)
     rule_select_high_priority_taxa(samples, genus)
     rule_select_by_genus_count(samples, genus)
@@ -115,6 +121,13 @@ def rule_reject_total_dna_too_low(samples, genus, threshold=10.0):
     available = samples.status == Status.available
     too_low = samples.total_dna < threshold
     samples.loc[available & too_low, 'status'] = Status.reject_yield_too_low
+
+
+def rule_select_all_outgroups(samples, genus):
+    """All outgroups are high priority."""
+    if ':' in genus['family']:
+        available = samples.status == Status.available
+        samples.loc[available, 'status'] = Status.selected
 
 
 def rule_reject_no_priority(samples, genus):

@@ -45,9 +45,9 @@ def get_rapid_qc_wells():
         csv_path,
         skiprows=1,
         header=0,
-        names=[
-            'row_sort', 'col_sort', 'rapid_id', 'sample_id', 'old_conc',
-            'volume', 'comments', 'concentration', 'total_dna'])
+        names=['row_sort', 'col_sort', 'rapid_id', 'sample_id', 'old_conc',
+               'volume', 'commentingest_rapid_qc_data.pys', 'concentration',
+               'total_dna'])
     rapid_wells = rapid_wells.drop('old_conc', axis=1)
 
     source_plate = re.compile(r'^[A-Za-z]+_\d+_(P\d+)_W\w+$')
@@ -63,6 +63,7 @@ def get_rapid_qc_wells():
 
     rapid_wells['plate_id'] = ''
     rapid_wells['well'] = ''
+    rapid_wells.sample_id = rapid_wells.sample_id.str.strip()
 
     return rapid_wells
 
@@ -110,21 +111,21 @@ def assign_plate_ids(sample_wells, rapid_wells):
 
 def _get_rapid_fingerprints(df):
     fingerprints = {}
-    for _, row in df.iterrows():
-        key = (row.source_plate, row.source_row)
+    for _, well in df.iterrows():
+        key = (well.source_plate, well.source_row)
         fingerprints.setdefault(key, [''] * 12)
-        if util.is_uuid(row.sample_id):
-            fingerprints[key][row.source_col - 1] = row.sample_id
+        if util.is_uuid(well.sample_id):
+            fingerprints[key][well.source_col - 1] = well.sample_id
     return {k: tuple(sorted(v)) for k, v in fingerprints.items() if any(v)}
 
 
 def _get_sample_fingerprints(df):
     fingerprints = {}
-    for _, row in df.iterrows():
-        key = (row.plate_id, row.row)
+    for _, well in df.iterrows():
+        key = (well.plate_id, well.row)
         fingerprints.setdefault(key, [''] * 12)
-        if util.is_uuid(row.sample_id):
-            fingerprints[key][row.col - 1] = row.sample_id
+        if util.is_uuid(well.sample_id):
+            fingerprints[key][well.col - 1] = well.sample_id
 
     return {tuple(sorted(v)): {'plate_id': k[0], 'row': k[1], 'sample_ids': v}
             for k, v in fingerprints.items() if any(v)}

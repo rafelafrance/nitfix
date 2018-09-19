@@ -7,12 +7,12 @@ import lib.util as util
 
 def ingest_tropicos_data():
     """Ingest data crawled from the Tropicos search portal."""
-    csv_path = util.RAW_DATA / 'tropicos' / 'tropicos.csv'
-    cxn = db.connect()
-
-    tropicos = pd.read_csv(csv_path)
-
-    create_tropicos_table(cxn, tropicos)
+    # csv_path = util.RAW_DATA / 'tropicos' / 'tropicos.csv'
+    # cxn = db.connect()
+    #
+    # tropicos = pd.read_csv(csv_path)
+    #
+    # create_tropicos_table(cxn, tropicos)
 
 
 def create_tropicos_table(cxn, tropicos):

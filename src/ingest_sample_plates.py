@@ -65,7 +65,7 @@ def get_plate_groups():
     google.sheet_to_csv('sample_plates', csv_path)
     plates = pd.read_csv(csv_path, names=col_names, na_filter=False)
 
-    # Find rows with a UUID in column A
+    # Find rows with a UUID in column A. This is the plate ID & starts a plate.
     plates['in_plate'] = plates['col_A'].apply(util.is_uuid)
 
     # Now find the next N rows (N = rows per plate)
@@ -92,7 +92,7 @@ def build_sample_rows(plate_groups):
         rows['rapid_plates'] = group.iat[PLATE_ROWS.rapid_plates, 0]
         rows['notes'] = group.iat[PLATE_ROWS.notes, 0]
         rows['results'] = group.iat[PLATE_ROWS.results, 0]
-        rows['row'] = rows.loc[:, 'col_A'].str[-1]
+        rows['row'] = rows.loc[:, 'col_A'].str[-1]  # = row's letter
         sample_rows.append(rows)
 
     sample_rows = pd.concat(sample_rows).drop('col_A', axis='columns')
@@ -118,6 +118,7 @@ def build_sample_wells(sample_rows):
     wells_per_row = 12
     sample_wells['well_no'] = sample_wells.apply(
         lambda well: rows.find(well.row) * wells_per_row + well.col, axis=1)
+    sample_wells.sample_id = sample_wells.sample_id.str.strip()
 
     return sample_wells
 
