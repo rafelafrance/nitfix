@@ -146,20 +146,20 @@ h2 {
   text-align: right;
 }
 
-.search-right .search-control label {
-  width: 230px;
+.input-container {
+  position: relative;
 }
 
-.search-left input {
-  padding: 4px;
-  width: 300px;
+input[type=text] {
+  padding: 2px;
 }
 
 .search-control button {
-  position: relative;
+  position: absolute;
   background: #70a7b5;
   color: white;
   border: none;
   border-radius: 32px;
-  left: -36px;
+  right: 4px;
+  top: 1px;
 }

@@ -58,10 +58,12 @@ function filterWells(plate) {
   const sci_name = (document.querySelector('#search-sci-name').value || '').toLowerCase();
   const family = (document.querySelector('#search-family').value || '').toLowerCase();
   const sample_id = (document.querySelector('#search-sample-id').value || '').toLowerCase();
+  const source_plate = (document.querySelector('#search-source-plate').value || '').toLowerCase();
   const sent2Rapid = (document.querySelector('#search-sent-to-rapid').checked);
   const seqReturned = (document.querySelector('#search-seq-returned').checked);
   return allWells[plate.plate_id]
     .filter(function (well) { return sample_id ? well.sample_id.toLowerCase().indexOf(sample_id) > -1 : true; })
+    .filter(function (well) { return source_plate ? well.source_plate.toLowerCase().indexOf(source_plate) > -1 : true; })
     .filter(function (well) { return sci_name ? well.sci_name.toLowerCase().indexOf(sci_name) > -1 : true; })
     .filter(function (well) { return family ? well.family.toLowerCase().indexOf(family) > -1 : true; })
     .filter(function (well) { return sent2Rapid ? well.concentration : true; })
@@ -243,12 +245,13 @@ function buildWellData(well) {
     td: [
       { content: '', cls: 'empty' },
       { content: well.well },
-      { content: well.family,          cls: 'l' },
-      { content: well.sci_name, cls: 'l' },
-      { content: concentration,        cls: 'r' },
-      { content: totalDna,             cls: 'r' },
-      { content: seqReturned,                   },
-      { content: well.sample_id,       cls: 'l' },
+      { content: well.family,    cls: 'l' },
+      { content: well.sci_name,  cls: 'l' },
+      { content: concentration,  cls: 'r' },
+      { content: totalDna,       cls: 'r' },
+      { content: seqReturned },
+      { content: well.sample_id,    cls: 'l' },
+      { content: well.source_plate, cls: 'l' },
     ],
   };
 }
