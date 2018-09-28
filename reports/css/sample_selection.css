@@ -1,0 +1,123 @@
+@keyframes fadein {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeout {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+button.toggle {
+  padding: 0 4px;
+}
+
+button.toggle:before {
+  content: '\2013';
+}
+
+button.toggle.closed:before {
+  content: '+';
+}
+
+tr {
+  animation: fadein 1s;
+}
+
+tr.closed {
+  animation: fadeout 1s;
+  display: none;
+}
+
+th,
+td {
+  text-align: center;
+  padding: 4px 8px;
+  width: 80px;
+  min-width: 80px;
+}
+
+th.l,
+td.l {
+  text-align: left;
+}
+
+th.r,
+td.r {
+  text-align: right;
+}
+
+td.r span {
+  margin-right: 6px;
+}
+
+h1 {
+  margin: 24px;
+}
+
+h1 > span {
+  font-size: 20px;
+  float: right;
+  margin-right: 12px;
+}
+
+table {
+  margin: 24px;
+  border-collapse: collapse;
+}
+
+.header {
+  font-weight: bold;
+  background-color: #eeeeee;
+}
+
+.sub-header {
+  background-color: #eeeeee;
+  font-weight: 500;
+}
+
+.sub-header td.empty {
+  background-color: white;
+}
+
+.family td {
+  background-color: cornsilk;
+}
+
+.family td,
+.genus td {
+  border-top: 1px solid lightgray;
+}
+
+.genus span {
+  margin-right: 8px;
+}
+
+.empty td {
+  background-color: #f3f3f3;
+  color: gray;
+}
+
+.symbol {
+  font-size: 24px;
+}
+
+.symbol span {
+  margin-left: 4px;
+}
+
+tr.sequenced .symbol {
+  color: green;
+}
+
+tr.selected .symbol {
+  color: green;
+}
+
+tr.available .symbol {
+  color: blue;
+}
+
+tr.rejected .symbol {
+  color: red;
+}

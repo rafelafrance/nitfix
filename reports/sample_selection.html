@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="utf-8" />
+<title>Sample selection report</title>
+
+<style>
+{% include 'sample_selection.css' -%}
+</style>
+
+</head>
+
+<body>
+  <h1>NitFix Sample Selections <span>{{ now.strftime('%Y-%m-%d %I:%M %p') }}</span></h1>
+
+  <table>
+    <thead>
+      <tr class="header">
+        <th></th>
+        <th class="l">Family</th>
+        <th class="l">Genus</th>
+        <th class="l">Priority</th>
+        <th class="r">Species<br/>Count</th>
+        <th class="r">Sampled</th>
+        <th class="r">Sent to<br/>Rapid</th>
+        <th class="r">Sequenced</th>
+        <th class="r">Automatically<br/>Selected</th>
+        <th class="r">Available<br/>to Select</th>
+        <th class="r">Unprocessed<br/>Samples</th>
+        <th class="r">Rejected<br/>Samples</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for family_name, family in families.items() %}
+      <tr class="family">
+        <td><button class="toggle closed family-btn" data-family="{{ family_name }}" title="Open or close this family"></button></td>
+        <td class="l">{{family_name}}</td>
+        <td></td>
+        <td></td>
+        <td class="r"><span>{{family.species_count}}</span></td>
+        <td class="r"><span>{{family.sampled if family.sampled else ''}}</span></td>
+        <td class="r"><span>{{family.sent_for_qc if family.sent_for_qc else ''}}</span></td>
+        <td class="r"><span>{{family.sequenced if family.sequenced else ''}}</span></td>
+        <td class="r"><span>{{family.selected if family.selected else ''}}</span></td>
+        <td class="r"><span>{{family.available if family.available else ''}}</span></td>
+        <td class="r"><span>{{family.unprocessed if family.unprocessed else ''}}</span></td>
+        <td class="r"><span>{{family.rejected if family.rejected else ''}}</span></td>
+      </tr>
+        {% for genus_name, genus in family.genera.items() %}
+        <tr class="genus closed" data-family="{{ family_name }}">
+          <td><button class="toggle closed" data-family="{{ family_name }}" data-genus="{{ genus_name }}" data-closed="closed" title="Open or close this genus"></button></td>
+          <td></td>
+          <td class="l">{{genus_name}}</td>
+          <td class="l">{{genus.priority}}</td>
+          <td class="r"><span>{{genus.species_count}}</span></td>
+          <td class="r"><span>{{genus.sampled if genus.sampled else ''}}</span></td>
+          <td class="r"><span>{{genus.sent_for_qc if genus.sent_for_qc else ''}}</span></td>
+          <td class="r"><span>{{genus.sequenced if genus.sequenced else ''}}</span></td>
+          <td class="r"><span>{{genus.selected if genus.selected else ''}}</span></td>
+          <td class="r"><span>{{genus.available if genus.available else ''}}</span></td>
+          <td class="r"><span>{{genus.unprocessed if genus.unprocessed else ''}}</span></td>
+          <td class="r"><span>{{genus.rejected if genus.rejected else ''}}</span></td>
+        </tr>
+        <tr class="sub-header detail closed" data-family="{{ family_name }}" data-genus="{{ genus_name }}" data-closed="closed">
+          <td class="empty" colspan="3"></td>
+          <td class="l" colspan="3">Scientific Name</td>
+          <td class="r">Total DNA (ng)</td>
+          <td>Plate</td>
+          <td>Well</td>
+          <td class="l" colspan="3">Sample ID</td>
+        </tr>
+          {% for sample in genus.samples %}
+          <tr class="{{sample.status.name}} detail closed" data-family="{{ family_name }}" data-genus="{{ genus_name }}" data-closed="closed">
+            <td class="empty" colspan="2"></td>
+            <td class="symbol r">
+              {% if sample.status == Status.sequenced %}
+                <span title="Already sequenced">&check;</span>
+              {% elif sample.status == Status.selected %}
+                <span title="Automatically chosen">&oast;</span>
+              {% elif sample.status == Status.available %}
+                <span title="Available to choose">&oplus;</span>
+              {% elif sample.status == Status.unprocessed %}
+                <span title="Unprocessed sample">&odot;</span>
+              {% elif sample.status == Status.reject_scientific_name %}
+                <span title="Rejected sample: More than one scientific name">&otimes;</span>
+              {% elif sample.status == Status.reject_yield_too_low %}
+                <span title="Rejected sample: Yield too low">&otimes;</span>
+              {% elif sample.status == Status.reject_low_priority %}
+                <span title="Rejected sample: Low priority sample">&otimes;</span>
+              {% endif %}
+            </td>
+            <td class="l" colspan="3">{{sample.sci_name}}</td>
+            <td class="r"><span>{{'' if sample.status == Status.unprocessed else sample.total_dna}}</span></td>
+            <td>{{sample.source_plate}}</td>
+            <td>{{sample.source_well}}</td>
+            <td colspan="3">{{sample.sample_id}}</td>
+          </tr>
+          {% endfor %}
+        {% endfor %}
+      {% endfor %}
+      <tr class="total">
+        <td></td>
+        <td class="l">Total</td>
+        <td></td>
+        <td></td>
+        <td class="r"><span>{{totals.species_count}}</span></td>
+        <td class="r"><span>{{totals.sampled if totals.sampled else ''}}</span></td>
+        <td class="r"><span>{{totals.sent_for_qc if totals.sent_for_qc else ''}}</span></td>
+        <td class="r"><span>{{totals.sequenced if totals.sequenced else ''}}</span></td>
+        <td class="r"><span>{{totals.selected if totals.selected else ''}}</span></td>
+        <td class="r"><span>{{totals.available if totals.available else ''}}</span></td>
+        <td class="r"><span>{{totals.unprocessed if totals.unprocessed else ''}}</span></td>
+        <td class="r"><span>{{totals.rejected if totals.rejected else ''}}</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+<script>
+{% include 'sample_selection.js' -%}
+</script>
+
+</body>
+</html>

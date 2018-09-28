@@ -1,5 +1,6 @@
 """Print project status report."""
 
+import json
 from pathlib import Path
 from datetime import datetime
 import pandas as pd
@@ -17,8 +18,9 @@ def generate_reports():
     plates = get_plates(sample_wells)
     genera = get_genus_coverage(cxn)
 
-    generate_html_report(now, sample_wells, plates, genera)
-    generate_excel_report(cxn, now, sample_wells, plates, genera)
+    generate_json_data(now, sample_wells, plates, genera)
+    # generate_html_report(now, sample_wells, plates, genera)
+    # generate_excel_report(cxn, now, sample_wells, plates, genera)
 
 
 def get_wells(cxn):
@@ -101,6 +103,19 @@ def get_genus_coverage(cxn):
     coverage['percent'] = coverage['imaged'] / coverage['total'] * 100.0
 
     return coverage.sort_index()
+
+
+def generate_json_data(now, sample_wells, plates, genera):
+    """Generate JSON data used by the report the report."""
+    data = json.dumps({
+        'now': now.strftime("%Y-%m-%d"),
+        'wells': get_plate_wells(sample_wells),
+        'plates': plates.to_dict(orient='records'),
+        'genera': genera.to_dict(orient='records')})
+
+    json_path = util.get_report_data_dir() / 'sample_plates_report.json'
+    with json_path.open('w') as json_file:
+        json_file.write(data)
 
 
 def generate_html_report(now, sample_wells, plates, genera):

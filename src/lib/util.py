@@ -58,4 +58,11 @@ def get_output_dir():
     """Find the output reports directory."""
     up = Path('..') / 'output'
     _, cwd = split(os.getcwd())
-    return up if cwd == 'src' else  Path('output')
+    return up if cwd == 'src' else Path('output')
+
+
+def get_report_data_dir():
+    """Find the output reports directory."""
+    _, cwd = split(os.getcwd())
+    base = '..' if cwd == 'src' else '.'
+    return Path(base) / 'reports' / 'data'
