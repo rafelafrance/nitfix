@@ -1,11 +1,10 @@
 h1 {
   font-size: 36px;
 }
-h1, a {
+h1, div.link {
   text-align: center;
   margin: 40px 0;
 }
 a {
-  display: block;
   font-size: 24px;
 }

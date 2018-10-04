@@ -210,11 +210,11 @@ function buildPlateHeader() {
 function buildPlateData(plate) {
   return {
     td: [
-      { content: plate.plate_id, cls: 'l' },
+      { content: plate.plate_id,     cls: 'l' },
       { content: plate.entry_date },
-      { content: plate.local_id, cls: 'l' },
+      { content: plate.local_id,     cls: 'l' },
       { content: plate.rapid_plates, cls: 'l' },
-      { content: plate.notes,    cls: 'l' },
+      { content: plate.notes,        cls: 'l' },
     ],
   };
 }
@@ -277,15 +277,93 @@ function buildTableRows(page) {
 
 
 ////////////////////////////////////////////////////////////////////////////////////
-// Get JSON data built by the python script.
+function buildCoverageTable() {
+  const rows = [];
+  data.genera.forEach(genus => {
+    if (genus.genus) {
+      rows.push({
+        cls:    'genus',
+        family: genus.family,
+        td: [
+          { content: '' },
+          { content: '' },
+          { content: genus.genus,   cls: 'l' },
+          { content: genus.total,   cls: 'r', fixed: 0 },
+          { content: genus.imaged,  cls: 'r', fixed: 0 },
+          { content: genus.percent, cls: 'r', fixed: 2 },
+        ]
+      });
+    } else if (genus.family[0] != '~') {
+      rows.push({
+        cls:    'family',
+        family: genus.family,
+        td: [
+          { content: 'button' },
+          { content: genus.family,  cls: 'l' },
+          { content: '' },
+          { content: genus.total,   cls: 'r', fixed: 0 },
+          { content: genus.imaged,  cls: 'r', fixed: 0 },
+          { content: genus.percent, cls: 'r', fixed: 2 },
+        ]
+      });
+    } else {
+      rows.push({
+        cls:    'family',
+        family: genus.family,
+        td: [
+          { content: '' },
+          { content: genus.family,  cls: 'l' },
+          { content: '' },
+          { content: genus.total,   cls: 'r', fixed: 0 },
+          { content: genus.imaged,  cls: 'r', fixed: 0 },
+          { content: genus.percent, cls: 'r', fixed: 2 },
+        ]
+      });
+    }
+  });
+
+  const tbody = document.querySelector('section.families table tbody');
+
+  rows.forEach(function(row) {
+
+    // Build the table's rows
+    const tr = document.createElement('tr');
+    tr.classList.add('closed');
+    tr.classList.add(row.cls);
+    tr.dataset.family = row.family;
+
+    // Build the row's cells
+    row.td.forEach(function(cell) {
+      const td = document.createElement('td');
+      if (cell.cls) { td.classList.add(cell.cls); }
+      if (cell.content === 'button') {
+        const btn = document.createElement('button');
+        btn.classList.add('toggle');
+        btn.classList.add('closed');
+        btn.dataset.family = row.family;
+        btn.setAttribute('title', 'Open or close this family')
+        td.append(btn);
+      } else {
+        td.innerHTML = cell.fixed !== undefined ? cell.content.toFixed(cell.fixed) : cell.content;
+      }
+      tr.appendChild(td);
+    });
+
+    tbody.appendChild(tr);
+  });
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////
+// Get JSON data built by the python script
 
 let dataReq = new XMLHttpRequest();
-dataReq.onreadystatechange = showData;
+dataReq.onreadystatechange = processJsonData;
 dataReq.open('GET', './data/sample_plates_report.json');
 dataReq.send();
 
 
-function showData() {
+function processJsonData() {
   if (dataReq.readyState === XMLHttpRequest.DONE) {
     if (dataReq.status !== 200) {
       alert(dataReq.responseText)
@@ -295,5 +373,6 @@ function showData() {
     filteredPlates = data.plates.filter(function(plate) { return true; });
     document.querySelector('#report-date').innerHTML = data.now;
     resetPager();
+    buildCoverageTable();
   }
 }

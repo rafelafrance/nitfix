@@ -52,3 +52,33 @@ function openGenus(genus) {
     e.dataset.closed = '';
   });
 }
+
+////////////////////////////////////////////////////////////////////////////////////
+// Get JSON data built by the python script
+
+let dataReq = new XMLHttpRequest();
+dataReq.onreadystatechange = processJsonData;
+dataReq.open('GET', './data/sample_selection.json');
+dataReq.send();
+
+
+function processJsonData() {
+  if (dataReq.readyState === XMLHttpRequest.DONE) {
+    if (dataReq.status !== 200) {
+      alert(dataReq.responseText)
+      return;
+    }
+    data = JSON.parse(dataReq.responseText);
+    filteredPlates = data.plates.filter(function(plate) { return true; });
+    document.querySelector('#report-date').innerHTML = data.now;
+    resetPager();
+    buildCoverageTable();
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+// Build the table from the JSON data
+
+function buildTable() {
+
+}
