@@ -4,7 +4,7 @@ DB=nitfix.sqlite.db
 DB_NAME="$(PROCESSED)/$(DB)"
 DB_BACKUP="$(PROCESSED)/$(basename $(DB))_$(DATE).db"
 PYTHON=python
-SRC="./src"
+SRC="./python"
 
 all: images taxonomy sample_plates plate_report select_samples
 
