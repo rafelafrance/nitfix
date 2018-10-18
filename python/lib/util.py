@@ -51,18 +51,21 @@ def normalize_file_name(path):
 def get_reports_dir():
     """Find the directory containing the report templates."""
     _, cwd = split(os.getcwd())
-    return 'reports' if cwd == 'src' else os.fspath(Path('src') / 'reports')
+    if cwd == 'python':
+        return 'reports'
+    else:
+        return os.fspath(Path('python') / 'reports')
 
 
 def get_output_dir():
     """Find the output reports directory."""
-    up = Path('..') / 'output'
+    up = Path('..') / 'reports'
     _, cwd = split(os.getcwd())
-    return up if cwd == 'src' else Path('output')
+    return up if cwd == 'python' else Path('reports')
 
 
 def get_report_data_dir():
     """Find the output reports directory."""
     _, cwd = split(os.getcwd())
-    base = '..' if cwd == 'src' else '.'
+    base = '..' if cwd == 'python' else '.'
     return Path(base) / 'reports' / 'data'

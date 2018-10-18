@@ -1,8 +1,9 @@
 """Print project status report."""
 
-import json
+from pathlib import Path
 from datetime import datetime
 import pandas as pd
+from jinja2 import Environment, FileSystemLoader
 import lib.db as db
 import lib.util as util
 
@@ -16,7 +17,7 @@ def generate_reports():
     plates = get_plates(sample_wells)
     genera = get_genus_coverage(cxn)
 
-    generate_json_data(now, sample_wells, plates, genera)
+    generate_html_report(now, sample_wells, plates, genera)
     generate_excel_report(cxn, now, sample_wells, plates, genera)
 
 
@@ -102,23 +103,25 @@ def get_genus_coverage(cxn):
     return coverage.sort_index()
 
 
-def generate_json_data(now, sample_wells, plates, genera):
-    """Generate JSON data used by the report the report."""
-    data = json.dumps({
-        'now': now.strftime("%Y-%m-%d"),
-        'wells': get_plate_wells(sample_wells),
-        'plates': plates.to_dict(orient='records'),
-        'genera': genera.to_dict(orient='records')})
+def generate_html_report(now, sample_wells, plates, genera):
+    """Generate the HTML version of the report."""
+    template_dir = util.get_reports_dir()
+    env = Environment(loader=FileSystemLoader(template_dir))
+    template = env.get_template('sample_plates_report.html')
 
-    json_path = util.get_report_data_dir() / 'sample_plates_report.json'
-    with json_path.open('w') as json_file:
-        json_file.write(data)
+    report = template.render(
+        now=now,
+        wells=get_plate_wells(sample_wells),
+        plates=plates.to_dict(orient='records'),
+        genera=genera.to_dict(orient='records'))
+
+    report_path = util.get_output_dir() / 'sample_plates_report.html'
+    with report_path.open('w') as out_file:
+        out_file.write(report)
 
 
 def generate_excel_report(cxn, now, sample_wells, plates, genera):
     """Generate the Excel version of the report."""
-    report_path = util.get_report_data_dir() / 'sample_plates_report.xlsx'
-
     genera = genera.drop(['family', 'genus'], axis=1)
 
     sample_wells = sample_wells.drop(
@@ -181,6 +184,7 @@ def generate_excel_report(cxn, now, sample_wells, plates, genera):
         'collection_no': 'Collection Number'}
     sample_wells = sample_wells.rename(columns=renames)
 
+    report_path = Path('output') / 'sample_plates_report.xlsx'
     with pd.ExcelWriter(report_path) as writer:
         genera.to_excel(writer, sheet_name='Family Coverage')
         plates.to_excel(writer, sheet_name='Sample Plates')

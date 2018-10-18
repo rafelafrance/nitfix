@@ -26,11 +26,11 @@ Create a list of samples to select given the criteria below.
 """
 
 import math
-import json
 from enum import Enum, auto
 from collections import OrderedDict
 from datetime import datetime
 import pandas as pd
+from jinja2 import Environment, FileSystemLoader
 import lib.db as db
 import lib.util as util
 
@@ -72,7 +72,7 @@ def select_samples():
     sum_family_totals(families)
     totals = sum_grand_totals(families)
 
-    generate_json_data(families, totals)
+    output_html(families, totals)
     output_csv(families)
 
 
@@ -193,7 +193,7 @@ def sum_grand_totals(families):
             grand.setdefault(key, 0)
             grand[key] += family.get(key, 0)
 
-    return {k: int(v) for k, v in grand.items()}
+    return grand
 
 
 def get_taxonomy_errors(cxn):
@@ -206,8 +206,6 @@ def get_taxonomy_errors(cxn):
 def put_samples_in_genus(samples, genus):
     """Move the samples into the genus dictionary."""
     samples['status_value'] = samples.status.apply(lambda x: x.value)
-    samples['status_name'] = samples.status.apply(lambda x: x.name)
-    samples.drop('status', axis='columns', inplace=True)
     genus['samples'] = samples.fillna('').sort_values(
         ['status_value', 'sci_name']).to_dict(orient='records')
 
@@ -281,22 +279,23 @@ def calculate_available_slots(count):
         return math.ceil(0.25 * count)
 
 
-def generate_json_data(families, totals):
-    """Output the JSON data for the report."""
-    data = json.dumps({
-        'now': datetime.now().strftime("%Y-%m-%d"),
-        'families': pd.DataFrame(families).to_json(orient='records'),
-        'totals': totals})
+def output_html(families, totals):
+    """Output the HTML report."""
+    now = datetime.now()
+    template_dir = util.get_reports_dir()
+    env = Environment(loader=FileSystemLoader(template_dir))
+    template = env.get_template('sample_selection.html')
 
-    json_path = util.get_report_data_dir() / 'sample_selection.json'
-    with json_path.open('w') as json_file:
-        json_file.write(data)
+    report = template.render(
+        now=now, families=families, Status=Status, totals=totals)
+
+    report_path = util.get_output_dir() / 'sample_selection.html'
+    with report_path.open('w') as out_file:
+        out_file.write(report)
 
 
 def output_csv(families):
     """Output the CSV sidecar file."""
-    csv_path = util.get_report_data_dir() / 'sample_selection.csv'
-
     all_samples = []
     for family_name, family in families.items():
         for genus_name, genus in family['genera'].items():
@@ -305,9 +304,9 @@ def output_csv(families):
                 if not sample['source_plate']:
                     continue
 
-                selected = ('Yes' if sample['status_name']
+                selected = ('Yes' if sample['status'].name
                             in ['sequenced', 'selected'] else '')
-                status = sample['status_name'].replace('_', ' ')
+                status = sample['status'].name.replace('_', ' ')
 
                 row = OrderedDict()
                 row['Plate'] = sample['source_plate']
@@ -346,6 +345,7 @@ def output_csv(families):
         dummies, all_samples, how='left', on=['Plate', 'Well'])
 
     all_samples = all_samples.sort_values(['Plate', 'Well'])
+    csv_path = util.get_report_data_dir() / 'sample_selection.csv'
     all_samples.to_csv(csv_path, index=False)
 
 
