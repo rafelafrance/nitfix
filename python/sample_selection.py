@@ -25,7 +25,6 @@ Create a list of samples to select given the criteria below.
    So the sort order is submitted then yield grouped by genus.
 """
 
-import os
 import math
 import json
 from enum import Enum, auto
@@ -194,7 +193,7 @@ def sum_grand_totals(families):
             grand.setdefault(key, 0)
             grand[key] += family.get(key, 0)
 
-    return grand
+    return {k: int(v) for k, v in grand.items()}
 
 
 def get_taxonomy_errors(cxn):
@@ -284,22 +283,10 @@ def calculate_available_slots(count):
 
 def generate_json_data(families, totals):
     """Output the JSON data for the report."""
-    from pprint import pprint
-    for family_name, family in families.items():
-        for genus_name, genus in family['genera'].items():
-            for sample in genus.get('samples', []):
-                if not sample:
-                    continue
-                for key, value in sample.items():
-                    print(key, type(value))
-                import sys
-                sys.exit()
-
     data = json.dumps({
         'now': datetime.now().strftime("%Y-%m-%d"),
-        'families': families})
-    #    'totals': totals})
-    # 'Status': Status})
+        'families': pd.DataFrame(families).to_json(orient='records'),
+        'totals': totals})
 
     json_path = util.get_report_data_dir() / 'sample_selection.json'
     with json_path.open('w') as json_file:
@@ -318,9 +305,9 @@ def output_csv(families):
                 if not sample['source_plate']:
                     continue
 
-                selected = ('Yes' if sample['status_name'].name
+                selected = ('Yes' if sample['status_name']
                             in ['sequenced', 'selected'] else '')
-                status = sample['status_name'].name.replace('_', ' ')
+                status = sample['status_name'].replace('_', ' ')
 
                 row = OrderedDict()
                 row['Plate'] = sample['source_plate']
