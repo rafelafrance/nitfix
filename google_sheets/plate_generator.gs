@@ -1,7 +1,7 @@
 var ROW_COUNT = 8;
 var COL_COUNT = 12;
 var DATE_OFFSET = 1;      // Add this to get to the date cell
-var LOCAL_ID_OFFSET = 2;  // Add this to get to the date cell
+var LOCAL_ID_OFFSET = 2;  // Add this to get to the local ID cell
 var RAPID_OFFSET = 3;     // Add this to get to the protocol cell
 var NOTES_OFFSET = 4;     // Add this to get to the notes cell
 var RESULTS_OFFSET = 5;   // Add this to get to the results cell
