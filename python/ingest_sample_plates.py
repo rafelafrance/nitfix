@@ -1,5 +1,6 @@
 """Extract, transform, and load data related to the samples."""
 
+import re
 from collections import namedtuple
 import pandas as pd
 import lib.db as db
@@ -13,6 +14,9 @@ PlateRows = namedtuple(
                   'row_A row_B row_C row_D row_E row_F row_G row_H end'))
 PLATE_SHAPE = PlateShape(14, 13)
 PLATE_ROWS = PlateRows(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14)
+LOCAL_ID = re.compile(
+    r'^.*? (nitfix|rosales|test) \D* (\d+) \D*$',
+    re.IGNORECASE | re.VERBOSE)
 
 
 def ingest_samples():
@@ -59,8 +63,8 @@ def get_plate_groups():
     2) We then take that row and the next n rows.
     """
     csv_path = util.INTERIM_DATA / 'sample_plates.csv'
-    col_names = (['col_A'] +
-                 [f'col_{c:02d}' for c in range(1, PLATE_SHAPE.cols)])
+    col_names = (['col_A']
+                 + [f'col_{c:02d}' for c in range(1, PLATE_SHAPE.cols)])
 
     google.sheet_to_csv('sample_plates', csv_path)
     plates = pd.read_csv(csv_path, names=col_names, na_filter=False)
@@ -70,8 +74,8 @@ def get_plate_groups():
 
     # Now find the next N rows (N = rows per plate)
     for shift in range(1, PLATE_SHAPE.rows):
-        plates.in_plate = (plates.in_plate |
-                           plates.col_A.shift(shift).apply(util.is_uuid))
+        plates.in_plate = (plates.in_plate
+                           | plates.col_A.shift(shift).apply(util.is_uuid))
 
     # Remove rows not in a plate & re-index so we can use modular arithmetic
     plates = plates.loc[plates.in_plate, :].reset_index(drop=True)
@@ -97,10 +101,19 @@ def build_sample_rows(plate_groups):
 
     sample_rows = pd.concat(sample_rows).drop('col_A', axis='columns')
 
-    sample_rows['local_no'] = (pd.to_numeric(
-        sample_rows.local_id.str.replace(r'\D+', ''), errors='coerce'))
+    sample_rows['local_no'] = sample_rows.local_id.apply(build_local_no)
+    # sample_rows['local_no'] = (pd.to_numeric(
+    #     sample_rows.local_id.str.replace(r'\D+', ''), errors='coerce'))
 
     return sample_rows
+
+
+def build_local_no(local_id):
+    """Convert the local_id into something we can sort on consistently."""
+    match = LOCAL_ID.match(local_id)
+    lab = match[1].title()
+    no = match[2].zfill(4)
+    return f'{lab}_{no}'
 
 
 def build_sample_wells(sample_rows):

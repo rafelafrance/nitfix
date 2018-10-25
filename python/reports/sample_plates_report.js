@@ -229,6 +229,7 @@ function buildWellHeader() {
       { content: 'Total DNA (ng)' },
       { content: 'Sequence Returned' },
       { content: 'Sample ID' },
+      { content: 'Source Plate' },
     ],
   };
 }
@@ -251,7 +252,7 @@ function buildWellData(well) {
       { content: totalDna,       cls: 'r' },
       { content: seqReturned },
       { content: well.sample_id,    cls: 'l' },
-      { content: well.source_plate, cls: 'l' },
+      { content: well.source_plate },
     ],
   };
 }
