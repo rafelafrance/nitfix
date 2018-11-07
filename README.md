@@ -4,7 +4,7 @@ Utilities supporting this grant.
 
 # Installation
 
-You will need to have Python3 installed, as well as pip, a package manager for python. Beyond these, it is easiest to handle dependencies by setting up a virtual environment, which is a contained workspace with internally installed python libraries. Run the following code in what you intend to be your working directory:
+You will need to have Python3 installed, as well as pip, a package manager for python. Run the following code:
 
 ```
 git clone https://github.com/rafelafrance/nitfix.git
