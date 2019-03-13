@@ -109,9 +109,9 @@ def assign_plate_ids(sample_wells, rapid_wells):
     return rapid_wells
 
 
-def _get_rapid_fingerprints(df):
+def _get_rapid_fingerprints(dfm):
     fingerprints = {}
-    for _, well in df.iterrows():
+    for _, well in dfm.iterrows():
         key = (well.source_plate, well.source_row)
         fingerprints.setdefault(key, [''] * 12)
         if util.is_uuid(well.sample_id):
@@ -119,9 +119,9 @@ def _get_rapid_fingerprints(df):
     return {k: tuple(sorted(v)) for k, v in fingerprints.items() if any(v)}
 
 
-def _get_sample_fingerprints(df):
+def _get_sample_fingerprints(dfm):
     fingerprints = {}
-    for _, well in df.iterrows():
+    for _, well in dfm.iterrows():
         key = (well.plate_id, well.row)
         fingerprints.setdefault(key, [''] * 12)
         if util.is_uuid(well.sample_id):

@@ -88,7 +88,7 @@ def get_plate_groups():
 def build_sample_rows(plate_groups):
     """Build the sample rows from the plate groups."""
     sample_rows = []
-    for idx, group in plate_groups:
+    for _, group in plate_groups:
         rows = group.iloc[PLATE_ROWS.row_A:PLATE_ROWS.end, :].copy()
         rows['plate_id'] = group.iat[PLATE_ROWS.plate_id, 0]
         rows['entry_date'] = group.iat[PLATE_ROWS.entry_date, 0]
@@ -112,8 +112,8 @@ def build_local_no(local_id):
     """Convert the local_id into something we can sort on consistently."""
     match = LOCAL_ID.match(local_id)
     lab = match[1].title()
-    no = match[2].zfill(4)
-    return f'{lab}_{no}'
+    number = match[2].zfill(4)
+    return f'{lab}_{number}'
 
 
 def build_sample_wells(sample_rows):

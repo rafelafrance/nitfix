@@ -6,7 +6,7 @@ DB_BACKUP="$(PROCESSED)/$(basename $(DB))_$(DATE).db"
 PYTHON=python
 SRC="./python"
 
-all: images taxonomy sample_plates plate_report select_samples
+all: images taxonomy sequencing plate_report select_samples
 
 images:
 	$(PYTHON) $(SRC)/ingest_images.py
@@ -22,7 +22,7 @@ taxonomy:
 	$(PYTHON) $(SRC)/ingest_priority_taxa.py
 	$(PYTHON) $(SRC)/ingest_tropicos_data.py
 
-sample_plates:
+sequencing:
 	$(PYTHON) $(SRC)/ingest_sample_plates.py
 	$(PYTHON) $(SRC)/ingest_rapid_qc_data.py
 	$(PYTHON) $(SRC)/ingest_rapid_reformatting_data.py
