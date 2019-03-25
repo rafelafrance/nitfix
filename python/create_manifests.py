@@ -35,7 +35,7 @@ def nybg234():
     errors.to_csv(INTERIM_DATA / 'nybg_manifest_missing.csv', index=False)
 
 
-def CalAcademy():
+def cal_academy():
     """Make a manifest."""
     sql = """
         SELECT image_file, images.sample_id, sci_name

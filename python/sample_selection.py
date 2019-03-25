@@ -78,36 +78,36 @@ def select_samples():
 
 def apply_rules_to_genus(samples, genus, taxonomy_errors):
     """Update the samples according to the rules."""
-    rule_mark_already_sequenced(samples, genus)
-    rule_mark_unprocessed(samples, genus)
-    rule_mark_available(samples, genus)
-    rule_reject_too_many_sci_names(samples, genus, taxonomy_errors)
-    rule_reject_total_dna_too_low(samples, genus, threshold=10.0)
+    rule_mark_already_sequenced()
+    rule_mark_unprocessed(samples)
+    rule_mark_available(samples)
+    rule_reject_too_many_sci_names(samples, taxonomy_errors)
+    rule_reject_total_dna_too_low(samples, threshold=10.0)
     rule_select_all_outgroups(samples, genus)
     rule_reject_no_priority(samples, genus)
     rule_select_high_priority_taxa(samples, genus)
     rule_select_by_genus_count(samples, genus)
 
 
-def rule_mark_already_sequenced(samples, genus):
+def rule_mark_already_sequenced():  # samples, genus):
     """Identify samples sequenced by RAPiD."""
     # samples[samples.qq.notna(), 'status'] = Status.sequenced
 
 
-def rule_mark_unprocessed(samples, genus):
+def rule_mark_unprocessed(samples):
     """Identify unprocessed samples."""
     no_status = samples.status.isna()
     unprocessed = samples.source_plate.isna()
     samples.loc[no_status & unprocessed, 'status'] = Status.unprocessed
 
 
-def rule_mark_available(samples, genus):
+def rule_mark_available(samples):
     """Identify samples that may be selected."""
     no_status = samples.status.isna()
     samples.loc[no_status, 'status'] = Status.available
 
 
-def rule_reject_too_many_sci_names(samples, genus, taxonomy_errors):
+def rule_reject_too_many_sci_names(samples, taxonomy_errors):
     """Toss every sample associated with more than one scientific name."""
     available = samples.status == Status.available
     names_err = samples.sample_id.isin(taxonomy_errors)
@@ -115,7 +115,7 @@ def rule_reject_too_many_sci_names(samples, genus, taxonomy_errors):
         available & names_err, 'status'] = Status.reject_scientific_name
 
 
-def rule_reject_total_dna_too_low(samples, genus, threshold=10.0):
+def rule_reject_total_dna_too_low(samples, threshold=10.0):
     """Toss every sample with a total DNA < threshold ng."""
     available = samples.status == Status.available
     too_low = samples.total_dna < threshold
@@ -177,8 +177,8 @@ def sum_genus_totals(samples, genus):
 def sum_family_totals(families):
     """Accumulate totals."""
     keys = get_accum_keys()
-    for family_name, family in families.items():
-        for genus_name, genus in family['genera'].items():
+    for family in families.values():
+        for genus in family['genera'].values():
             for key in keys:
                 family.setdefault(key, 0)
                 family[key] += genus.get(key, 0)
@@ -188,7 +188,7 @@ def sum_grand_totals(families):
     """Accumulate totals."""
     grand = {}
     keys = get_accum_keys()
-    for family_name, family in families.items():
+    for family in families.values():
         for key in keys:
             grand.setdefault(key, 0)
             grand[key] += family.get(key, 0)
@@ -274,10 +274,9 @@ def calculate_available_slots(count):
     """
     if count <= 5:
         return count
-    elif count <= 12:
+    if count <= 12:
         return math.ceil(0.5 * count)
-    else:
-        return math.ceil(0.25 * count)
+    return math.ceil(0.25 * count)
 
 
 def output_html(families, totals):

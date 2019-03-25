@@ -19,7 +19,7 @@ def ingest_pilot_data():
         lambda x: f'UFBI_sample_photos/{x}')
 
     pilot = (pilot.drop(['File'], axis=1)
-                  .rename(columns={'Identifier': 'pilot_id'}))
+             .rename(columns={'Identifier': 'pilot_id'}))
     pilot.pilot_id = pilot.pilot_id.str.lower().str.split().str.join(' ')
 
     create_pilot_data_table(cxn, pilot)

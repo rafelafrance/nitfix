@@ -53,15 +53,14 @@ def get_reports_dir():
     _, cwd = split(os.getcwd())
     if cwd == 'python':
         return 'reports'
-    else:
-        return os.fspath(Path('python') / 'reports')
+    return os.fspath(Path('python') / 'reports')
 
 
 def get_output_dir():
     """Find the output reports directory."""
-    up = Path('..') / 'reports'
+    over = Path('..') / 'reports'
     _, cwd = split(os.getcwd())
-    return up if cwd == 'python' else Path('reports')
+    return over if cwd == 'python' else Path('reports')
 
 
 def get_report_data_dir():

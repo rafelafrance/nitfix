@@ -18,7 +18,7 @@ def generate_reports():
     genera = get_genus_coverage(cxn)
 
     generate_html_report(now, sample_wells, plates, genera)
-    generate_excel_report(cxn, now, sample_wells, plates, genera)
+    generate_excel_report(cxn, sample_wells, plates, genera)
 
 
 def get_wells(cxn):
@@ -58,7 +58,7 @@ def get_plates(sample_wells):
 def get_plate_wells(sample_wells):
     """Assign wells to their plate."""
     plate_wells = {}
-    for group, plate in sample_wells.groupby('local_no'):
+    for _, plate in sample_wells.groupby('local_no'):
         plate_id = plate['plate_id'].iloc[0]
         plate_wells[plate_id] = plate.fillna('').to_dict(orient='records')
     return plate_wells
@@ -121,7 +121,7 @@ def generate_html_report(now, sample_wells, plates, genera):
         out_file.write(report)
 
 
-def generate_excel_report(cxn, now, sample_wells, plates, genera):
+def generate_excel_report(cxn, sample_wells, plates, genera):
     """Generate the Excel version of the report."""
     genera = genera.drop(['family', 'genus'], axis=1)
 

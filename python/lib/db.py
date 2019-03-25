@@ -20,9 +20,7 @@ def connect(path=None):
 
     cxn.execute("PRAGMA page_size = {}".format(2**16))
     cxn.execute("PRAGMA busy_timeout = 10000")
-    cxn.execute("PRAGMA journal_mode = OFF")
-    cxn.execute("PRAGMA synchronous = OFF")
-    cxn.execute("PRAGMA optimize")
+    cxn.execute("PRAGMA journal_mode = WAL")
 
     cxn.create_function('IS_UUID', 1, util.is_uuid)
     return cxn

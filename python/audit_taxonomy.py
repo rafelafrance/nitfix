@@ -8,11 +8,11 @@ def clean_taxonomy():
     """Audit problem taxonomy records in the database."""
     cxn = db.connect()
     taxonomy_ids = pd.read_sql('SELECT * FROM taxonomy_ids', cxn)
-    errors = get_duplicate_sample_ids(cxn, taxonomy_ids)
+    errors = get_duplicate_sample_ids(taxonomy_ids)
     create_taxonomy_errors_table(cxn, errors)
 
 
-def get_duplicate_sample_ids(cxn, taxonomy_ids):
+def get_duplicate_sample_ids(taxonomy_ids):
     """Get duplicate sample IDs from the taxonomy table."""
     taxonomy_ids['times'] = 0
     errors = taxonomy_ids.groupby('sample_id').agg(

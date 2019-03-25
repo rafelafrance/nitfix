@@ -111,10 +111,9 @@ def find_duplicate_uuids(images):
     if dupes.shape[0]:
         dupes['msg'] = dupes.apply(
             lambda dupe:
-                ('DUPLICATES: Files {} and {} have the same QR code').format(
-                    dupe.image_file,
-                    images.loc[images.sample_id == dupe.sample_id,
-                               'image_file']),
+            ('DUPLICATES: Files {} and {} have the same QR code').format(
+                dupe.image_file,
+                images.loc[images.sample_id == dupe.sample_id, 'image_file']),
             axis=1)
     dupes = dupes.drop(['sample_id'], axis=1)
     return images, dupes
@@ -156,8 +155,8 @@ def get_images_to_process(old_images, old_errors):
 
 def get_image_data(image_file):
     """Read and process image."""
-    with open(util.PHOTOS / image_file, 'rb') as image_file:
-        image = Image.open(image_file)
+    with open(util.PHOTOS / image_file, 'rb') as image_fh:
+        image = Image.open(image_fh)
         image.load()
     return get_qr_code(image)
 
@@ -247,8 +246,8 @@ def resolve_errors(errors):
 
 def manually_insert_images(images):
     """Resolve some errors via a manual insert."""
-    df = pd.DataFrame(get_manual_inserts())
-    return pd.concat([images, df], ignore_index=True)
+    dfm = pd.DataFrame(get_manual_inserts())
+    return pd.concat([images, dfm], ignore_index=True)
 
 
 def get_manual_inserts():
