@@ -4,10 +4,10 @@ import os
 from os.path import join, exists
 import argparse
 import httplib2
-from apiclient import discovery
-from oauth2client import client
-from oauth2client import tools
-from oauth2client.file import Storage
+from apiclient import discovery         # pylint: disable=import-error
+from oauth2client import client         # pylint: disable=import-error
+from oauth2client import tools          # pylint: disable=import-error
+from oauth2client.file import Storage   # pylint: disable=import-error
 
 
 def get_credentials():
