@@ -15,6 +15,7 @@ images:
 
 taxonomy:
 	$(PYTHON) $(SRC)/ingest_taxonomy.py
+	$(PYTHON) $(SRC)/ingest_ting_shuang_taxonomy.py
 	$(PYTHON) $(SRC)/audit_taxonomy.py
 	$(PYTHON) $(SRC)/ingest_loci_data.py
 	$(PYTHON) $(SRC)/ingest_werner_data.py
