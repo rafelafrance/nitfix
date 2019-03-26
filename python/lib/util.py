@@ -30,10 +30,10 @@ IMAGE_DIRS = [
     'Tingshuang_F_nitfix_photos',
     'Tingshuang_HUH_nitfix_photos',
     'Tingshuang_KUN_nitfix_photos',
-    'Tinshuang_MO_nitfix_photos',
-    'Tinshuang_NY_nitfix_photos',
-    'Tinshuang_TEX_nitfix_photos',
-    'Tinshuang_US_nitfix_photos']
+    'Tingshuang_MO_nitfix_photos',
+    'Tingshuang_NY_nitfix_photos',
+    'Tingshuang_TEX_nitfix_photos',
+    'Tingshuang_US_nitfix_photos']
     # 'UFBI_sample_photos',
 
 

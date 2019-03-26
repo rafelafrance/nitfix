@@ -11,10 +11,12 @@ DB_NAME = 'nitfix.sqlite.db'
 def connect(path=None):
     """Connect to the SQLite3 DB."""
     if not path:
-        path = str(util.PROCESSED_DATA / DB_NAME)
+        path = util.PROCESSED_DATA
 
     if not exists(path):
-        path = str(Path('..') / util.PROCESSED_DATA / DB_NAME)
+        path = Path('..') / util.PROCESSED_DATA
+
+    path = str(path / DB_NAME)
 
     cxn = sqlite3.connect(path)
 

@@ -156,8 +156,11 @@ def get_images_to_process(old_images, old_errors):
 def get_image_data(image_file):
     """Read and process image."""
     with open(util.PHOTOS / image_file, 'rb') as image_fh:
-        image = Image.open(image_fh)
-        image.load()
+        try:
+            image = Image.open(image_fh)
+            image.load()
+        except OSError:
+            return None
     return get_qr_code(image)
 
 
