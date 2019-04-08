@@ -39,7 +39,7 @@ def get_wells(cxn):
      LEFT JOIN rapid_qc_wells      USING (plate_id, well)
      LEFT JOIN rapid_reformat_data USING (source_plate, source_well)
          WHERE length(sample_wells.sample_id) = 36
-      ORDER BY local_no, row, col
+      ORDER BY local_no, row, col;
     """
     sample_wells = pd.read_sql(sql, cxn)
     return sample_wells
@@ -81,7 +81,7 @@ def get_genus_coverage(cxn):
      UNION ALL
         SELECT family, genus, sci_name AS total, 0 AS imaged
           FROM taxonomy
-         WHERE sci_name NOT IN (SELECT sci_name FROM in_images)
+         WHERE sci_name NOT IN (SELECT sci_name FROM in_images);
     """
     taxonomy = pd.read_sql(sql, cxn)
 
@@ -132,7 +132,7 @@ def generate_excel_report(cxn, sample_wells, plates, genera):
         """local_no well_no well family sci_name sample_id
            input_concentration rapid_input_volume concentration
            total_dna""".split(), axis=1)
-    nfn_data = pd.read_sql('SELECT * FROM nfn_data', cxn)
+    nfn_data = pd.read_sql('SELECT * FROM nfn_data;', cxn)
     sample_wells = sample_wells.merge(
         right=nfn_data, how='left', on='sample_id')
     sample_wells = sample_wells.drop(['subject_id'], axis=1)

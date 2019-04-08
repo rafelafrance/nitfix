@@ -19,7 +19,7 @@ def nybg234():
           JOIN taxonomy_ids USING (sample_id)
          WHERE image_file LIKE 'NY_visit_2/%'
             OR image_file LIKE 'NY_DOE-nitfix_visit3/%'
-            OR image_file LIKE 'NY_DOE-nitfix_visit4/%'
+            OR image_file LIKE 'NY_DOE-nitfix_visit4/%';
         """
     images = pd.read_sql(sql, CXN)
 
@@ -27,7 +27,7 @@ def nybg234():
         SELECT image_file FROM image_errors
          WHERE image_file LIKE 'NY_visit_2/%'
             OR image_file LIKE 'NY_DOE-nitfix_visit3/%'
-            OR image_file LIKE 'NY_DOE-nitfix_visit4/%'
+            OR image_file LIKE 'NY_DOE-nitfix_visit4/%';
         """
     errors = pd.read_sql(sql, CXN)
 
@@ -42,7 +42,7 @@ def cal_academy():
           FROM images
           JOIN taxonomy_ids USING (sample_id)
          WHERE image_file LIKE '%/CAS-DOE-nitfix_specimen_photos/%'
-      ORDER BY image_file
+      ORDER BY image_file;
     """
     images = pd.read_sql(sql, CXN)
 
@@ -53,7 +53,7 @@ def cal_academy():
 
     sql = """
         SELECT image_file FROM image_errors
-         WHERE image_file LIKE 'CAS-DOE-nitfix_specimen_photos/%'
+         WHERE image_file LIKE 'CAS-DOE-nitfix_specimen_photos/%';
         """
     errors = pd.read_sql(sql, CXN)
     errors.image_file = errors.image_file.str.extract(r'.*/(.*)', expand=False)
@@ -64,11 +64,13 @@ def cal_academy():
 
 def mobot():
     """Make a manifest."""
-    taxonomy = pd.read_sql('SELECT * FROM taxons', CXN)
+    taxonomy = pd.read_sql('SELECT * FROM taxons;', CXN)
 
-    sql = """SELECT *
-               FROM images
-              WHERE file_name LIKE 'MO-DOE-nitfix_specimen_photos/%'"""
+    sql = """
+        SELECT *
+          FROM images
+         WHERE file_name LIKE 'MO-DOE-nitfix_specimen_photos/%';
+        """
 
     images = pd.read_sql(sql, CXN)
 

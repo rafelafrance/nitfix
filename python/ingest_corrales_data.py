@@ -25,24 +25,21 @@ def create_corrales_data_table(cxn, corrales):
     """Create corrales data table."""
     corrales.to_sql('corrales_data', cxn, if_exists='replace', index=False)
 
-    sql = """CREATE INDEX IF NOT EXISTS
-             corrales_data_corrales_id ON corrales_data (corrales_id)"""
-    cxn.execute(sql)
-
-    sql = """CREATE UNIQUE INDEX IF NOT EXISTS
-             corrales_data_sample_id ON corrales_data (sample_id)"""
-    cxn.execute(sql)
-
-    sql = """CREATE UNIQUE INDEX IF NOT EXISTS
-             corrales_data_image_file ON corrales_data (image_file)"""
-    cxn.execute(sql)
+    cxn.executescript("""
+        CREATE INDEX IF NOT EXISTS
+            corrales_data_corrales_id ON corrales_data (corrales_id);
+        CREATE UNIQUE INDEX IF NOT EXISTS
+            corrales_data_sample_id ON corrales_data (sample_id);
+        CREATE UNIQUE INDEX IF NOT EXISTS
+            corrales_data_image_file ON corrales_data (image_file);
+    """)
 
 
 def merge_into_images(cxn):
     """Merge the data into the images table."""
-    sql = """INSERT OR REPLACE INTO images (sample_id, image_file)
-             SELECT sample_id, image_file FROM corrales_data"""
-    cxn.execute(sql)
+    cxn.execute("""
+        INSERT OR REPLACE INTO images (sample_id, image_file)
+            SELECT sample_id, image_file FROM corrales_data;""")
     cxn.commit()
 
 

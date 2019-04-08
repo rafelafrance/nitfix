@@ -31,24 +31,22 @@ def create_pilot_data_table(cxn, pilot):
     """Create pilot data table."""
     pilot.to_sql('pilot_data', cxn, if_exists='replace', index=False)
 
-    sql = """CREATE UNIQUE INDEX IF NOT EXISTS
-             pilot_data_pilot_id ON pilot_data (pilot_id)"""
-    cxn.execute(sql)
-
-    sql = """CREATE UNIQUE INDEX IF NOT EXISTS
-             pilot_data_sample_id ON pilot_data (sample_id)"""
-    cxn.execute(sql)
-
-    sql = """CREATE UNIQUE INDEX IF NOT EXISTS
-             pilot_data_image_file ON pilot_data (image_file)"""
-    cxn.execute(sql)
+    cxn.executescript("""
+        CREATE UNIQUE INDEX IF NOT EXISTS
+            pilot_data_pilot_id ON pilot_data (pilot_id);
+        CREATE UNIQUE INDEX IF NOT EXISTS
+            pilot_data_sample_id ON pilot_data (sample_id);
+        CREATE UNIQUE INDEX IF NOT EXISTS
+            pilot_data_image_file ON pilot_data (image_file);
+        """)
 
 
 def merge_into_images(cxn):
     """Merge the data into the images table."""
-    sql = """INSERT OR REPLACE INTO images (sample_id, image_file)
-             SELECT sample_id, image_file FROM pilot_data"""
-    cxn.execute(sql)
+    cxn.execute("""
+        INSERT OR REPLACE INTO images (sample_id, image_file)
+            SELECT sample_id, image_file FROM pilot_data;
+        """)
     cxn.commit()
 
 

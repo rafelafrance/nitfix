@@ -24,7 +24,7 @@ def get_search_terms(cxn):
           FROM nfn_data
          WHERE COALESCE(last_name, '') <> ''
            AND COALESCE(collection_no, '') <> ''
-      ORDER BY last_name, collection_no
+      ORDER BY last_name, collection_no;
     """
     return pd.read_sql(sql, cxn).set_index('sample_id')
 
@@ -69,9 +69,10 @@ def create_tropicos_table(cxn, nfn):
     """Create Tropicos table."""
     nfn.to_sql('tropicos_data', cxn, if_exists='replace')
 
-    sql = """CREATE UNIQUE INDEX IF NOT EXISTS
-             tropicos_data_sample_id ON tropicos_data (sample_id)"""
-    cxn.execute(sql)
+    cxn.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS
+            tropicos_data_sample_id ON tropicos_data (sample_id);
+        """)
 
 
 if __name__ == '__main__':

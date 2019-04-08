@@ -14,7 +14,7 @@ def ingest_rapid_qc_wells():
     """Ingest data related to the samples."""
     cxn = db.connect()
 
-    sample_wells = pd.read_sql('SELECT * FROM sample_wells', cxn)
+    sample_wells = pd.read_sql('SELECT * FROM sample_wells;', cxn)
     rapid_wells = get_rapid_qc_wells()
     rapid_wells = assign_plate_ids(sample_wells, rapid_wells)
 
@@ -26,13 +26,12 @@ def create_rapid_qc_wells_table(cxn, rapid_wells):
     rapid_wells.to_sql(
         'rapid_qc_wells', cxn, if_exists='replace', index=False)
 
-    sql = """CREATE INDEX IF NOT EXISTS
-             rapid_qc_wells_plate_id_well ON rapid_qc_wells (plate_id, well)"""
-    cxn.execute(sql)
-
-    sql = """CREATE INDEX IF NOT EXISTS
-             rapid_qc_wells_sample_id ON rapid_qc_wells (sample_id)"""
-    cxn.execute(sql)
+    cxn.executescript("""
+        CREATE INDEX IF NOT EXISTS
+            rapid_qc_wells_plate_id_well ON rapid_qc_wells (plate_id, well);
+        CREATE INDEX IF NOT EXISTS
+            rapid_qc_wells_sample_id ON rapid_qc_wells (sample_id);
+        """)
 
 
 def get_rapid_qc_wells():

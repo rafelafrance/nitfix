@@ -21,22 +21,20 @@ def create_taxonomy_table(cxn, taxonomy):
     """Create taxonomy table."""
     taxonomy.to_sql('taxonomy', cxn, if_exists='replace', index=False)
 
-    sql = """CREATE UNIQUE INDEX IF NOT EXISTS
-             taxonomy_sci_name ON taxonomy (sci_name)"""
-    cxn.execute(sql)
-
-    sql = """CREATE INDEX IF NOT EXISTS
-             taxonomy_genus ON taxonomy (genus)"""
-    cxn.execute(sql)
-
-    sql = """CREATE INDEX IF NOT EXISTS
-             taxonomy_family ON taxonomy (family)"""
-    cxn.execute(sql)
+    cxn.executescript("""
+        CREATE UNIQUE INDEX IF NOT EXISTS
+            taxonomy_sci_name ON taxonomy (sci_name);
+        CREATE INDEX IF NOT EXISTS
+            taxonomy_genus ON taxonomy (genus);
+        CREATE INDEX IF NOT EXISTS
+            taxonomy_family ON taxonomy (family);
+        """)
 
     for i in range(1, 6):
-        sql = f"""CREATE INDEX IF NOT EXISTS
-                  taxonomy_sample_id_{i} ON taxonomy (sample_id_{i})"""
-        cxn.execute(sql)
+        cxn.execute(f"""
+            CREATE INDEX IF NOT EXISTS
+                taxonomy_sample_id_{i} ON taxonomy (sample_id_{i});
+        """)
 
 
 def get_master_taxonomy():
@@ -88,13 +86,12 @@ def create_taxon_ids_table(cxn, taxonomy):
 
     taxonomy_ids.to_sql('taxonomy_ids', cxn, if_exists='replace', index=False)
 
-    sql = """CREATE INDEX IF NOT EXISTS
-             taxon_ids_sci_name ON taxonomy_ids (sci_name)"""
-    cxn.execute(sql)
-
-    sql = """CREATE INDEX IF NOT EXISTS
-             taxon_ids_sample_id ON taxonomy_ids (sample_id)"""
-    cxn.execute(sql)
+    cxn.executescript("""
+        CREATE INDEX IF NOT EXISTS
+            taxon_ids_sci_name ON taxonomy_ids (sci_name);
+        CREATE INDEX IF NOT EXISTS
+            taxon_ids_sample_id ON taxonomy_ids (sample_id);
+        """)
 
 
 if __name__ == '__main__':

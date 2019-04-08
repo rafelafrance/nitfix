@@ -18,10 +18,11 @@ def create_rapid_reformat_data_table(cxn, reformat_data):
     reformat_data.to_sql(
         'rapid_reformat_data', cxn, if_exists='replace', index=False)
 
-    sql = """CREATE UNIQUE INDEX IF NOT EXISTS
-             rapid_reformat_data_row_sort
-             ON rapid_reformat_data (row_sort)"""
-    cxn.execute(sql)
+    cxn.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS
+            rapid_reformat_data_row_sort
+            ON rapid_reformat_data (row_sort);
+        """)
 
 
 def get_reformatted_wells():

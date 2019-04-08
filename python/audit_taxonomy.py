@@ -7,7 +7,7 @@ import lib.db as db
 def clean_taxonomy():
     """Audit problem taxonomy records in the database."""
     cxn = db.connect()
-    taxonomy_ids = pd.read_sql('SELECT * FROM taxonomy_ids', cxn)
+    taxonomy_ids = pd.read_sql('SELECT * FROM taxonomy_ids;', cxn)
     errors = get_duplicate_sample_ids(taxonomy_ids)
     create_taxonomy_errors_table(cxn, errors)
 
@@ -33,9 +33,10 @@ def create_taxonomy_errors_table(cxn, errors):
     """Create taxonomy table."""
     errors.to_sql('taxonomy_errors', cxn, if_exists='replace')
 
-    sql = """CREATE UNIQUE INDEX IF NOT EXISTS
-             taxonomy_errors_sample_id ON taxonomy_errors (sample_id)"""
-    cxn.execute(sql)
+    cxn.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS
+            taxonomy_errors_sample_id ON taxonomy_errors (sample_id);
+        """)
 
 
 if __name__ == '__main__':

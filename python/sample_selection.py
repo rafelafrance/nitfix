@@ -198,8 +198,7 @@ def sum_grand_totals(families):
 
 def get_taxonomy_errors(cxn):
     """Get taxonomy errors from the database."""
-    sql = 'SELECT * FROM taxonomy_errors'
-    taxonomy_errors = pd.read_sql(sql, cxn)
+    taxonomy_errors = pd.read_sql('SELECT * FROM taxonomy_errors;', cxn)
     return taxonomy_errors.set_index('sample_id').sci_name_1.to_dict()
 
 
@@ -212,7 +211,7 @@ def put_samples_in_genus(samples, genus):
 
 def get_families(cxn):
     """Extract the families from the taxonomy table."""
-    sql = """SELECT DISTINCT family FROM taxonomy"""
+    sql = """SELECT DISTINCT family FROM taxonomy;"""
     families = pd.read_sql(sql, cxn).set_index('family')
 
     return families.to_dict(orient='index', into=OrderedDict)
@@ -227,7 +226,7 @@ def get_genera(cxn, families):
               GROUP BY family, genus)
         SELECT family, genus, species_count, COALESCE(priority, '') AS priority
           FROM genera
-     LEFT JOIN priority_taxa USING (family, genus)
+     LEFT JOIN priority_taxa USING (family, genus);
     """
     genera = pd.read_sql(sql, cxn)
 
@@ -251,7 +250,7 @@ def get_sampled_species(cxn, taxonomy_errors):
      LEFT JOIN rapid_qc_wells      USING (plate_id, well)
      LEFT JOIN rapid_reformat_data USING (source_plate, source_well)
          WHERE length(sample_wells.sample_id) = 36
-      ORDER BY family, genus, total_dna DESC, sci_name
+      ORDER BY family, genus, total_dna DESC, sci_name;
     """
     species = pd.read_sql(sql, cxn)
 

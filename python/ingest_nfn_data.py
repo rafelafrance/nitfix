@@ -109,9 +109,10 @@ def create_nfn_table(cxn, nfn):
     """Create Notes from Nature data table."""
     nfn.to_sql('nfn_data', cxn, if_exists='replace')
 
-    sql = """CREATE UNIQUE INDEX IF NOT EXISTS
-             nfn_data_sample_id ON nfn_data (sample_id)"""
-    cxn.execute(sql)
+    cxn.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS
+            nfn_data_sample_id ON nfn_data (sample_id);
+        """)
 
 
 if __name__ == '__main__':

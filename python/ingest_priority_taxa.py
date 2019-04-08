@@ -26,9 +26,10 @@ def create_priority_taxa_table(cxn, taxa):
     """Create the priority taxa table."""
     taxa.to_sql('priority_taxa', cxn, if_exists='replace', index=False)
 
-    sql = """CREATE UNIQUE INDEX IF NOT EXISTS
-             priority_taxa_family_genus ON priority_taxa (family, genus)"""
-    cxn.execute(sql)
+    cxn.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS
+            priority_taxa_family_genus ON priority_taxa (family, genus);
+        """)
 
 
 if __name__ == '__main__':

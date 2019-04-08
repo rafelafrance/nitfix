@@ -35,9 +35,10 @@ def create_sample_wells_table(cxn, sample_wells):
     sample_wells.to_sql(
         'sample_wells', cxn, if_exists='replace', index=False)
 
-    sql = """CREATE UNIQUE INDEX IF NOT EXISTS
-             sample_wells_plate_id_well ON sample_wells (plate_id, well)"""
-    cxn.execute(sql)
+    cxn.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS
+            sample_wells_plate_id_well ON sample_wells (plate_id, well);
+        """)
 
 
 def get_plate_groups():

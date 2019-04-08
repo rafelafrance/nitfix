@@ -61,21 +61,20 @@ def create_image_table(cxn, images):
     """Create images table."""
     images.to_sql('images', cxn, if_exists='replace', index=False)
 
-    sql = """CREATE UNIQUE INDEX IF NOT EXISTS
-             images_sample_id ON images (sample_id)"""
-    cxn.execute(sql)
-
-    sql = """CREATE UNIQUE INDEX IF NOT EXISTS
-             images_image_file ON images (image_file)"""
-    cxn.execute(sql)
+    cxn.executescript("""
+        CREATE UNIQUE INDEX IF NOT EXISTS
+            images_sample_id ON images (sample_id);
+        CREATE UNIQUE INDEX IF NOT EXISTS
+            images_image_file ON images (image_file);
+        """)
 
 
 def create_image_errors_table(cxn, errors):
     """Create image errors table."""
     errors.to_sql('image_errors', cxn, if_exists='replace', index=False)
-    sql = """CREATE UNIQUE INDEX IF NOT EXISTS
-             image_errors_image_file ON image_errors (image_file)"""
-    cxn.execute(sql)
+    cxn.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS
+            image_errors_image_file ON image_errors (image_file);""")
 
 
 def get_old_images(cxn):
@@ -83,8 +82,8 @@ def get_old_images(cxn):
     # Handle the case where there is no image or error table in the DB.
     # NOTE: There will always be an error table if there is an image table.
     try:
-        old_images = pd.read_sql('SELECT * FROM images', cxn)
-        old_errors = pd.read_sql('SELECT * FROM image_errors', cxn)
+        old_images = pd.read_sql('SELECT * FROM images;', cxn)
+        old_errors = pd.read_sql('SELECT * FROM image_errors;', cxn)
         old_images.image_file = old_images.image_file.apply(
             util.normalize_file_name)
         old_errors.image_file = old_errors.image_file.apply(

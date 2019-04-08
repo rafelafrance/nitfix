@@ -27,9 +27,10 @@ def create_genbank_loci_table(cxn, loci):
     """Create Genbank loci data table."""
     loci.to_sql('genbank_loci', cxn, if_exists='replace', index=False)
 
-    sql = """CREATE UNIQUE INDEX IF NOT EXISTS
-             genbank_loci_sci_name ON genbank_loci (sci_name)"""
-    cxn.execute(sql)
+    cxn.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS
+            genbank_loci_sci_name ON genbank_loci (sci_name);
+        """)
 
 
 if __name__ == '__main__':

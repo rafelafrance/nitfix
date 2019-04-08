@@ -15,7 +15,7 @@ INTERIM_DATA = Path('.') / 'data' / 'interim'
 def image_zip():
     """Get the images for the files associated with the image IDs."""
     sample_ids = [f"'{id}'" for id in _get_sample_ids()]
-    sql = f"SELECT * FROM images WHERE sample_id IN ({','.join(sample_ids)})"
+    sql = f"SELECT * FROM images WHERE sample_id IN ({','.join(sample_ids)});"
     images = pd.read_sql(sql, db.connect())
 
     csv_file = INTERIM_DATA / 'image_data.csv'

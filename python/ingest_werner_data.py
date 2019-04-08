@@ -33,9 +33,10 @@ def create_werner_data_table(cxn, werner):
     """Create Werner data table."""
     werner.to_sql('werner_data', cxn, if_exists='replace', index=False)
 
-    sql = """CREATE UNIQUE INDEX IF NOT EXISTS
-             werner_data_sci_name ON werner_data (sci_name)"""
-    cxn.execute(sql)
+    cxn.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS
+            werner_data_sci_name ON werner_data (sci_name);
+        """)
 
 
 def read_werner_data():
@@ -59,8 +60,7 @@ def read_werner_data():
 
 def read_taxon_data(cxn):
     """Get the taxon data we need for making the synonyms."""
-    sql = "SELECT sci_name, synonyms FROM taxonomy"
-    return pd.read_sql(sql, cxn)
+    return pd.read_sql("SELECT sci_name, synonyms FROM taxonomy;", cxn)
 
 
 def get_synonyms(taxonomy):
