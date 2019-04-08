@@ -24,8 +24,10 @@ def create_taxonomy_table(cxn, taxonomy):
     cxn.executescript("""
         CREATE UNIQUE INDEX IF NOT EXISTS
             taxonomy_sci_name ON taxonomy (sci_name);
+
         CREATE INDEX IF NOT EXISTS
             taxonomy_genus ON taxonomy (genus);
+
         CREATE INDEX IF NOT EXISTS
             taxonomy_family ON taxonomy (family);
         """)
@@ -89,6 +91,7 @@ def create_taxon_ids_table(cxn, taxonomy):
     cxn.executescript("""
         CREATE INDEX IF NOT EXISTS
             taxon_ids_sci_name ON taxonomy_ids (sci_name);
+
         CREATE INDEX IF NOT EXISTS
             taxon_ids_sample_id ON taxonomy_ids (sample_id);
         """)

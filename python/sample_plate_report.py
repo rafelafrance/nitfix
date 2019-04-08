@@ -1,6 +1,5 @@
 """Print project status report."""
 
-from pathlib import Path
 from datetime import datetime
 import pandas as pd
 from jinja2 import Environment, FileSystemLoader
@@ -185,8 +184,8 @@ def generate_excel_report(cxn, sample_wells, plates, genera):
         'collection_no': 'Collection Number'}
     sample_wells = sample_wells.rename(columns=renames)
 
-    report_path = Path('output') / 'sample_plates_report.xlsx'
-    with pd.ExcelWriter(report_path) as writer:
+    xlsx_path = util.get_report_data_dir() / 'sample_plates_report.xlsx'
+    with pd.ExcelWriter(xlsx_path) as writer:
         genera.to_excel(writer, sheet_name='Family Coverage')
         plates.to_excel(writer, sheet_name='Sample Plates')
         sample_wells.to_excel(

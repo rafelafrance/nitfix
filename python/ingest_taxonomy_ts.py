@@ -29,6 +29,7 @@ def merge_with_master_taxonomy(cxn):
                            FROM taxonomy_ts
                        GROUP BY sci_name
                          HAVING MIN(rowid));
+
         INSERT INTO taxonomy_ids
         SELECT *
           FROM taxonomy_ids_ts
@@ -45,8 +46,10 @@ def create_taxonomy_table(cxn, taxonomy_ts):
     cxn.executescript("""
         CREATE INDEX IF NOT EXISTS
             taxonomy_ts_sci_name ON taxonomy_ts (sci_name);
+
         CREATE INDEX IF NOT EXISTS
             taxonomy_ts_genus ON taxonomy_ts (genus);
+
         CREATE INDEX IF NOT EXISTS
             taxonomy_ts_family ON taxonomy_ts (family);
         """)
@@ -111,6 +114,7 @@ def create_taxon_ids_table(cxn, taxonomy_ts):
     cxn.executescript("""
         CREATE INDEX IF NOT EXISTS
             taxon_ids_ts_sci_name ON taxonomy_ids_ts (sci_name);
+
         CREATE INDEX IF NOT EXISTS
             taxon_ids_ts_sample_id ON taxonomy_ids_ts (sample_id);
         """)
