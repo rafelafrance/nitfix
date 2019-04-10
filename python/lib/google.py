@@ -4,10 +4,10 @@ import os
 from os.path import join, exists
 import argparse
 import httplib2
-from apiclient import discovery         # pylint: disable=import-error
-from oauth2client import client         # pylint: disable=import-error
-from oauth2client import tools          # pylint: disable=import-error
-from oauth2client.file import Storage   # pylint: disable=import-error
+from apiclient import discovery
+from oauth2client import client
+from oauth2client import tools
+from oauth2client.file import Storage
 
 
 def get_credentials():
@@ -41,6 +41,9 @@ def sheet_download(sheet_name, csv_path, mime_type):
         q='name="{}" and mimeType="{}"'.format(
             sheet_name, 'application/vnd.google-apps.spreadsheet'),
         orderBy='modifiedTime desc,name').execute().get('files', [])
+
+    if not files:
+        raise FileNotFoundError(f'Could not read Google sheet {sheet_name}')
 
     data = service.files().export(
         fileId=files[0]['id'], mimeType=mime_type).execute()
