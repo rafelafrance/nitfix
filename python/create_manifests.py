@@ -1,7 +1,9 @@
 """Create manifests."""
 
+import os
 from os.path import basename
 from pathlib import Path
+from shutil import copyfile
 import pandas as pd
 import lib.db as db
 import lib.util as util
@@ -9,6 +11,31 @@ import lib.util as util
 
 CXN = db.connect()
 INTERIM_DATA = Path('data') / 'interim'
+RAW_PHOTOS = Path('data') / 'raw' / 'photos'
+
+
+def mobot_all():
+    """Make manifest and zip images."""
+    sql = """
+        SELECT image_file, sample_id
+          FROM images
+         WHERE image_file LIKE 'MO-DOE-nitfix_specimen_photos/%'
+            OR image_file LIKE 'MO-DOE-nitfix_visit2/%'
+            OR image_file LIKE 'MO-DOE-nitfix_visit3/%'
+            OR image_file LIKE 'Tingshuang_MO_nitfix_photos/%';
+        """
+    images = pd.read_sql(sql, CXN)
+    images['manifest_file'] = images.image_file.str.replace('/', '_')
+    images.to_csv(INTERIM_DATA / 'mobot_all_manifest.csv', index=False)
+
+    image_zip_dir = INTERIM_DATA / 'mobot_all'
+    os.makedirs(image_zip_dir, exist_ok=True)
+
+    for _, image_file in images.image_file.iteritems():
+        print(image_file)
+        src = RAW_PHOTOS / image_file
+        dst = image_zip_dir / image_file.replace('/', '_')
+        copyfile(src, dst)
 
 
 def nybg234():
@@ -98,4 +125,4 @@ def mobot():
 
 
 if __name__ == '__main__':
-    nybg234()
+    mobot_all()

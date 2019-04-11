@@ -23,6 +23,8 @@ def generate_reports():
 def get_wells(cxn):
     """Get well data from the database."""
     sql = """
+        WITH sample_sheet AS (SELECT DISTINCT sample_id, 1 AS seqReturned
+                                FROM rapid_sample_sheet)
         SELECT sample_wells.*,
                sci_name,
                family,
@@ -31,12 +33,14 @@ def get_wells(cxn):
                rapid_qc_wells.concentration,
                rapid_qc_wells.total_dna,
                rapid_reformat_data.volume   AS rapid_well_volume,
-               source_plate
+               source_plate,
+               seqReturned
           FROM sample_wells
      LEFT JOIN taxonomy_ids        USING (sample_id)
      LEFT JOIN taxonomy            USING (sci_name)
      LEFT JOIN rapid_qc_wells      USING (plate_id, well)
      LEFT JOIN rapid_reformat_data USING (source_plate, source_well)
+     LEFT JOIN sample_sheet        USING (sample_id)
          WHERE length(sample_wells.sample_id) = 36
       ORDER BY local_no, row, col;
     """
@@ -181,7 +185,8 @@ def generate_excel_report(cxn, sample_wells, plates, genera):
         'collected_by_first_collector_last_name_only':
             'Primary Collector (Last Name Only)',
         'collector_number': 'Collector Number',
-        'collection_no': 'Collection Number'}
+        'collection_no': 'Collection Number',
+        'seqReturned': 'Sequence Returned?'}
     sample_wells = sample_wells.rename(columns=renames)
 
     xlsx_path = util.get_report_data_dir() / 'sample_plates_report.xlsx'

@@ -27,6 +27,7 @@ sequencing:
 	$(PYTHON) $(SRC)/ingest_sample_plates.py
 	$(PYTHON) $(SRC)/ingest_rapid_qc_data.py
 	$(PYTHON) $(SRC)/ingest_rapid_reformatting_data.py
+	$(PYTHON) $(SRC)/ingest_rapid_sample_sheet.py
 
 plate_report:
 	$(PYTHON) $(SRC)/sample_plate_report.py

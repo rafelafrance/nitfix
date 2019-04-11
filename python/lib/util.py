@@ -34,7 +34,7 @@ IMAGE_DIRS = [
     'Tingshuang_NY_nitfix_photos',
     'Tingshuang_TEX_nitfix_photos',
     'Tingshuang_US_nitfix_photos']
-    # 'UFBI_sample_photos',
+# 'UFBI_sample_photos',
 
 
 def is_uuid(guid):
