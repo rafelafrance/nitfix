@@ -33,8 +33,5 @@ plate_report:
 select_samples:
 	$(PYTHON) $(SRC)/sample_selection.py
 
-crawl_tropicos:
-	$(PYTHON) $(SRC)/crawl_tropicos_website.py
-
 backup:
 	cp $(DB_NAME) $(DB_BACKUP)

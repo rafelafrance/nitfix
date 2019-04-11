@@ -93,7 +93,13 @@ def build_sample_rows(plate_groups):
         rows = group.iloc[PLATE_ROWS.row_A:PLATE_ROWS.end, :].copy()
         rows['plate_id'] = group.iat[PLATE_ROWS.plate_id, 0]
         rows['entry_date'] = group.iat[PLATE_ROWS.entry_date, 0]
-        rows['local_id'] = group.iat[PLATE_ROWS.local_id, 0]
+
+        local_id = group.iat[PLATE_ROWS.local_id, 0]
+        # Remove partially added plates
+        if not LOCAL_ID.match(local_id):
+            continue
+        rows['local_id'] = local_id
+
         rows['rapid_plates'] = group.iat[PLATE_ROWS.rapid_plates, 0]
         rows['notes'] = group.iat[PLATE_ROWS.notes, 0]
         rows['results'] = group.iat[PLATE_ROWS.results, 0]
@@ -101,10 +107,7 @@ def build_sample_rows(plate_groups):
         sample_rows.append(rows)
 
     sample_rows = pd.concat(sample_rows).drop('col_A', axis='columns')
-
     sample_rows['local_no'] = sample_rows.local_id.apply(build_local_no)
-    # sample_rows['local_no'] = (pd.to_numeric(
-    #     sample_rows.local_id.str.replace(r'\D+', ''), errors='coerce'))
 
     return sample_rows
 
