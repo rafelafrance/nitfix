@@ -8,7 +8,7 @@ import lib.util as util
 
 def ingest_loci_data():
     """Read the Genbank loci Google sheet."""
-    csv_path = util.INTERIM_DATA / 'loci.csv'
+    csv_path = util.TEMP_DATA / 'loci.csv'
     cxn = db.connect()
 
     google.sheet_to_csv('genbank_loci', csv_path)

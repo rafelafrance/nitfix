@@ -27,7 +27,7 @@ def create_rapid_sample_sheet_table(cxn, sample_sheet):
 
 def get_sample_sheet():
     """Get replated Rapid rata from Google sheet."""
-    csv_path = util.INTERIM_DATA / 'rapid_sample_sheet.csv'
+    csv_path = util.TEMP_DATA / 'rapid_sample_sheet.csv'
 
     google.sheet_to_csv('FMN_131001_SampleSheet', csv_path)
 

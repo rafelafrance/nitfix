@@ -8,7 +8,7 @@ import lib.google as google
 
 def ingest_corrales_data():
     """Process the Corrales data."""
-    csv_path = util.INTERIM_DATA / 'corrales.csv'
+    csv_path = util.TEMP_DATA / 'corrales.csv'
     cxn = db.connect()
 
     google.sheet_to_csv('corrales_data', csv_path)

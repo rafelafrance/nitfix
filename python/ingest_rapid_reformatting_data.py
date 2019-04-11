@@ -27,7 +27,7 @@ def create_rapid_reformat_data_table(cxn, reformat_data):
 
 def get_reformatted_wells():
     """Get replated Rapid rata from Google sheet."""
-    csv_path = util.INTERIM_DATA / 'rapid_reformat_data.csv'
+    csv_path = util.TEMP_DATA / 'rapid_reformat_data.csv'
 
     google.sheet_to_csv('FMN_131001_Reformatting_Template.xlsx', csv_path)
 

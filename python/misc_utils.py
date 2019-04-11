@@ -2,14 +2,13 @@
 
 from os.path import basename
 from pathlib import Path
-# from datetime import datetime
 import zipfile
 import pandas as pd
+import lib.util as util
 import lib.db as db
 
 
 PHOTOS = Path('..') / 'Dropbox'
-INTERIM_DATA = Path('.') / 'data' / 'interim'
 
 
 def image_zip():
@@ -18,10 +17,10 @@ def image_zip():
     sql = f"SELECT * FROM images WHERE sample_id IN ({','.join(sample_ids)});"
     images = pd.read_sql(sql, db.connect())
 
-    csv_file = INTERIM_DATA / 'image_data.csv'
+    csv_file = util.TEMP_DATA / 'image_data.csv'
     images.to_csv(csv_file, index=False)
 
-    zip_file = INTERIM_DATA / 'image_data.zip'
+    zip_file = util.TEMP_DATA / 'image_data.zip'
     with zipfile.ZipFile(zip_file, mode='w') as zippy:
         zippy.write(csv_file,
                     arcname=basename(csv_file),

@@ -1,17 +1,14 @@
 """Create manifests."""
 
 import os
-from os.path import basename
-from pathlib import Path
-from shutil import copyfile
+from os.path import dirname
 import pandas as pd
+from PIL import Image
 import lib.db as db
 import lib.util as util
 
 
 CXN = db.connect()
-INTERIM_DATA = Path('data') / 'interim'
-RAW_PHOTOS = Path('data') / 'raw' / 'photos'
 
 
 def mobot_all():
@@ -26,16 +23,27 @@ def mobot_all():
         """
     images = pd.read_sql(sql, CXN)
     images['manifest_file'] = images.image_file.str.replace('/', '_')
-    images.to_csv(INTERIM_DATA / 'mobot_all_manifest.csv', index=False)
+    images.to_csv(util.TEMP_DATA / 'mobot_all_manifest.csv', index=False)
 
-    image_zip_dir = INTERIM_DATA / 'mobot_all'
+    image_zip_dir = util.TEMP_DATA / 'mobot_all'
     os.makedirs(image_zip_dir, exist_ok=True)
 
     for _, image_file in images.image_file.iteritems():
         print(image_file)
-        src = RAW_PHOTOS / image_file
+        src = util.PHOTOS / image_file
         dst = image_zip_dir / image_file.replace('/', '_')
-        copyfile(src, dst)
+        original = Image.open(src)
+        transformed = original.resize((
+            int(original.size[0] * 0.75),
+            int(original.size[1] * 0.75)))
+        dir_name = dirname(image_file)
+        if original.size[0] > original.size[1]:
+            if dir_name in ('MO-DOE-nitfix_visit3',
+                            'Tingshuang_MO_nitfix_photos'):
+                transformed = transformed.transpose(Image.ROTATE_90)
+            else:
+                transformed = transformed.transpose(Image.ROTATE_270)
+        transformed.save(dst)
 
 
 def nybg234():
@@ -58,8 +66,8 @@ def nybg234():
         """
     errors = pd.read_sql(sql, CXN)
 
-    images.to_csv(INTERIM_DATA / 'nybg_manifest.csv', index=False)
-    errors.to_csv(INTERIM_DATA / 'nybg_manifest_missing.csv', index=False)
+    images.to_csv(util.TEMP_DATA / 'nybg_manifest.csv', index=False)
+    errors.to_csv(util.TEMP_DATA / 'nybg_manifest_missing.csv', index=False)
 
 
 def cal_academy():
@@ -83,45 +91,46 @@ def cal_academy():
          WHERE image_file LIKE 'CAS-DOE-nitfix_specimen_photos/%';
         """
     errors = pd.read_sql(sql, CXN)
-    errors.image_file = errors.image_file.str.extract(r'.*/(.*)', expand=False)
+    errors.image_file = errors.image_file.str.extract(
+        r'.*/(.*)', expand=False)
 
-    images.to_csv(INTERIM_DATA / 'cas_manifest.csv', index=False)
-    errors.to_csv(INTERIM_DATA / 'cas_manifest_missing.csv', index=False)
+    images.to_csv(util.TEMP_DATA / 'cas_manifest.csv', index=False)
+    errors.to_csv(util.TEMP_DATA / 'cas_manifest_missing.csv', index=False)
 
 
-def mobot():
-    """Make a manifest."""
-    taxonomy = pd.read_sql('SELECT * FROM taxons;', CXN)
-
-    sql = """
-        SELECT *
-          FROM images
-         WHERE file_name LIKE 'MO-DOE-nitfix_specimen_photos/%';
-        """
-
-    images = pd.read_sql(sql, CXN)
-
-    taxons = {}
-    for key, taxon in taxonomy.iterrows():
-        guids = util.split_uuids(taxon.sample_ids)
-        for guid in guids:
-            taxons[guid] = taxon.sci_name
-
-    for key, image in images.iterrows():
-        images.loc[key, 'resolved_name'] = taxons.get(image.sample_id)
-
-    images.head()
-
-    images.file_name = images.file_name.apply(basename)
-    print(len(images))
-    images.head()
-
-    csv_path = INTERIM_DATA / 'mobot_manifest.csv'
-    images.to_csv(csv_path, index=False)
-
-    missing = images.resolved_name.isna()
-    missing_images = images[missing]
-    len(missing_images)
+# def mobot():
+#     """Make a manifest."""
+#     taxonomy = pd.read_sql('SELECT * FROM taxons;', CXN)
+#
+#     sql = """
+#         SELECT *
+#           FROM images
+#          WHERE file_name LIKE 'MO-DOE-nitfix_specimen_photos/%';
+#         """
+#
+#     images = pd.read_sql(sql, CXN)
+#
+#     taxons = {}
+#     for key, taxon in taxonomy.iterrows():
+#         guids = util.split_uuids(taxon.sample_ids)
+#         for guid in guids:
+#             taxons[guid] = taxon.sci_name
+#
+#     for key, image in images.iterrows():
+#         images.loc[key, 'resolved_name'] = taxons.get(image.sample_id)
+#
+#     images.head()
+#
+#     images.file_name = images.file_name.apply(basename)
+#     print(len(images))
+#     images.head()
+#
+#     csv_path = util.TEMP_DATA / 'mobot_manifest.csv'
+#     images.to_csv(csv_path, index=False)
+#
+#     missing = images.resolved_name.isna()
+#     missing_images = images[missing]
+#     len(missing_images)
 
 
 if __name__ == '__main__':

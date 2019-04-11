@@ -36,7 +36,7 @@ def create_rapid_qc_wells_table(cxn, rapid_wells):
 
 def get_rapid_qc_wells():
     """Get data sent to Rapid from Google sheet."""
-    csv_path = util.INTERIM_DATA / 'rapid_qc_data.csv'
+    csv_path = util.TEMP_DATA / 'rapid_qc_data.csv'
 
     google.sheet_to_csv('FMN_131002_QC_Normal_Plate_Layout', csv_path)
 

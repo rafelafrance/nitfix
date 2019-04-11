@@ -8,7 +8,7 @@ import lib.util as util
 
 def ingest_pilot_data():
     """Process the pilot data."""
-    csv_path = util.INTERIM_DATA / 'pilot.csv'
+    csv_path = util.TEMP_DATA / 'pilot.csv'
     cxn = db.connect()
 
     google.sheet_to_csv('UFBI_identifiers_photos', csv_path)

@@ -22,11 +22,7 @@ temp/
 
 # Data files
 data/raw/
-!data/raw/.gitkeep
-data/external/
-!data/external/.gitkeep
-data/interim/
-!data/interim/.gitkeep
+!data/temp/.gitkeep
 data/processed/
 !data/processed/.gitkeep
 data/secrets/

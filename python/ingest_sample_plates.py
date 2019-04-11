@@ -63,7 +63,7 @@ def get_plate_groups():
     1) We look for something in the plate_data column that is a UUID.
     2) We then take that row and the next n rows.
     """
-    csv_path = util.INTERIM_DATA / 'sample_plates.csv'
+    csv_path = util.TEMP_DATA / 'sample_plates.csv'
     col_names = (['col_A']
                  + [f'col_{c:02d}' for c in range(1, PLATE_SHAPE.cols)])
 

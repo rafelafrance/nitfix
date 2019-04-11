@@ -7,7 +7,7 @@ import uuid
 
 
 EXPEDITION_DATA = Path('data') / 'raw' / 'expeditions'
-INTERIM_DATA = Path('data') / 'interim'
+TEMP_DATA = Path('data') / 'temp'
 PROCESSED_DATA = Path('data') / 'processed'
 RAW_DATA = Path('data') / 'raw'
 
@@ -57,7 +57,7 @@ def normalize_file_name(path):
 
 def get_reports_dir():
     """Find the directory containing the report templates."""
-    _, cwd = split(os.getcwd())
+    cwd = basename(os.getcwd())
     if cwd == 'python':
         return 'reports'
     return os.fspath(Path('python') / 'reports')
@@ -66,12 +66,12 @@ def get_reports_dir():
 def get_output_dir():
     """Find the output reports directory."""
     over = Path('..') / 'reports'
-    _, cwd = split(os.getcwd())
+    cwd = basename(os.getcwd())
     return over if cwd == 'python' else Path('reports')
 
 
 def get_report_data_dir():
     """Find the output reports directory."""
-    _, cwd = split(os.getcwd())
+    cwd = basename(os.getcwd())
     base = '..' if cwd == 'python' else '.'
     return Path(base) / 'reports' / 'data'

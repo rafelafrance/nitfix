@@ -8,7 +8,7 @@ import lib.util as util
 
 def ingest_priority_taxa_list():
     """Read the priority taxa list Google sheet."""
-    csv_path = util.INTERIM_DATA / 'priority_taxa.csv'
+    csv_path = util.TEMP_DATA / 'priority_taxa.csv'
     cxn = db.connect()
 
     google.sheet_to_csv('Priority_Taxa_List', csv_path)
