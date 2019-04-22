@@ -13,7 +13,7 @@ PlateRows = namedtuple(
     'PlateRows', ('plate_id entry_date local_id rapid_plates notes results '
                   'row_A row_B row_C row_D row_E row_F row_G row_H end'))
 PLATE_SHAPE = PlateShape(14, 13)
-PLATE_ROWS = PlateRows(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14)
+PLATE_ROWS = PlateRows(*list(range(15)))
 LOCAL_ID = re.compile(
     r'^.*? (nitfix|rosales|test) \D* (\d+) \D*$',
     re.IGNORECASE | re.VERBOSE)

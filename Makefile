@@ -23,7 +23,7 @@ taxonomy:
 
 sequencing:
 	$(PYTHON) $(SRC)/ingest_sample_plates.py
-	$(PYTHON) $(SRC)/ingest_rapid_qc_data.py
+	$(PYTHON) $(SRC)/ingest_qc_normal_plate_layout.py
 	$(PYTHON) $(SRC)/ingest_rapid_reformatting_data.py
 	$(PYTHON) $(SRC)/ingest_rapid_sample_sheet.py
 
