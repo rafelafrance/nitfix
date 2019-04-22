@@ -23,9 +23,10 @@ taxonomy:
 
 sequencing:
 	$(PYTHON) $(SRC)/ingest_sample_plates.py
-	$(PYTHON) $(SRC)/ingest_qc_normal_plate_layout.py
-	$(PYTHON) $(SRC)/ingest_rapid_reformatting_data.py
-	$(PYTHON) $(SRC)/ingest_rapid_sample_sheet.py
+	$(PYTHON) $(SRC)/ingest_qc_normal_plate_layouts.py
+	$(PYTHON) $(SRC)/ingest_reformatting_templates.py
+	$(PYTHON) $(SRC)/ingest_samplesheets.py
+	$(PYTHON) $(SRC)/ingest_sequencing_metadata.py
 
 plate_report:
 	$(PYTHON) $(SRC)/sample_plate_report.py
