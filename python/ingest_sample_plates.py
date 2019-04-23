@@ -1,6 +1,5 @@
 """Extract, transform, and load data related to the samples."""
 
-import re
 from collections import namedtuple
 import pandas as pd
 import lib.db as db
@@ -14,9 +13,6 @@ PlateRows = namedtuple(
                   'row_A row_B row_C row_D row_E row_F row_G row_H end'))
 PLATE_SHAPE = PlateShape(14, 13)
 PLATE_ROWS = PlateRows(*list(range(15)))
-LOCAL_ID = re.compile(
-    r'^.*? (nitfix|rosales|test) \D* (\d+) \D*$',
-    re.IGNORECASE | re.VERBOSE)
 
 
 def ingest_samples():
@@ -96,7 +92,7 @@ def build_sample_rows(plate_groups):
 
         local_id = group.iat[PLATE_ROWS.local_id, 0]
         # Remove partially added plates
-        if not LOCAL_ID.match(local_id):
+        if not util.LOCAL_ID.match(local_id):
             continue
         rows['local_id'] = local_id
 
@@ -107,17 +103,9 @@ def build_sample_rows(plate_groups):
         sample_rows.append(rows)
 
     sample_rows = pd.concat(sample_rows).drop('col_A', axis='columns')
-    sample_rows['local_no'] = sample_rows.local_id.apply(build_local_no)
+    sample_rows['local_no'] = sample_rows.local_id.apply(util.build_local_no)
 
     return sample_rows
-
-
-def build_local_no(local_id):
-    """Convert the local_id into something we can sort on consistently."""
-    match = LOCAL_ID.match(local_id)
-    lab = match[1].title()
-    number = match[2].zfill(4)
-    return f'{lab}_{number}'
 
 
 def build_sample_wells(sample_rows):

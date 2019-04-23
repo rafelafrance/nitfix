@@ -1,4 +1,4 @@
-"""Extract, transform, & load RAPiD reformatting data."""
+"""Extract, transform, & load Rapid reformatting data."""
 
 import pandas as pd
 import lib.db as db

@@ -1,5 +1,6 @@
 """Holds miscellaneous utility function."""
 
+import re
 import os
 from os.path import split, basename, join
 from pathlib import Path
@@ -10,6 +11,10 @@ EXPEDITION_DATA = Path('data') / 'raw' / 'expeditions'
 TEMP_DATA = Path('data') / 'temp'
 PROCESSED_DATA = Path('data') / 'processed'
 RAW_DATA = Path('data') / 'raw'
+
+LOCAL_ID = re.compile(
+    r'^.*? (nitfix|rosales|test) \D* (\d+) \D*$',
+    re.IGNORECASE | re.VERBOSE)
 
 PHOTOS = RAW_DATA / 'photos'
 IMAGE_DIRS = [
@@ -75,3 +80,11 @@ def get_report_data_dir():
     cwd = basename(os.getcwd())
     base = '..' if cwd == 'python' else '.'
     return Path(base) / 'reports' / 'data'
+
+
+def build_local_no(local_id):
+    """Convert the local_id into something we can sort on consistently."""
+    match = LOCAL_ID.match(local_id)
+    lab = match[1].title()
+    number = match[2].zfill(4)
+    return f'{lab}_{number}'

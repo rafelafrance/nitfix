@@ -90,7 +90,7 @@ def apply_rules_to_genus(samples, genus, taxonomy_errors):
 
 
 def rule_mark_already_sequenced():  # samples, genus):
-    """Identify samples sequenced by RAPiD."""
+    """Identify samples sequenced by Rapid."""
     # samples[samples.qq.notna(), 'status'] = Status.sequenced
 
 

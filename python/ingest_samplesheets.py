@@ -1,4 +1,4 @@
-"""Extract, transform, & load RAPiD sample sheet."""
+"""Extract, transform, & load Rapid sample sheet."""
 
 import pandas as pd
 import lib.db as db

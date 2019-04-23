@@ -150,8 +150,8 @@ def generate_excel_report(cxn, sample_wells, plates, genera):
         'rapid_input_volume': 'Volume (uL)',
         'sample_id': 'Sample ID',
         'concentration':
-            'RAPiD Genomics Lab Use ONLY\nConcentration (ng / uL)',
-        'total_dna': 'RAPiD Genomics Lab Use ONLY\nTotal DNA (ng)',
+            'Rapid Genomics Lab Use ONLY\nConcentration (ng / uL)',
+        'total_dna': 'Rapid Genomics Lab Use ONLY\nTotal DNA (ng)',
         'country': 'Country',
         'state_province': 'State/Province',
         'county': 'County',
