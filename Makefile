@@ -1,5 +1,6 @@
 DATE=`date +%Y-%m-%d`
 PROCESSED=./data/processed
+TEMP=./data/temp
 DB=nitfix.sqlite.db
 DB_NAME="$(PROCESSED)/$(DB)"
 DB_BACKUP="$(PROCESSED)/$(basename $(DB))_$(DATE).db"
@@ -26,7 +27,7 @@ sequencing:
 	$(PYTHON) $(SRC)/ingest_normal_plate_layouts.py
 	$(PYTHON) $(SRC)/ingest_qc_normal_plate_layouts.py
 	$(PYTHON) $(SRC)/ingest_reformatting_templates.py
-	$(PYTHON) $(SRC)/ingest_samplesheets.py
+	$(PYTHON) $(SRC)/ingest_sample_sheets.py
 	$(PYTHON) $(SRC)/ingest_sequencing_metadata.py
 
 plate_report:
@@ -34,6 +35,9 @@ plate_report:
 
 select_samples:
 	$(PYTHON) $(SRC)/sample_selection.py
+
+clean:
+	rm ${TEMP}/*
 
 backup:
 	cp $(DB_NAME) $(DB_BACKUP)

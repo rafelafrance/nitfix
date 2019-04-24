@@ -35,7 +35,7 @@ def get_reformatted_wells(google_sheet):
             'row_sort', 'source_plate', 'source_well', 'source_well_no',
             'dest_plate', 'dest_well', 'dest_well_no', 'volume', 'comments'])
 
-    return reformat_wells.loc[reformat_wells.source_plate != '', :].copy()
+    return reformat_wells.loc[reformat_wells['source_plate'] != '', :].copy()
 
 
 def merge_reformating_templates():
