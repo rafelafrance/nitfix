@@ -32,11 +32,11 @@ def ingest_werner_data():
 def create_werner_data_table(cxn, werner):
     """Create Werner data table."""
     werner.to_sql(
-        'NitFixWernerEtAl2014', cxn, if_exists='replace', index=False)
+        'nitfixwerneretal2014', cxn, if_exists='replace', index=False)
 
     cxn.execute("""
         CREATE UNIQUE INDEX IF NOT EXISTS
-            NitFixWernerEtAl2014_sci_name ON NitFixWernerEtAl2014 (sci_name);
+            nitfixwerneretal2014_sci_name ON nitfixwerneretal2014 (sci_name);
         """)
 
 

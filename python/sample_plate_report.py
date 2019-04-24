@@ -24,23 +24,23 @@ def get_wells(cxn):
     """Get well data from the database."""
     sql = """
         WITH sample_sheet AS (SELECT DISTINCT sample_id, 1 AS seqReturned
-                                FROM rapid_sample_sheet)
+                                FROM sample_sheets)
         SELECT sample_wells.*,
                sci_name,
                family,
-               rapid_qc_wells.concentration AS input_concentration,
-               rapid_qc_wells.volume        AS rapid_input_volume,
-               rapid_qc_wells.concentration,
-               rapid_qc_wells.total_dna,
-               rapid_reformat_data.volume   AS rapid_well_volume,
+               qc_normal_plate_layout.concentration AS input_concentration,
+               qc_normal_plate_layout.volume        AS rapid_input_volume,
+               qc_normal_plate_layout.concentration,
+               qc_normal_plate_layout.total_dna,
+               reformatting_templates.volume       AS rapid_well_volume,
                source_plate,
                seqReturned
           FROM sample_wells
-     LEFT JOIN taxonomy_ids        USING (sample_id)
-     LEFT JOIN taxonomy            USING (sci_name)
-     LEFT JOIN rapid_qc_wells      USING (plate_id, well)
-     LEFT JOIN rapid_reformat_data USING (source_plate, source_well)
-     LEFT JOIN sample_sheet        USING (sample_id)
+     LEFT JOIN taxonomy_ids           USING (sample_id)
+     LEFT JOIN taxonomy               USING (sci_name)
+     LEFT JOIN qc_normal_plate_layout USING (plate_id, well)
+     LEFT JOIN reformatting_templates USING (source_plate, source_well)
+     LEFT JOIN sample_sheet           USING (sample_id)
          WHERE length(sample_wells.sample_id) = 36
       ORDER BY local_no, row, col;
     """

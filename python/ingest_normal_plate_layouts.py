@@ -3,7 +3,7 @@
 import lib.normal_plate_layout as normal_plate
 
 
-TABLE = 'Normal_Plate_Layout'
+TABLE = 'normal_plate_layout'
 
 GOOGLE_SHEETS = [
     'FMN_131001_Normal_Plate_Layout',

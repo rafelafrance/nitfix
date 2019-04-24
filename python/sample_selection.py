@@ -224,7 +224,8 @@ def get_genera(cxn, families):
                 SELECT family, genus, count(*) AS species_count
                   FROM taxonomy
               GROUP BY family, genus)
-        SELECT family, genus, species_count, COALESCE(priority, '') AS priority
+        SELECT family, genus, species_count,
+                COALESCE(priority, '') AS priority
           FROM genera
      LEFT JOIN priority_taxa USING (family, genus);
     """
@@ -243,12 +244,12 @@ def get_sampled_species(cxn, taxonomy_errors):
     """Read from database and format the data for further processing."""
     sql = """
         SELECT family, genus, sci_name, total_dna, NULL as status,
-               source_plate, source_well, rapid_qc_wells.sample_id
+               source_plate, source_well, qc_normal_plate_layout.sample_id
           FROM sample_wells
-     LEFT JOIN taxonomy_ids        USING (sample_id)
-     LEFT JOIN taxonomy            USING (sci_name)
-     LEFT JOIN rapid_qc_wells      USING (plate_id, well)
-     LEFT JOIN rapid_reformat_data USING (source_plate, source_well)
+     LEFT JOIN taxonomy_ids           USING (sample_id)
+     LEFT JOIN taxonomy               USING (sci_name)
+     LEFT JOIN qc_normal_plate_layout USING (plate_id, well)
+     LEFT JOIN reformatting_templates USING (source_plate, source_well)
          WHERE length(sample_wells.sample_id) = 36
       ORDER BY family, genus, total_dna DESC, sci_name;
     """
