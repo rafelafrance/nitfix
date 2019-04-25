@@ -92,8 +92,8 @@
             </td>
             <td class="l" colspan="3">{{sample.sci_name}}</td>
             <td class="r"><span>{{'' if sample.status == Status.unprocessed else sample.total_dna}}</span></td>
-            <td>{{sample.source_plate}}</td>
-            <td>{{sample.source_well}}</td>
+            <td>{{sample.plate_id}}</td>
+            <td>{{sample.well}}</td>
             <td colspan="3">{{sample.sample_id}}</td>
           </tr>
           {% endfor %}

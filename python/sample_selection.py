@@ -248,8 +248,8 @@ def get_sampled_species(cxn, taxonomy_errors):
         WITH sequenced AS (SELECT DISTINCT sample_id, 1 AS seq_returned
                                 FROM sequencing_metadata)
         SELECT family, genus, sci_name, total_dna, NULL as status,
-               source_plate, source_well, qc_normal_plate_layout.sample_id,
-               seq_returned
+               source_plate, source_well, taxonomy_ids.sample_id,
+               seq_returned, plate_id, well, local_no
           FROM sample_wells
      LEFT JOIN taxonomy_ids           USING (sample_id)
      LEFT JOIN taxonomy               USING (sci_name)
@@ -263,7 +263,7 @@ def get_sampled_species(cxn, taxonomy_errors):
 
     problems = species.sample_id.isin(taxonomy_errors)
     species.loc[problems, 'sci_name'] = 'Unknown species'
-    species = species.drop_duplicates(['source_plate', 'source_well'])
+    # species = species.drop_duplicates(['source_plate', 'source_well'])
 
     species.total_dna = species.total_dna.fillna(0)
 
@@ -307,7 +307,7 @@ def output_csv(families):
         for genus_name, genus in family['genera'].items():
             samples = []
             for sample in genus.get('samples', []):
-                if not sample['source_plate']:
+                if not sample['plate_id']:
                     continue
 
                 selected = ('Yes' if sample['status'].name
@@ -315,8 +315,8 @@ def output_csv(families):
                 status = sample['status'].name.replace('_', ' ')
 
                 row = OrderedDict()
-                row['Plate'] = sample['source_plate']
-                row['Well'] = sample['source_well']
+                row['Plate'] = sample['local_no']
+                row['Well'] = sample['well']
                 row['Sample ID'] = sample['sample_id']
                 row['Family'] = family_name
                 row['Genus'] = genus_name
@@ -333,6 +333,7 @@ def output_csv(families):
                 row['Available to Select'] = genus['available']
                 row['Unprocessed Samples'] = genus['unprocessed']
                 row['Rejected Samples'] = genus['rejected']
+                row['Plate ID'] = sample['plate_id']
                 samples.append(row)
             all_samples.append(pd.DataFrame(samples))
 
