@@ -22,22 +22,25 @@ def generate_reports():
 
 def get_wells(cxn):
     """Get well data from the database."""
+    # TODO: Add the normal_plate_layout and sequencing_metadata tables
+    # TODO: Fix this query
     sql = """
         WITH sample_sheet AS (SELECT DISTINCT sample_id, 1 AS seqReturned
                                 FROM sample_sheets)
         SELECT sample_wells.*,
                sci_name,
                family,
-               qc_normal_plate_layout.concentration AS input_concentration,
-               qc_normal_plate_layout.volume        AS rapid_input_volume,
-               qc_normal_plate_layout.concentration,
+               normal_plate_layout.concentration    AS input_concentration,
+               normal_plate_layout.volume           AS rapid_input_volume,
+               qc_normal_plate_layout.concentration, -- This has to be wrong
                qc_normal_plate_layout.total_dna,
-               reformatting_templates.volume       AS rapid_well_volume,
+               reformatting_templates.volume        AS rapid_well_volume,
                source_plate,
                seqReturned
           FROM sample_wells
      LEFT JOIN taxonomy_ids           USING (sample_id)
      LEFT JOIN taxonomy               USING (sci_name)
+     LEFT JOIN normal_plate_layout    USING (plate_id, well)
      LEFT JOIN qc_normal_plate_layout USING (plate_id, well)
      LEFT JOIN reformatting_templates USING (source_plate, source_well)
      LEFT JOIN sample_sheet           USING (sample_id)

@@ -34,8 +34,6 @@ def get_sequencing_sheet(google_sheet):
             'total_reads', 'on_target_percent', 'dedup_percent',
             'loci_assembled', 'hit_genus', 'hit_species', 'sample_genus',
             'sample_species', 'result', 'taxon_id_action'])
-    # 'non_nitfix', 'overrepresented_hit', 'unmatched_query_taxon',
-    # 'close_relative', 'taxon_on_the_source_plate'])
 
     return seq_sheet
 

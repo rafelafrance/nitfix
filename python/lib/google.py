@@ -42,8 +42,8 @@ def sheet_download(sheet_name, csv_path, mime_type):
             sheet_name, 'application/vnd.google-apps.spreadsheet'),
         orderBy='modifiedTime desc,name').execute().get('files', [])
 
-    if not files:
-        raise FileNotFoundError(f'Could not read Google sheet {sheet_name}')
+    # if not files:
+    #     raise FileNotFoundError(f'Could not read Google sheet {sheet_name}')
 
     data = service.files().export(
         fileId=files[0]['id'], mimeType=mime_type).execute()
