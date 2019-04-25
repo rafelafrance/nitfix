@@ -30,7 +30,7 @@ def get_sample_sheet(google_sheet):
         na_filter=False,
         names=[
             'sample_code', 'sample_id', 'i5_barcode_seq', 'i7_barcode_seq',
-            'seq_name', 'seq_cycle'])
+            'seq_file', 'seq_cycle'])
 
     return sample_sheet.loc[sample_sheet['sample_code'] != '', :]
 

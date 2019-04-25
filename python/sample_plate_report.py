@@ -22,28 +22,25 @@ def generate_reports():
 
 def get_wells(cxn):
     """Get well data from the database."""
-    # TODO: Add the normal_plate_layout and sequencing_metadata tables
-    # TODO: Fix this query
     sql = """
-        WITH sample_sheet AS (SELECT DISTINCT sample_id, 1 AS seqReturned
-                                FROM sample_sheets)
+        WITH sequenced AS (SELECT DISTINCT sample_id, 1 AS seq_returned
+                                FROM sequencing_metadata)
         SELECT sample_wells.*,
                sci_name,
                family,
-               normal_plate_layout.concentration    AS input_concentration,
-               normal_plate_layout.volume           AS rapid_input_volume,
-               qc_normal_plate_layout.concentration, -- This has to be wrong
+               normal_plate_layout.volume    AS rapid_input_volume,
+               qc_normal_plate_layout.concentration,
                qc_normal_plate_layout.total_dna,
-               reformatting_templates.volume        AS rapid_well_volume,
-               source_plate,
-               seqReturned
+               reformatting_templates.volume AS rapid_well_volume,
+               qc_normal_plate_layout.source_plate,
+               seq_returned
           FROM sample_wells
      LEFT JOIN taxonomy_ids           USING (sample_id)
      LEFT JOIN taxonomy               USING (sci_name)
      LEFT JOIN normal_plate_layout    USING (plate_id, well)
      LEFT JOIN qc_normal_plate_layout USING (plate_id, well)
      LEFT JOIN reformatting_templates USING (source_plate, source_well)
-     LEFT JOIN sample_sheet           USING (sample_id)
+     LEFT JOIN sequenced              USING (sample_id)
          WHERE length(sample_wells.sample_id) = 36
       ORDER BY local_no, row, col;
     """
@@ -136,8 +133,7 @@ def generate_excel_report(cxn, sample_wells, plates, genera):
          'row', 'col', 'results', 'rapid_well_volume'], axis=1)
     sample_wells = sample_wells.reindex(
         """local_no well_no well family sci_name sample_id
-           input_concentration rapid_input_volume concentration
-           total_dna""".split(), axis=1)
+            rapid_input_volume concentration total_dna""".split(), axis=1)
     nfn_data = pd.read_sql('SELECT * FROM nfn_data;', cxn)
     sample_wells = sample_wells.merge(
         right=nfn_data, how='left', on='sample_id')
@@ -149,7 +145,6 @@ def generate_excel_report(cxn, sample_wells, plates, genera):
         'well': 'Well',
         'family': 'Family',
         'sci_name': 'Scientific Name',
-        'input_concentration': 'Concentration (ng / uL)',
         'rapid_input_volume': 'Volume (uL)',
         'sample_id': 'Sample ID',
         'concentration':
@@ -189,7 +184,7 @@ def generate_excel_report(cxn, sample_wells, plates, genera):
             'Primary Collector (Last Name Only)',
         'collector_number': 'Collector Number',
         'collection_no': 'Collection Number',
-        'seqReturned': 'Sequence Returned?'}
+        'seq_returned': 'Sequence Returned?'}
     sample_wells = sample_wells.rename(columns=renames)
 
     xlsx_path = util.get_report_data_dir() / 'sample_plates_report.xlsx'

@@ -78,7 +78,7 @@ def select_samples():
 
 def apply_rules_to_genus(samples, genus, taxonomy_errors):
     """Update the samples according to the rules."""
-    rule_mark_already_sequenced()
+    rule_mark_already_sequenced(samples)
     rule_mark_unprocessed(samples)
     rule_mark_available(samples)
     rule_reject_too_many_sci_names(samples, taxonomy_errors)
@@ -89,9 +89,9 @@ def apply_rules_to_genus(samples, genus, taxonomy_errors):
     rule_select_by_genus_count(samples, genus)
 
 
-def rule_mark_already_sequenced():  # samples, genus):
+def rule_mark_already_sequenced(samples):
     """Identify samples sequenced by Rapid."""
-    # samples[samples.qq.notna(), 'status'] = Status.sequenced
+    samples.loc[samples.seq_returned.notna(), 'status'] = Status.sequenced
 
 
 def rule_mark_unprocessed(samples):
@@ -243,13 +243,17 @@ def get_genera(cxn, families):
 def get_sampled_species(cxn, taxonomy_errors):
     """Read from database and format the data for further processing."""
     sql = """
+        WITH sequenced AS (SELECT DISTINCT sample_id, 1 AS seq_returned
+                                FROM sequencing_metadata)
         SELECT family, genus, sci_name, total_dna, NULL as status,
-               source_plate, source_well, qc_normal_plate_layout.sample_id
+               source_plate, source_well, qc_normal_plate_layout.sample_id,
+               seq_returned
           FROM sample_wells
      LEFT JOIN taxonomy_ids           USING (sample_id)
      LEFT JOIN taxonomy               USING (sci_name)
      LEFT JOIN qc_normal_plate_layout USING (plate_id, well)
      LEFT JOIN reformatting_templates USING (source_plate, source_well)
+     LEFT JOIN sequenced              USING (sample_id)
          WHERE length(sample_wells.sample_id) = 36
       ORDER BY family, genus, total_dna DESC, sci_name;
     """

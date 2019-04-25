@@ -60,14 +60,14 @@ function filterWells(plate) {
   const sample_id = (document.querySelector('#search-sample-id').value || '').toLowerCase();
   const source_plate = (document.querySelector('#search-source-plate').value || '').toLowerCase();
   const sent2Rapid = (document.querySelector('#search-sent-to-rapid').checked);
-  const seqReturned = (document.querySelector('#search-seq-returned').checked);
+  const seq_returned = (document.querySelector('#search-seq-returned').checked);
   return allWells[plate.plate_id]
     .filter(function (well) { return sample_id ? well.sample_id.toLowerCase().indexOf(sample_id) > -1 : true; })
     .filter(function (well) { return source_plate ? well.source_plate.toLowerCase().indexOf(source_plate) > -1 : true; })
     .filter(function (well) { return sci_name ? well.sci_name.toLowerCase().indexOf(sci_name) > -1 : true; })
     .filter(function (well) { return family ? well.family.toLowerCase().indexOf(family) > -1 : true; })
     .filter(function (well) { return sent2Rapid ? well.concentration : true; })
-    .filter(function (well) { return seqReturned ? well.seqReturned : true; });
+    .filter(function (well) { return seq_returned ? well.seq_returned : true; });
 }
 
 function filterChange(target) {
@@ -236,7 +236,7 @@ function buildWellHeader() {
 
 function buildWellData(well) {
   const sent2Rapid = well.concentration ? 'Yes' : '';
-  const seqReturned = '';
+  const seq_returned = '';
   var concentration = parseFloat(well.concentration).toFixed(2);
   concentration = concentration == 'NaN' ? '' : concentration;
   var totalDna = parseFloat(well.total_dna).toFixed(2);
@@ -250,7 +250,7 @@ function buildWellData(well) {
       { content: well.sci_name,  cls: 'l' },
       { content: concentration,  cls: 'r' },
       { content: totalDna,       cls: 'r' },
-      { content: seqReturned },
+      { content: seq_returned },
       { content: well.sample_id,    cls: 'l' },
       { content: well.source_plate },
     ],
