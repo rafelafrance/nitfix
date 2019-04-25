@@ -1,14 +1,15 @@
 """
 Create a list of samples to select given the criteria below.
 
-1. Remove samples associated with more than one scientific names.
+1. Remove samples associated with more than one scientific name.
 
 2. Toss every sample with a total DNA < 10 ng.
 
 3. All outgroups are high priority. An outgroup will have a ":" in its family
    field.
 
-4. Priority taxa rules based off of the priority_taxa table:
+4. **** Is now being skipped. ****
+    Priority taxa rules based off of the priority_taxa table:
     2a) Reject samples whose genus is not in the table.
     2b) Accept samples whose genus has a Priority of "High" in the table.
     2c) Medium priority genera are filtered in step 3.
@@ -19,10 +20,11 @@ Create a list of samples to select given the criteria below.
     3c. If we have > 12 species in a genus, submit 25% of what we have.
 
     ** NOTE: These cutoff rules are not consistent. A genus with 12 species
-       will have 6 slots but a genus with 13 species will have 4 (rounding up).
+       will have 6 slots but a genus with 13 species will have 4
+       (rounding up).
 
 6. Also have to keep samples that have already been submitted for sequencing.
-   So the sort order is submitted then yield grouped by genus.
+   So the sort order is submitted then yield within a genus.
 """
 
 import math
@@ -84,7 +86,7 @@ def apply_rules_to_genus(samples, genus, taxonomy_errors):
     rule_reject_too_many_sci_names(samples, taxonomy_errors)
     rule_reject_total_dna_too_low(samples, threshold=10.0)
     rule_select_all_outgroups(samples, genus)
-    rule_reject_no_priority(samples, genus)
+    # rule_reject_no_priority(samples, genus)
     rule_select_high_priority_taxa(samples, genus)
     rule_select_by_genus_count(samples, genus)
 
