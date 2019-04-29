@@ -51,6 +51,7 @@ class Status(Enum):
     reject_scientific_name = auto()
     reject_yield_too_low = auto()
     reject_low_priority = auto()
+    reject_genus_count = auto()
 
 
 def select_samples():
@@ -86,7 +87,7 @@ def apply_rules_to_genus(samples, genus, taxonomy_errors):
     rule_reject_too_many_sci_names(samples, taxonomy_errors)
     rule_reject_total_dna_too_low(samples, threshold=10.0)
     rule_select_all_outgroups(samples, genus)
-    # rule_reject_no_priority(samples, genus)
+    # rule_reject_low_priority(samples, genus)
     rule_select_high_priority_taxa(samples, genus)
     rule_select_by_genus_count(samples, genus)
 
@@ -131,8 +132,8 @@ def rule_select_all_outgroups(samples, genus):
         samples.loc[available, 'status'] = Status.selected
 
 
-def rule_reject_no_priority(samples, genus):
-    """Reject any genus without a priority."""
+def rule_reject_low_priority(samples, genus):
+    """Reject low priority genera or ones without a priority."""
     if genus['priority'] == '':
         available = samples.status == Status.available
         samples.loc[available, 'status'] = Status.reject_low_priority
@@ -152,6 +153,9 @@ def rule_select_by_genus_count(samples, genus):
         slots = samples.index < end_index
         available = samples.status == Status.available
         samples.loc[slots & available, 'status'] = Status.selected
+
+        rejects = samples.index >= end_index
+        samples.loc[rejects & available, 'status'] = Status.reject_genus_count
 
 
 def get_accum_keys():
@@ -334,6 +338,8 @@ def output_csv(families):
                 row['Unprocessed Samples'] = genus['unprocessed']
                 row['Rejected Samples'] = genus['rejected']
                 row['Plate ID'] = sample['plate_id']
+                row['Rapid Plate'] = sample['source_plate']
+                row['Rapid Well'] = sample['source_well']
                 samples.append(row)
             all_samples.append(pd.DataFrame(samples))
 
