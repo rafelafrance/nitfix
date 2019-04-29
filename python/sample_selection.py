@@ -148,14 +148,14 @@ def rule_select_high_priority_taxa(samples, genus):
 
 def rule_select_by_genus_count(samples, genus):
     """Select samples based on the available slots and available samples."""
-    if genus['priority'] == 'Medium':
-        end_index = samples.index[0] + genus['slots']
-        slots = samples.index < end_index
-        available = samples.status == Status.available
-        samples.loc[slots & available, 'status'] = Status.selected
+    # if genus['priority'] == 'Medium':
+    end_index = samples.index[0] + genus['slots']
+    slots = samples.index < end_index
+    available = samples.status == Status.available
+    samples.loc[slots & available, 'status'] = Status.selected
 
-        rejects = samples.index >= end_index
-        samples.loc[rejects & available, 'status'] = Status.reject_genus_count
+    rejects = samples.index >= end_index
+    samples.loc[rejects & available, 'status'] = Status.reject_genus_count
 
 
 def get_accum_keys():
@@ -238,8 +238,8 @@ def get_genera(cxn, families):
     genera = pd.read_sql(sql, cxn)
 
     genera['slots'] = genera.species_count.apply(calculate_available_slots)
-    not_priority = genera['priority'] == ''
-    genera.loc[not_priority, 'slots'] = 0
+    # not_priority = genera['priority'] == ''
+    # genera.loc[not_priority, 'slots'] = 0
 
     for family_name, group in genera.groupby('family'):
         families[family_name]['genera'] = group.set_index('genus').to_dict(
