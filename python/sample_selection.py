@@ -8,16 +8,16 @@ Create a list of samples to select given the criteria below.
 3. All outgroups are high priority. An outgroup will have a ":" in its family
    field.
 
-4. **** Is now being skipped. ****
-    Priority taxa rules based off of the priority_taxa table:
-    2a) Reject samples whose genus is not in the table.
+4. Priority taxa rules based off of the priority_taxa table:
+    2a) Reject samples whose genus is not in the table. ** Is now skipped. **
     2b) Accept samples whose genus has a Priority of "High" in the table.
-    2c) Medium priority genera are filtered in step 3.
+    2c) Medium priority genera are filtered in step 5.  ** Is now skipped. **
 
 5. Genus count rules, given the above:
     3a. If we have <= 5 species TOTAL in a genus, submit everything we have.
     3b. If we have > 5 but <= 12 species TOTAL of genus, submit 50% of them.
     3c. If we have > 12 species in a genus, submit 25% of what we have.
+    3d. Reject species that do not meet the above criteria.
 
     ** NOTE: These cutoff rules are not consistent. A genus with 12 species
        will have 6 slots but a genus with 13 species will have 4
