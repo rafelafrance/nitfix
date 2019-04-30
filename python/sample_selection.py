@@ -251,23 +251,30 @@ def get_sampled_species(cxn, taxonomy_errors):
     sql = """
         WITH sequenced AS (SELECT DISTINCT sample_id, 1 AS seq_returned
                                 FROM sequencing_metadata)
-        SELECT family, genus, sci_name, total_dna, NULL as status,
-               source_plate, source_well, taxonomy_ids.sample_id,
+        SELECT family, genus, sci_name, qc_normal_plate_layout.total_dna,
+               NULL as status, normal_plate_layout.source_plate,
+               normal_plate_layout.source_well, taxonomy_ids.sample_id,
                seq_returned, plate_id, well, local_no
           FROM sample_wells
      LEFT JOIN taxonomy_ids           USING (sample_id)
      LEFT JOIN taxonomy               USING (sci_name)
+     LEFT JOIN normal_plate_layout    USING (plate_id, well)
      LEFT JOIN qc_normal_plate_layout USING (plate_id, well)
      LEFT JOIN reformatting_templates USING (source_plate, source_well)
      LEFT JOIN sequenced              USING (sample_id)
          WHERE length(sample_wells.sample_id) = 36
-      ORDER BY family, genus, total_dna DESC, sci_name;
+      ORDER BY family, genus, normal_plate_layout.total_dna DESC, sci_name;
     """
     species = pd.read_sql(sql, cxn)
 
+    # Now handle errors in the master taxonomy. Some samples are attached to
+    # more than one scientific name & are not useable. The above query will
+    # return duplicate rows with both scientific names. We mark the rows as
+    # unusable and remove the duplicates. This could be done in SQL but the
+    # Pandas code is clearer.
     problems = species.sample_id.isin(taxonomy_errors)
     species.loc[problems, 'sci_name'] = 'Unknown species'
-    # species = species.drop_duplicates(['source_plate', 'source_well'])
+    species = species.drop_duplicates(['source_plate', 'source_well'])
 
     species.total_dna = species.total_dna.fillna(0)
 
