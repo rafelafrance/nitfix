@@ -10,6 +10,8 @@ import lib.google as google
 
 def ingest_normal_plate_layout(google_sheet):
     """Extract, transform, and load samples sent to Rapid."""
+    print(google_sheet)
+
     cxn = db.connect()
 
     rapid_wells = get_rapid_wells(google_sheet)
@@ -97,7 +99,7 @@ def assign_plate_ids(rapid_wells):
             where = locations[0]
         else:
             where = plate_id_heuristics(
-                rapid_well, rapid_prints, sample_prints, locations)
+                    rapid_well, rapid_prints, sample_prints)
 
         if where:
             plate_id, well = where
@@ -107,7 +109,7 @@ def assign_plate_ids(rapid_wells):
     return rapid_wells
 
 
-def plate_id_heuristics(rapid_well, rapid_prints, sample_prints, locations):
+def plate_id_heuristics(rapid_well, rapid_prints, sample_prints):
     """
     Use the plate fingerprints to find the plate ID.
 

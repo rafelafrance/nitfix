@@ -62,23 +62,19 @@ def normalize_file_name(path):
 
 def get_reports_dir():
     """Find the directory containing the report templates."""
-    cwd = basename(os.getcwd())
-    if cwd == 'python':
-        return 'reports'
-    return os.fspath(Path('python') / 'reports')
+    top = os.fspath(Path('nitfix') / 'reports')
+    return 'reports' if in_sub_dir() else top
 
 
 def get_output_dir():
     """Find the output reports directory."""
-    over = Path('..') / 'reports'
-    cwd = basename(os.getcwd())
-    return over if cwd == 'python' else Path('reports')
+    top = Path('..') / 'reports'
+    return top if in_sub_dir() else Path('reports')
 
 
 def get_report_data_dir():
     """Find the output reports directory."""
-    cwd = basename(os.getcwd())
-    base = '..' if cwd == 'python' else '.'
+    base = '..' if in_sub_dir() else '.'
     return Path(base) / 'reports' / 'data'
 
 
@@ -88,3 +84,8 @@ def build_local_no(local_id):
     lab = match[1].title()
     number = match[2].zfill(4)
     return f'{lab}_{number}'
+
+
+def in_sub_dir():
+    """Determine if we in the root or sub dir."""
+    return os.getcwd().endswith('nitfix/nitfix')
