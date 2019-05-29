@@ -5,8 +5,8 @@ Create a list of samples to select given the criteria below.
 
 2. Toss every sample with a total DNA < 10 ng.
 
-3. All outgroups are high priority. An outgroup will have a ":" in its family
-   field.
+3. All out-groups are high priority. An out-group will have a ":" in its
+   family field.
 
 4. Priority taxa rules based off of the priority_taxa table:
     2a) Reject samples whose genus is not in the table. ** Is now skipped. **
@@ -85,8 +85,8 @@ def apply_rules_to_genus(samples, genus, taxonomy_errors):
     rule_mark_unprocessed(samples)
     rule_mark_available(samples)
     rule_reject_too_many_sci_names(samples, taxonomy_errors)
-    rule_reject_total_dna_too_low(samples, threshold=10.0)
-    rule_select_all_outgroups(samples, genus)
+    rule_reject_total_dna_too_low(samples)
+    rule_select_all_out_groups(samples, genus)
     # rule_reject_low_priority(samples, genus)
     rule_select_high_priority_taxa(samples, genus)
     rule_select_by_genus_count(samples, genus)
@@ -125,8 +125,8 @@ def rule_reject_total_dna_too_low(samples, threshold=10.0):
     samples.loc[available & too_low, 'status'] = Status.reject_yield_too_low
 
 
-def rule_select_all_outgroups(samples, genus):
-    """All outgroups are high priority."""
+def rule_select_all_out_groups(samples, genus):
+    """All out-groups are high priority."""
     if ':' in genus['family']:
         available = samples.status == Status.available
         samples.loc[available, 'status'] = Status.selected
@@ -158,15 +158,15 @@ def rule_select_by_genus_count(samples, genus):
     samples.loc[rejects & available, 'status'] = Status.reject_genus_count
 
 
-def get_accum_keys():
-    """Get fields to accumulate."""
+def get_accumulator_keys():
+    """Initialize fields to accumulate."""
     keys = ['species_count', 'sampled', 'slots', 'sent_for_qc', 'rejected']
     return keys + [status_name for status_name in Status.__members__.keys()]
 
 
 def sum_genus_totals(samples, genus):
     """Accumulate totals for the genus."""
-    for key in get_accum_keys():
+    for key in get_accumulator_keys():
         genus.setdefault(key, 0)
 
     genus['sampled'] = samples.shape[0]
@@ -182,7 +182,7 @@ def sum_genus_totals(samples, genus):
 
 def sum_family_totals(families):
     """Accumulate totals."""
-    keys = get_accum_keys()
+    keys = get_accumulator_keys()
     for family in families.values():
         for genus in family['genera'].values():
             for key in keys:
@@ -193,7 +193,7 @@ def sum_family_totals(families):
 def sum_grand_totals(families):
     """Accumulate totals."""
     grand = {}
-    keys = get_accum_keys()
+    keys = get_accumulator_keys()
     for family in families.values():
         for key in keys:
             grand.setdefault(key, 0)
@@ -251,10 +251,14 @@ def get_sampled_species(cxn, taxonomy_errors):
     sql = """
         WITH sequenced AS (SELECT DISTINCT sample_id, 1 AS seq_returned
                                 FROM sequencing_metadata)
-        SELECT family, genus, sci_name, qc_normal_plate_layout.total_dna,
-               NULL as status, normal_plate_layout.source_plate,
-               normal_plate_layout.source_well, taxonomy_ids.sample_id,
-               seq_returned, plate_id, well, local_no
+        SELECT family, genus, sci_name,
+               normal_plate_layout.source_plate,
+               normal_plate_layout.source_well,
+               sample_wells.sample_id,
+               qc_normal_plate_layout.total_dna,
+               seq_returned,
+               local_no, well, plate_id,
+               NULL as status
           FROM sample_wells
      LEFT JOIN taxonomy_ids           USING (sample_id)
      LEFT JOIN taxonomy               USING (sci_name)
@@ -262,13 +266,12 @@ def get_sampled_species(cxn, taxonomy_errors):
      LEFT JOIN qc_normal_plate_layout USING (plate_id, well)
      LEFT JOIN reformatting_templates USING (source_plate, source_well)
      LEFT JOIN sequenced              USING (sample_id)
-         WHERE length(sample_wells.sample_id) = 36
       ORDER BY family, genus, normal_plate_layout.total_dna DESC, sci_name;
     """
     species = pd.read_sql(sql, cxn)
 
     # Now handle errors in the master taxonomy. Some samples are attached to
-    # more than one scientific name & are not useable. The above query will
+    # more than one scientific name & are not usable. The above query will
     # return duplicate rows with both scientific names. We mark the rows as
     # unusable and remove the duplicates. This could be done in SQL but the
     # Pandas code is clearer.
