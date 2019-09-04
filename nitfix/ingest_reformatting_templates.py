@@ -19,7 +19,7 @@ GOOGLE_SHEETS = {
         'sample_id']}
 
 
-def ingest_reformating_template(sheet, names):
+def ingest_reformatting_template(sheet, names):
     """Ingest one reformatting template."""
     cxn = db.connect()
     wells = get_reformatted_wells(sheet, names)
@@ -27,7 +27,7 @@ def ingest_reformating_template(sheet, names):
 
 
 def get_reformatted_wells(sheet, names):
-    """Get replated Rapid rata from Google sheet."""
+    """Get replated Rapid data from Google sheet."""
     table, _ = splitext(sheet)
     csv_path = util.TEMP_DATA / f'{table}.csv'
 
@@ -56,7 +56,7 @@ def get_reformatted_wells(sheet, names):
     return wells.loc[wells['source_plate'] != '', :].copy()
 
 
-def merge_reformating_templates():
+def merge_reformatting_templates():
     """Create rapid reformat data table table."""
     cxn = db.connect()
 
@@ -75,5 +75,5 @@ def merge_reformating_templates():
 
 if __name__ == '__main__':
     for SHEET, NAMES in GOOGLE_SHEETS.items():
-        ingest_reformating_template(SHEET, NAMES)
-    merge_reformating_templates()
+        ingest_reformatting_template(SHEET, NAMES)
+    merge_reformatting_templates()
