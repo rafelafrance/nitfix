@@ -23,8 +23,8 @@ def remaining_1_of_3():
         """
     images = pd.read_sql(sql, CXN)
     images['manifest_file'] = images.image_file.str.replace('/', '_')
-    images.to_csv(util.TEMP_DATA / 'remaining_1_of_3.csv', index=False)
-    zip_images(images, 'remaining_1_of_3')
+    images.to_csv(util.TEMP_DATA / 'nitfix_remaining_1_of_3.csv', index=False)
+    zip_images(images, 'nitfix_remaining_1_of_3')
 
 
 def remaining_2_of_3():
@@ -39,8 +39,8 @@ def remaining_2_of_3():
     """
     images = pd.read_sql(sql, CXN)
     images['manifest_file'] = images.image_file.str.replace('/', '_')
-    images.to_csv(util.TEMP_DATA / 'remaining_2_of_3.csv', index=False)
-    zip_images(images, 'remaining_2_of_3')
+    images.to_csv(util.TEMP_DATA / 'nitfix_remaining_2_of_3.csv', index=False)
+    zip_images(images, 'nitfix_remaining_2_of_3')
 
 
 def remaining_3_of_3():
@@ -55,8 +55,8 @@ def remaining_3_of_3():
       """
     images = pd.read_sql(sql, CXN)
     images['manifest_file'] = images.image_file.str.replace('/', '_')
-    images.to_csv(util.TEMP_DATA / 'remaining_3_of_3.csv', index=False)
-    zip_images(images, 'remaining_3_of_3')
+    images.to_csv(util.TEMP_DATA / 'nitfix_remaining_3_of_3.csv', index=False)
+    zip_images(images, 'nitfix_remaining_3_of_3')
 
 
 def mobot_all():
@@ -156,7 +156,7 @@ def cal_academy():
 
 # def mobot():
 #     """Make a manifest."""
-#     taxonomy = pd.read_sql('SELECT * FROM taxons;', CXN)
+#     taxonomy = pd.read_sql('SELECT * FROM taxa;', CXN)
 #
 #     sql = """
 #         SELECT *
@@ -166,14 +166,14 @@ def cal_academy():
 #
 #     images = pd.read_sql(sql, CXN)
 #
-#     taxons = {}
+#     taxa = {}
 #     for key, taxon in taxonomy.iterrows():
 #         guids = util.split_uuids(taxon.sample_ids)
 #         for guid in guids:
-#             taxons[guid] = taxon.sci_name
+#             taxa[guid] = taxon.sci_name
 #
 #     for key, image in images.iterrows():
-#         images.loc[key, 'resolved_name'] = taxons.get(image.sample_id)
+#         images.loc[key, 'resolved_name'] = taxa.get(image.sample_id)
 #
 #     images.head()
 #

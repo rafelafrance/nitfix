@@ -18,6 +18,9 @@ taxonomy:
 	$(PYTHON) $(SRC)/ingest_taxonomies.py
 	$(PYTHON) $(SRC)/audit_taxonomy.py
 	$(PYTHON) $(SRC)/ingest_loci_data.py
+	$(PYTHON) $(SRC)/ingest_sprent_data.py
+	$(PYTHON) $(SRC)/ingest_non_fabales_data.py
+	$(PYTHON) $(SRC)/ingest_loci_data.py
 	$(PYTHON) $(SRC)/ingest_werner_data.py
 	$(PYTHON) $(SRC)/ingest_nfn_data.py
 	$(PYTHON) $(SRC)/ingest_priority_taxa.py

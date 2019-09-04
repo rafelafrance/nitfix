@@ -67,10 +67,10 @@ def read_taxon_data(cxn):
 def get_synonyms(taxonomy):
     """Extract synonyms from the Master Taxonomy."""
     synonyms = taxonomy.synonyms.str.split(r'\s*[;,]\s*', expand=True)
-    taxons = taxonomy[['sci_name', 'synonyms']]
+    taxa = taxonomy[['sci_name', 'synonyms']]
 
-    taxons = pd.concat([taxons, synonyms], axis=1)
-    synonyms = taxons.melt(
+    taxa = pd.concat([taxa, synonyms], axis=1)
+    synonyms = taxa.melt(
         id_vars=['sci_name'],
         value_vars=synonyms.columns,
         value_name='synonym')
