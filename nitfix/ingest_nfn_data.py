@@ -12,7 +12,8 @@ EXPEDITIONS = [
     '5657_Nit_Fix_I.reconcile.0.4.3.csv',
     '5857_Nit_Fix_II.reconcile.0.4.4.csv',
     '6415_Nit_Fix_III.reconcile.0.4.3.csv',
-    '6779_Nit_Fix_IV.reconcile.0.4.4.csv']
+    '6779_Nit_Fix_IV.reconcile.0.4.4.csv',
+    '6801_nitrogen_fixing_plants_v_east_coast.reconcile.0.4.4.csv']
 
 
 def ingest_nfn_data():
