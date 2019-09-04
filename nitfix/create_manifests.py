@@ -11,6 +11,54 @@ import lib.util as util
 CXN = db.connect()
 
 
+def remaining_1_of_3():
+    """Make a manifest and zip images for all remaining images."""
+    sql = """
+        SELECT *
+          FROM images
+         WHERE sample_id NOT IN (SELECT sample_id FROM nfn_data)
+           AND image_file NOT LIKE 'missing_photos%'
+      ORDER BY image_file
+         LIMIT 2500;
+        """
+    images = pd.read_sql(sql, CXN)
+    images['manifest_file'] = images.image_file.str.replace('/', '_')
+    images.to_csv(util.TEMP_DATA / 'remaining_1_of_3.csv', index=False)
+    zip_images(images, 'remaining_1_of_3')
+
+
+def remaining_2_of_3():
+    """Make a manifest and zip images for all remaining images."""
+    sql = """
+        SELECT *
+          FROM images
+         WHERE sample_id NOT IN (SELECT sample_id FROM nfn_data)
+           AND image_file NOT LIKE 'missing_photos%'
+      ORDER BY image_file
+         LIMIT 2500 OFFSET 2500;
+    """
+    images = pd.read_sql(sql, CXN)
+    images['manifest_file'] = images.image_file.str.replace('/', '_')
+    images.to_csv(util.TEMP_DATA / 'remaining_2_of_3.csv', index=False)
+    zip_images(images, 'remaining_2_of_3')
+
+
+def remaining_3_of_3():
+    """Make a manifest and zip images for all remaining images."""
+    sql = """
+        SELECT *
+          FROM images
+         WHERE sample_id NOT IN (SELECT sample_id FROM nfn_data)
+           AND image_file NOT LIKE 'missing_photos%'
+      ORDER BY image_file
+           LIMIT 2500 OFFSET 5000;
+      """
+    images = pd.read_sql(sql, CXN)
+    images['manifest_file'] = images.image_file.str.replace('/', '_')
+    images.to_csv(util.TEMP_DATA / 'remaining_3_of_3.csv', index=False)
+    zip_images(images, 'remaining_3_of_3')
+
+
 def mobot_all():
     """Make manifest and zip images."""
     sql = """
@@ -25,7 +73,12 @@ def mobot_all():
     images['manifest_file'] = images.image_file.str.replace('/', '_')
     images.to_csv(util.TEMP_DATA / 'mobot_all_manifest.csv', index=False)
 
-    image_zip_dir = util.TEMP_DATA / 'mobot_all'
+    zip_images(images, 'mobot_all')
+
+
+def zip_images(images, image_dir):
+    """Shrink and rotate images and then put them into a zip file."""
+    image_zip_dir = util.TEMP_DATA / image_dir
     os.makedirs(image_zip_dir, exist_ok=True)
 
     for _, image_file in images.image_file.iteritems():
@@ -38,8 +91,11 @@ def mobot_all():
             int(original.size[1] * 0.75)))
         dir_name = dirname(image_file)
         if original.size[0] > original.size[1]:
-            if dir_name in ('MO-DOE-nitfix_visit3',
-                            'Tingshuang_MO_nitfix_photos'):
+            if (dir_name.startswith('Tingshuang')
+                and dir_name != 'Tingshuang_US_nitfix_photos') \
+               or dir_name in (
+                    'MO-DOE-nitfix_visit3', 'NY_DOE-nitfix_visit3',
+                    'NY_DOE-nitfix_visit4', 'NY_DOE-nitfix_visit5'):
                 transformed = transformed.transpose(Image.ROTATE_90)
             else:
                 transformed = transformed.transpose(Image.ROTATE_270)
@@ -134,4 +190,6 @@ def cal_academy():
 
 
 if __name__ == '__main__':
-    mobot_all()
+    remaining_1_of_3()
+    remaining_2_of_3()
+    remaining_3_of_3()
