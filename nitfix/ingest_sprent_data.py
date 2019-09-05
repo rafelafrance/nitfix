@@ -31,7 +31,6 @@ def ingest_sprent_data():
     data = data[data.genus != 'Otion']
 
     # Cleanup genus
-    data['genus'] = data.genus.str.strip()
     data['genus'] = data.genus.str.split().str[0]
 
     create_sprent_table(cxn, data)
