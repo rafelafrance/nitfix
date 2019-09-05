@@ -17,7 +17,22 @@ def ingest_sprent_data():
             'genus', 'species_count', 'nodulation_status',
             'nodulating_species', 'clade', 'legume_subfamily'])
 
-    data.genus = data.genus.str.strip()
+    # Split this record into two
+    idx = data['genus'] == 'Fillaeopsis_and_Lemurodendron'
+    data.loc[idx, 'genus'] = 'Fillaeopsis'
+    data.loc[idx, 'species_count'] = 1
+
+    row = data.loc[idx, :].copy()
+    row['genus'] = 'Lemurodendron'
+    data = data.append(row, ignore_index=True)
+
+    # Remove stray records
+    data = data[data.genus != 'Piptadenia viridiflora']
+    data = data[data.genus != 'Otion']
+
+    # Cleanup genus
+    data['genus'] = data.genus.str.strip()
+    data['genus'] = data.genus.str.split().str[0]
 
     create_sprent_table(cxn, data)
 

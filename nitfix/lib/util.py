@@ -42,6 +42,14 @@ IMAGE_DIRS = [
 # 'UFBI_sample_photos',
 
 
+class ReplaceDict(dict):
+    """A class to either return a value or the key if missing."""
+
+    def __missing__(self, key):
+        """Return the key if missing."""
+        return key
+
+
 def is_uuid(guid):
     """Create a function to determine if a string is a valid UUID."""
     if not guid:

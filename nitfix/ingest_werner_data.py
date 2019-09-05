@@ -5,6 +5,9 @@ import lib.db as db
 import lib.util as util
 
 
+GENUS_REPLACE = util.ReplaceDict(Acomastylis='Geum')
+
+
 def ingest_werner_data():
     """Ingest the Werner Excel sheet stored on Google drive."""
     cxn = db.connect()
@@ -25,6 +28,9 @@ def ingest_werner_data():
 
     dups = werner.sci_name.duplicated()
     werner = werner.loc[~dups, :]
+
+    werner['genus'] = werner.sci_name.str.split().str[0]
+    werner['genus'] = werner['genus'].map(GENUS_REPLACE)
 
     create_werner_data_table(cxn, werner)
 
