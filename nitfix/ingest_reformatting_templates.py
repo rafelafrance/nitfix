@@ -9,10 +9,8 @@ import lib.util as util
 
 GOOGLE_SHEETS = {
     'FMN_131001_Reformatting_Template': [
-        'row_sort', 'source_project_id', 'source_plate',
-        'source_well', 'source_well_no', 'dest_project_id',
-        'dest_plate', 'dest_well', 'dest_well_no', 'volume',
-        'sample_id'],
+        'row_sort', 'source_plate', 'source_well', 'source_well_no',
+        'dest_plate', 'dest_well', 'dest_well_no', 'volume', 'sample_id'],
     'KIB_135802_Reformatting_template': [
         'row_sort', 'source_plate', 'source_well', 'source_well_no',
         'dest_plate', 'dest_well', 'dest_well_no', 'volume',

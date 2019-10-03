@@ -92,10 +92,10 @@ def zip_images(images, image_dir):
         dir_name = dirname(image_file)
         if original.size[0] > original.size[1]:
             if (dir_name.startswith('Tingshuang')
-                and dir_name != 'Tingshuang_US_nitfix_photos') \
+                    and dir_name != 'Tingshuang_US_nitfix_photos') \
                or dir_name in (
-                    'MO-DOE-nitfix_visit3', 'NY_DOE-nitfix_visit3',
-                    'NY_DOE-nitfix_visit4', 'NY_DOE-nitfix_visit5'):
+                   'MO-DOE-nitfix_visit3', 'NY_DOE-nitfix_visit3',
+                   'NY_DOE-nitfix_visit4', 'NY_DOE-nitfix_visit5'):
                 transformed = transformed.transpose(Image.ROTATE_90)
             else:
                 transformed = transformed.transpose(Image.ROTATE_270)

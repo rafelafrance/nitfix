@@ -8,7 +8,7 @@ import multiprocessing
 from collections import namedtuple
 import pandas as pd
 from PIL import Image, ImageFilter
-import zbarlight
+import zbarlight    # pylint: disable=import-error
 import lib.db as db
 import lib.util as util
 

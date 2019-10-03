@@ -26,7 +26,6 @@ taxonomy:
 
 sequencing:
 	$(PYTHON) $(SRC)/ingest_sample_plates.py
-	$(PYTHON) $(SRC)/ingest_normal_plate_layouts.py
 	$(PYTHON) $(SRC)/ingest_qc_normal_plate_layouts.py
 	$(PYTHON) $(SRC)/ingest_reformatting_templates.py
 	$(PYTHON) $(SRC)/ingest_sample_sheets.py
