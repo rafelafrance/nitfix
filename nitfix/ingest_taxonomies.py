@@ -30,9 +30,10 @@ def get_taxonomy(google_sheet):
             'column_a', 'family', 'sci_name', 'authority', 'synonyms',
             'sample_ids', 'provider_acronym', 'provider_id', 'quality_notes'])
     taxonomy = taxonomy[taxonomy.sci_name.notna()]
+    taxonomy = taxonomy.drop_duplicates('sci_name')
 
     taxonomy.sci_name = \
-        taxonomy.sci_name.str.split().str.join(' ')
+        taxonomy.sci_name.str.split().str.join(' ').str.capitalize()
     taxonomy['genus'] = taxonomy.sci_name.str.split().str[0]
 
     return taxonomy
@@ -71,9 +72,9 @@ def create_taxon_ids_table(cxn, table, taxonomy):
 
 def merge_taxonomies():
     """
-    Merge Ting Shuang taxonomy with the master taxonomy.
+    Merge Tingshuang taxonomy with the master taxonomy.
 
-    Note: The Ting Shuang taxonomy currently has duplicate scientific names so
+    Note: The Tingshuang taxonomy currently has duplicate scientific names so
     we need to make sure we don't propagate them.
     """
     cxn = db.connect()
@@ -81,7 +82,7 @@ def merge_taxonomies():
     taxonomy = pd.read_sql('SELECT * FROM NitFixMasterTaxonomy', cxn)
     taxonomy.to_sql('taxonomy', cxn, if_exists='replace', index=False)
     cxn.executescript("""
-        CREATE UNIQUE INDEX IF NOT EXISTS
+        CREATE INDEX IF NOT EXISTS
             taxonomy_sci_name ON taxonomy (sci_name);
 
         CREATE INDEX IF NOT EXISTS

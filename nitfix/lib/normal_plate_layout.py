@@ -26,20 +26,11 @@ def get_rapid_wells(google_sheet):
 
     google.sheet_to_csv(google_sheet, csv_path)
 
-    if google_sheet.startswith('FMN'):
-        names = [
-            'row_sort', 'col_sort', 'rapid_id', 'sample_id',
-            'old_concentration', 'volume', 'concentration',
-            'total_dna']
-    else:
-        names = [
-            'row_sort', 'col_sort', 'rapid_id', 'sample_id', 'volume',
-            'concentration', 'total_dna']
+    names = [
+        'row_sort', 'col_sort', 'rapid_id', 'sample_id', 'volume',
+        'concentration', 'total_dna', 'status']
 
     rapid_wells = pd.read_csv(csv_path, skiprows=1, header=0, names=names)
-
-    if 'old_concentration' in rapid_wells.columns:
-        rapid_wells = rapid_wells.drop('old_concentration', axis='columns')
 
     source_plate = re.compile(r'^[A-Za-z]+_\d+_(P\d+)_W\w+$')
     rapid_wells['source_plate'] = rapid_wells.rapid_id.str.extract(
@@ -48,13 +39,12 @@ def get_rapid_wells(google_sheet):
     source_well = re.compile(r'^[A-Za-z]+_\d+_P\d+_W(\w+)$')
     rapid_wells['source_well'] = rapid_wells.rapid_id.str.extract(
         source_well, expand=False)
-
     rapid_wells['source_row'] = rapid_wells['source_well'].str[0]
-    rapid_wells['source_col'] = rapid_wells.source_well.str[1:].astype(int)
+    rapid_wells['source_col'] = rapid_wells['source_well'].str[1:].astype(int)
 
     rapid_wells['plate_id'] = ''
     rapid_wells['well'] = ''
-    rapid_wells.sample_id = rapid_wells.sample_id.str.strip()
+    rapid_wells['sample_id'] = rapid_wells['sample_id'].str.strip()
 
     return rapid_wells
 

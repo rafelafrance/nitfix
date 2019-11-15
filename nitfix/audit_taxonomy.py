@@ -11,12 +11,29 @@ def clean_taxonomy():
     errors = get_duplicate_sample_ids(taxonomy_ids)
     create_taxonomy_errors_table(cxn, errors)
 
+    drop_bad_genera(cxn)
+    drop_errors(cxn)
+
+
+def drop_errors(cxn):
+    """Remove duplicate taxonomy ids."""
+    cxn.execute("""
+        DELETE FROM taxonomy_ids
+         WHERE sample_id IN (SELECT sample_id FROM taxonomy_errors) ;""")
+    cxn.commit()
+
+
+def drop_bad_genera(cxn):
+    """Remove taxonomy records with a bad genus."""
+    cxn.execute("""DELETE FROM taxonomy WHERE genus LIKE '%.%';""")
+    cxn.commit()
+
 
 def get_duplicate_sample_ids(taxonomy_ids):
     """Get duplicate sample IDs from the taxonomy table."""
     taxonomy_ids['times'] = 0
     errors = taxonomy_ids.groupby('sample_id').agg(
-        {'times': 'count', 'sci_name': lambda x: ', '.join(x)})
+        {'times': 'count', 'sci_name': ', '.join})
     errors = errors.loc[errors.times > 1, :].drop(['times'], axis='columns')
 
     sci_names = errors.sci_name.str.split(r'\s*[;,]\s*', expand=True)

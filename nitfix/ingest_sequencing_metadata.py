@@ -19,7 +19,7 @@ def ingest_sequencing_sheet(google_sheet):
 
 
 def get_sequencing_sheet(google_sheet):
-    """Get replated Rapid rata from Google sheet."""
+    """Get replated Rapid data from Google sheet."""
     csv_path = util.TEMP_DATA / f'{google_sheet}.csv'
 
     google.sheet_to_csv(google_sheet, csv_path)
