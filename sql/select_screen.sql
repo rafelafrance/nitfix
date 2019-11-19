@@ -20,21 +20,22 @@ samples_sequenced as (
     join taxonomy using (sci_name)
     group by taxonomy.genus
 )
-select distinct taxonomy_ids.sample_id, taxonomy.genus, taxonomy.sci_name,
+select distinct taxonomy_ids.sample_id,
+    taxonomy.family, taxonomy.genus, taxonomy.sci_name,
     priority_taxa.priority,
-	species_count.species_in_genus,
-	genus_count.samples_in_genus,
+    species_count.species_in_genus,
+    genus_count.samples_in_genus,
     samples_collected.collected_in_genus,
-	samples_sequenced.sequenced_in_genus,
+    samples_sequenced.sequenced_in_genus,
     sequencing_metadata.loci_assembled,
-	qc_normal_plate_layout.total_dna,
-	qc_normal_plate_layout.rapid_id as sample_code_submitted,
-	reformatting_templates.rapid_seq_id as sample_code_sequenced
+    qc_normal_plate_layout.total_dna,
+    qc_normal_plate_layout.rapid_id as sample_code_submitted,
+    reformatting_templates.rapid_seq_id as sample_code_sequenced
 from taxonomy_ids
 join taxonomy using (sci_name)
 left join qc_normal_plate_layout using (sample_id)
-left join sequencing_metadata using (sample_id)
 left join reformatting_templates using (rapid_id)
+left join sequencing_metadata using (sample_id)
 left join priority_taxa using (genus)
 left join species_count using (genus)
 left join genus_count using (genus)
