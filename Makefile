@@ -29,7 +29,7 @@ sequencing:
 	$(PYTHON) $(SRC)/ingest_qc_normal_plate_layouts.py
 	$(PYTHON) $(SRC)/ingest_reformatting_templates.py
 	$(PYTHON) $(SRC)/ingest_sample_sheets.py
-	$(PYTHON) $(SRC)/ingest_sequencing_metadata.py
+	$(PYTHON) $(SRC)/ingest_loci_assembled.py
 
 plate_report:
 	$(PYTHON) $(SRC)/sample_plate_report.py

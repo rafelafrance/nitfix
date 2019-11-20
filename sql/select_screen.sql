@@ -27,7 +27,7 @@ select distinct taxonomy_ids.sample_id,
     genus_count.samples_in_genus,
     samples_collected.collected_in_genus,
     samples_sequenced.sequenced_in_genus,
-    sequencing_metadata.loci_assembled,
+    loci_assembled.loci_assembled,
     qc_normal_plate_layout.total_dna,
     qc_normal_plate_layout.rapid_id as sample_code_submitted,
     reformatting_templates.rapid_seq_id as sample_code_sequenced
@@ -35,11 +35,12 @@ from taxonomy_ids
 join taxonomy using (sci_name)
 left join qc_normal_plate_layout using (sample_id)
 left join reformatting_templates using (rapid_id)
-left join sequencing_metadata using (sample_id)
+left join loci_assembled using (rapid_seq_id)
 left join priority_taxa using (genus)
 left join species_count using (genus)
 left join genus_count using (genus)
 left join samples_collected using (genus)
 left join samples_sequenced using (genus)
 where taxonomy_ids.sample_id not in (select sample_id from taxonomy_errors)
+--and sample_code_sequenced in ('FMN_131001_P001_WE11', 'FMN_131001_P020_WC02')
 order by taxonomy.sci_name;
