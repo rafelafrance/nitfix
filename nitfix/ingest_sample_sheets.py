@@ -19,7 +19,7 @@ def ingest_sample_sheet(google_sheet):
 
 
 def get_sample_sheet(google_sheet):
-    """Get replated Rapid rata from Google sheet."""
+    """Get sample data from Google sheet."""
     csv_path = util.TEMP_DATA / f'{google_sheet}.csv'
 
     google.sheet_to_csv(google_sheet, csv_path)
