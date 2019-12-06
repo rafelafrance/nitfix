@@ -41,7 +41,7 @@ def get_wells(cxn):
      LEFT JOIN qc_normal_plate_layout USING (plate_id, well)
      LEFT JOIN reformatting_templates USING (source_plate, source_well)
      LEFT JOIN sequenced              USING (sample_id)
-         WHERE length(sample_wells.sample_id) = 36
+         WHERE length(taxonomy_ids.sample_id) >= 5
       ORDER BY local_no, row, col;
     """
     sample_wells = pd.read_sql(sql, cxn)

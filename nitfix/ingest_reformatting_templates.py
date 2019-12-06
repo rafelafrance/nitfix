@@ -8,7 +8,9 @@ import lib.util as util
 
 
 GOOGLE_SHEETS = [
-    'FMN_131001_Reformatting_Template', 'KIB_135802_Reformatting_template']
+    'FMN_131001_Reformatting_Template',
+    'KIB_135802_Reformatting_template',
+    'UFBI_Reformatting_Template']
 
 NAMES = ['row_sort', 'source_plate', 'source_well', 'source_well_no',
          'dest_plate', 'dest_well', 'dest_well_no', 'volume', 'sample_id',
@@ -30,6 +32,8 @@ def get_reformatted_wells(sheet, names):
     google.sheet_to_csv(sheet, csv_path)
 
     wells = pd.read_csv(csv_path, header=0, na_filter=False, names=names)
+    wells['sample_id'] = wells['sample_id'].str.lower()
+    wells = wells.drop_duplicates('sample_id', keep=False)
 
     return wells.loc[wells['source_plate'] != '', :].copy()
 

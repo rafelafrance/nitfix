@@ -78,7 +78,7 @@ def assign_plate_ids(rapid_wells):
     sql = """
         SELECT sample_id, plate_id, well
           FROM sample_wells
-         WHERE length(sample_id) = 36;"""
+         WHERE length(sample_id) >= 5;"""
 
     for row in cxn.execute(sql):
         sample_id, plate_id, well = row
