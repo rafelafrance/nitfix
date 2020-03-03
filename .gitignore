@@ -28,10 +28,6 @@ data/processed/
 data/secrets/
 !data/secrets/.gitkeep
 
-# Julia code
-julia/
-*.toml
-
 dependencies
 /node_modules
 
@@ -47,5 +43,6 @@ dependencies
 .env.development.local
 .env.test.local
 .env.production.local
+.~lock*
 
 npm-debug.log*
