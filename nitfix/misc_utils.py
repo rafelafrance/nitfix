@@ -1,5 +1,6 @@
 """A grab bag of utilities."""
 
+import re
 from os.path import basename
 from pathlib import Path
 import zipfile
@@ -10,22 +11,43 @@ import lib.db as db
 
 PHOTOS = Path('.') / 'data' / 'raw' / 'photos'
 
+IS_UUID = re.compile(
+    r""" \b [0-9a-f]{8} - [0-9a-f]{4} - [1-5][0-9a-f]{3}
+        - [89ab][0-9a-f]{3} - [0-9a-f]{12} \b """,
+    flags=re.IGNORECASE | re.VERBOSE)
+
+MISSING = '<missing/>'
+
 
 def image_zip():
-    """Get the images for the files associated with the image IDs."""
-    sample_ids = [f"'{i}'" for i in _get_sample_ids()]
-    sql = f"SELECT * FROM images WHERE sample_id IN ({','.join(sample_ids)});"
-    images = pd.read_sql(sql, db.connect())
+    """Get images from a list and zip them."""
+    cxn = db.connect()
 
-    csv_file = util.TEMP_DATA / 'UFIB_list_2020-03-03a.csv'
-    images.to_csv(csv_file, index=False)
+    sample_ids = _get_sample_ids()
+    images = []
 
-    zip_file = util.TEMP_DATA / 'UFIB_list_2020-03-03a.zip'
+    for sample_id in sample_ids:
+        if IS_UUID.search(sample_id):
+            sql = """SELECT image_file FROM images WHERE sample_id = ?"""
+        else:
+            sql = """SELECT image_file FROM pilot_data WHERE pilot_id = ?"""
+        cur = cxn.cursor()
+        cur.execute(sql, (sample_id, ))
+        row = cur.fetchone()
+        images.append(row[0] if row else MISSING)
+
+    csv_file = util.TEMP_DATA / 'Images_2020-03-05a.csv'
+    csv_data = pd.DataFrame({'sample_id': sample_ids, 'image_file': images})
+    csv_data.to_csv(csv_file, index=False)
+
+    zip_file = util.TEMP_DATA / 'Images_list_2020-03-05a.zip'
     with zipfile.ZipFile(zip_file, mode='w') as zippy:
         zippy.write(csv_file,
                     arcname=basename(csv_file),
                     compress_type=zipfile.ZIP_DEFLATED)
-        for image in images.image_file:
+        for image in images:
+            if image == MISSING:
+                continue
             path = PHOTOS / image
             zippy.write(
                 path, arcname=image, compress_type=zipfile.ZIP_DEFLATED)
@@ -33,106 +55,98 @@ def image_zip():
 
 def _get_sample_ids():
     return [
-        '0217e1ed-15ae-4b72-ab38-9d7d4d953771',
-        '0213106b-291e-43a9-9574-14d56c23bbb1',
-        '01df7b41-200b-4295-b38b-a44287623e1f',
-        '022b5bbf-60fd-4c6f-9c88-638dabf1c0e8',
-        '01f88034-5aa8-4d79-b38d-9c313f27cdbb',
-        '02276fa8-8d50-49f3-941f-e348a2ca2c55',
-        '13a471a0-a6bd-4088-b463-06cd6356d79d',
-        'dd21a192-49c9-43da-b394-ab1aed23a832',
-        '022c8616-6027-4e4b-b2ea-71a94f7914d2',
-        '9256d266-8fb1-4ddf-ba1d-bcaf9d3d27fe',
-        '914463f7-e342-4120-a7b4-9c3aa87004fe',
-        '8fa80c56-8ed6-4ddc-bd43-92dbd8eb9a39',
-        '17ad7917-51b9-4915-b68f-8b4d9396523d',
-        'fba5da6c-6751-4782-a2df-4797d6736aef',
-        'fde2dd06-86bf-41dd-9779-e83c3f5c2c7e',
-        '54941fc8-2459-451e-9eb3-ad40fa322cb8',
-        '01841766-2994-4a5e-8e78-843d94e1915e',
-        '095fe9cb-2f69-4fc6-ba79-c4b2e44c1ccc',
-        'fdd10a7e-9152-463c-bdd3-7a6226e0ea3d',
-        'c8391c5d-8865-4b73-87ae-466d690c78e8',
-        '28944fa9-3fbd-4c44-9104-afcaac46a97d',
-        'f1661493-85f8-480a-83f1-0c35695bc1d8',
-        'c838b351-3f4f-467d-bfce-117283ab4208',
-        '325b20e2-834e-4db9-9247-45d300eca8c6',
-        'b00e0a6d-a2f3-4160-ab70-996790d5c008',
-        '32555000-c14d-4a13-b013-513c9beb1a74',
-        'fc9240a5-995f-4c94-ac3b-f080e2fc7aef',
-        'fc8d0413-534b-4a13-a0bb-0c7a1bdd3f08',
-        'fc8c6f3a-4ecf-4b89-8db0-07f4d8de64da',
-        'c51ea264-a26f-4b4f-a0ed-13e0e76f3941',
-        '322a9150-5e74-4177-bec8-3b594b84f2e5',
-        '3229a488-e8d8-40ae-b566-87f235789913',
-        '3224e3c6-0fc1-4f72-932b-d41908bc6c97',
-        '70b464da-5d14-4588-a9f4-753ad07bcf4e',
-        '7bd1933b-2e30-43c6-a878-7d19e6701d43',
-        '7b029843-b321-403c-922b-7925514ac303',
-        '7aab5e88-7ae9-453d-bf4f-75be18dc4cad',
-        '7a81630e-4187-44bb-9aa8-4a375f3a92bf',
-        '7a812975-1ccc-4b65-bb87-713ecac2db6c',
-        'fc48bd9c-274e-42f6-9ae5-360684c5b71c',
-        '78a408ea-14b6-4f27-bd9e-4d5a9162f071',
-        '78bb8dbe-e5f4-4345-8956-1c5af0700316',
-        '62a4a952-12bf-4530-933e-57237f35f6d3',
-        'b2dd7db1-2e41-4283-9e63-585584ff7194',
-        '83edc358-9845-40ce-829b-9582810d34cd',
-        '3113019d-1347-478a-afac-ec0efdcb789a',
-        '6ca4c891-0301-4b51-8fd4-3f9b430a6025',
-        '215b1df4-d439-4925-a0bb-2f117a881f56',
-        '31a2448d-2af9-4aaa-b440-163a2c5b593b',
-        'fcf7b73a-a531-44f0-b0d8-9ed26780149d',
-        '939934c9-ab3f-400e-8e37-e2b57760f29d',
-        '93445eed-c722-4917-90cc-59d775946095',
-        '93c8baeb-0b51-4f4c-802b-212893874b74',
-        '5a941bcb-7120-4cc2-a34e-62f2c264a2f5',
-        '949aef93-4ab0-40db-b1cb-2636bdedbfe7',
-        '5171a46a-2cfd-49de-a06e-e92a9065edfa',
-        '506bc5f9-f5c7-4016-b1eb-64e45ea1252d',
-        '939816bb-94ad-48e2-b144-9fe6221213b4',
-        '9384e0a6-85ea-451a-a7a3-bd73c4c635c0',
-        '936b483c-d283-4e26-a98c-444dc4da3893',
-        '935d74c5-9010-45b1-b55f-20609849b5a1',
-        'cebc6003-a36d-4e63-b498-0db5be44771a',
-        '7542c61a-89c6-40ba-a474-567830d68b37',
-        '0187f509-943f-440f-bec1-8a9c2822347c',
-        '018837df-ce27-4a0e-8c5a-64402dadc22f',
-        '018d2e3e-6dca-4245-bd30-a3eb0ba05187',
-        '785c38c6-efa6-4fad-9ef1-be001249360e',
-        'ecc952cc-602a-4d7a-8f0c-5d4ec4332eac',
-        'ecbabfcc-2739-43da-b306-297634a8162a',
-        '0d2af541-ff06-41db-a41d-ecd92ad8ed1a',
-        '0aac87a8-72e9-432a-9450-5cde1b056a1c',
-        '0ac6d157-c3d0-4469-8cc0-ab7b71a8e0c6',
-        '0d2cbc64-aa54-401a-83af-3d591ba13160',
-        'eca81818-53c5-4d08-b3a8-400ade09b2ba',
-        '0ab91335-0842-4412-ae72-7f17e0525efa',
-        '0d291046-9e38-4637-a33d-4512cbb04bd2',
-        '0d25df14-ab82-4abd-a0fc-32e2a23bf36e',
-        '782d7c1b-9b4c-481c-8e37-8b6b8e9d04bc',
-        '0ab8ad93-a888-41c7-b8e6-5d5444985a65',
-        '7844f1ad-7590-4a0c-9c57-8b61f58ef4a5',
-        '78576ff1-b2ff-40e9-acf5-f48c2560c0b3',
-        '78654121-484e-4ed6-8e6b-5f94b63ad43b',
-        '696ca42a-7715-400e-8474-321ea6ea5b6e',
-        '0d2e563a-9b48-43e6-8645-bba0f88ce8f2',
-        '5ebe0199-cc9f-4fb0-bc40-3e1423418dbc',
-        'e29aaa15-e5b3-4e23-a7ec-7ea06508e0ff',
-        '0b84254b-b9c8-4f5c-b829-8a55fcab941b',
-        '8395d3b8-1bea-4abf-a96f-5ec93a9619c8',
-        '427c2bf9-6e27-4bcc-83ef-b31102f0fd63',
-        '99de22f9-753e-4ef8-9a80-d92ecc771162',
-        '2fc6b254-9c7b-47f3-9c80-8ef010240e1e',
-        '2fb9dff8-b6b3-4cb9-8add-7b7302ac3622',
-        '2fb7ce8a-1e8c-40a9-9361-590206692ead',
-        '2fb33e1e-1cfc-4fde-8ac0-03d455533530',
-        '2fac9c3b-81c8-4d4e-80f5-7f8707960ffd',
-        '2f1a05c8-42b9-4c32-a476-4b98ad011383',
-        '2ef3d410-0e90-4f27-b62d-13162738fd95',
-        '01f589f9-5fc3-4069-9421-ea6808476fd8',
-        'fc396306-ba13-47eb-bbf2-1b09757164df',
-        '01eb5b3e-56a4-46fa-bcbf-515275ad4203',
+        'ny: telles 7394',
+        'ny: lewis 1723',
+        'ny: carvalho 5909',
+        '3aa815bd-d4cf-458b-822c-a97e0f88d50d',
+        '3ac5f8c7-fef3-41cd-88ab-31f1caf5484a',
+        '3acd1733-57aa-424c-a311-864b978635aa',
+        'b9b1583f-0a1d-4dd2-bd74-bae4d636181e',
+        '0e9ccc62-f031-4d92-8a0b-527cec45bb0d',
+        'ny: beaman 11372',
+        'a3267333-837d-4875-adad-9da7270d75e6',
+        'a1b87db5-e73d-4b31-a212-8e3e40ac1ec7',
+        'tex: church 729',
+        '1350a3ff-6512-42f2-8128-d5dcb2097172',
+        '253a5672-5f75-4fa1-94d0-26507768dcce',
+        'b91cd5af-b17f-4138-9798-78d308f2ee31',
+        'tex: cuevas 78',
+        'tex: ballesteros 344',
+        '8252b59d-0a19-49ab-a62e-420d20a37e36',
+        'tex: henrickson 8292',
+        'tex: webster 33479',
+        '3f068026-62bb-45d5-99d1-a703b088f33a',
+        '3f05a8e4-12a2-4c70-9628-13d7796bb8dc',
+        'tex: webster 4926',
+        'tex: correll 42435',
+        '3ef8577e-67f2-4813-9f3b-332cdf53f95c',
+        '088b524c-b577-4d8f-8a4c-10404d60bd12',
+        '0ff29671-cac5-4aec-a001-82c1ea01d707',
+        '0fe6fec2-5bc1-484d-9ebb-eea94f17ea93',
+        '9fad1c62-2240-4a74-9b11-5796693b4049',
+        '3ef7b767-60e1-4401-b82b-c3a78d5855e7',
+        '0fe6987a-c259-4edd-918c-4d2e063c6372',
+        '0fded544-6fc7-44b2-99e3-337b76a2b16e',
+        '0fd1f6c3-fe08-413f-a365-db6aab8bb418',
+        'tex: howard 246',
+        '108a5119-3f74-447e-9cd6-95e878f562f8',
+        '3c9812d4-762a-4ae1-b49d-2552aaf4dbe6',
+        '3c8438c9-f6ca-4f1c-8da2-fedc94876df7',
+        '8b3dece5-0b80-40cf-a7aa-6a2c96be3ad6',
+        '3c823c0d-2a6c-43e2-bd1e-7626efa8c35b',
+        '0d5b4d06-5b74-4eda-b795-ac4aa2c0191e',
+        '0d644710-2d49-41ba-a2ff-50887c28f240',
+        'tex: phillipson 3166',
+        'tex: contreras 8742',
+        '0de59b5a-2df0-4cb3-9295-eebb664ffc02',
+        '3beee92d-04a4-4d6d-9f5d-6416ac843c86',
+        '3bdaecde-b52b-49b1-b580-c2bbcaa7487d',
+        '0ca7f306-b0fd-49eb-b242-d4a0999a1576',
+        '3f2ee9bf-ad3b-4deb-9424-1135314794d0',
+        'tex: seigler ds-14450',
+        'tex: pereira 2263',
+        '3bda1fa1-dec3-47ce-aade-84ca875ceaaf',
+        '3bdfc29f-2309-4e8d-9510-57d803ce5879',
+        '3be63f7f-6f4f-4a70-8df8-4d45d0ea5b5f',
+        '40a378ac-e289-4c0e-aa21-8b8248c52c59',
+        '3aa0ebcb-2137-4e9f-9092-936dff10971a',
+        '3aa0b8e9-1fe2-4875-8f70-1e1f30e3a000',
+        '0b513105-f917-43b9-88bd-00939471d92e',
+        'tex: turner 5255',
+        '40462f12-a4b9-4a3b-93bb-c9dbe82a3b25',
+        'tex: donner 10079',
+        'tex: panero 7161',
+        'tex: panero 6950',
+        'a23ab012-7658-4e8b-97c3-705db38a0639',
+        '09b6e692-1c6b-4d33-89a3-ef68c847d380',
+        'tex: santos-guerra sgrjh 085',
+        '09b936c2-9a8b-4736-bfb5-f3129ddfc013',
+        '41daf6aa-1284-4fdd-95dc-ed4e625de6ff',
+        'c31e5dd6-bb66-4f9c-a922-3ae282ca8d79',
+        'tex: campos v4458',
+        '12605d32-7db7-4ebe-b424-239f0f2ca70b',
+        '39620ad5-ac9d-4abe-a184-8c2a0bb08bd0',
+        'tex: vlastimil 3320',
+        '3a5b4c2e-398d-49bc-91b9-35157da4325c',
+        '3c374396-b060-4d95-86e4-58ad1f0db2b1',
+        'tex: lewis 881795',
+        'tex: tupayachi 810',
+        '3a5cc0f5-e13f-4d2c-ab8e-3114e6d98e2c',
+        '39523c91-f722-4855-842a-16dea817dbf9',
+        '3a5f3373-6148-4937-bbad-cbab7f38e99d',
+        '97963add-32c3-4936-9877-0d56af3efdd3',
+        '3a5f33b7-59e7-448b-ba7f-2f4b4cf6f5a2',
+        '3a66feae-9ed4-47e6-876a-95ffc08b7610',
+        'tex: henrickson 22650',
+        'tex: rosalinda 4902',
+        'tex: lott 5453',
+        '09d293f1-ba1e-4df6-8f6d-7d3a60e5ce65',
+        '9998a6ef-cd69-4673-b3e6-c0494c271306',
+        '09e3edb7-0e88-411a-b7e1-0b9bcf0def28',
+        'tex: salinas 5964',
+        'tex: landrum 11719',
+        'tex: henrickson 23617',
+        'tex: wendt 1222',
         ]
 
 
