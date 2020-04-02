@@ -173,6 +173,25 @@ def nfn_submitted():
     all_.to_sql('nfn_submitted', CXN, if_exists='replace', index=False)
 
 
+def missing_location():
+    """Create expeditions of images returned from NfN without a location."""
+    size = 2500
+    sql = """
+        SELECT * FROM images
+         WHERE sample_id IN (SELECT sample_id FROM nfn_data
+                              WHERE location = '')
+      ORDER BY image_file;
+        """
+    df = pd.read_sql(sql, CXN)
+    df['manifest_file'] = df.image_file.str.replace('/', '_')
+    steps = list(range(0, df.shape[0], size))
+    splits = [df.iloc[i:i+size, :] for i in steps]
+    for i, split in enumerate(splits, 1):
+        name = f'nitfix_missing_location_{i}_of_{len(splits)}'
+        split.to_csv(util.TEMP_DATA / (name + '.csv'), index=False)
+        zip_images(split, name)
+
+
 # def mobot():
 #     """Make a manifest."""
 #     taxonomy = pd.read_sql('SELECT * FROM taxa;', CXN)
@@ -209,4 +228,4 @@ def nfn_submitted():
 
 
 if __name__ == '__main__':
-    nfn_submitted()
+    missing_location()
