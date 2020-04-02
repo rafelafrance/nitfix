@@ -22,6 +22,8 @@ temp/
 
 # Data files
 data/raw/
+data/interim
+data/temp
 !data/temp/.gitkeep
 data/processed/
 !data/processed/.gitkeep

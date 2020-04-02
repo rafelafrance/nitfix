@@ -154,6 +154,25 @@ def cal_academy():
     errors.to_csv(util.TEMP_DATA / 'cas_manifest_missing.csv', index=False)
 
 
+def nfn_submitted():
+    """Create a table of samples submitted to NfN."""
+    sql = """
+        SELECT *
+          FROM images
+         WHERE sample_id IN (SELECT sample_id FROM nfn_data)
+           AND image_file NOT LIKE 'missing_photos%'
+      ORDER BY image_file;
+      """
+
+    df1 = pd.read_csv(util.INTERIM_DATA / 'nitfix_remaining_1_of_3.csv')
+    df2 = pd.read_csv(util.INTERIM_DATA / 'nitfix_remaining_2_of_3.csv')
+    df3 = pd.read_csv(util.INTERIM_DATA / 'nitfix_remaining_3_of_3.csv')
+    df4 = pd.read_sql(sql, CXN)
+    df4['manifest_file'] = df4.image_file.str.replace('/', '_')
+    all_ = pd.concat([df1, df2, df3, df4])
+    all_.to_sql('nfn_submitted', CXN, if_exists='replace', index=False)
+
+
 # def mobot():
 #     """Make a manifest."""
 #     taxonomy = pd.read_sql('SELECT * FROM taxa;', CXN)
@@ -190,6 +209,4 @@ def cal_academy():
 
 
 if __name__ == '__main__':
-    remaining_1_of_3()
-    remaining_2_of_3()
-    remaining_3_of_3()
+    nfn_submitted()

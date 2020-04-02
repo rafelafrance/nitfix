@@ -1,16 +1,16 @@
 """Holds miscellaneous utility function."""
 
-import re
 import os
-from os.path import split, basename, join
-from pathlib import Path
+import re
 import uuid
-
+from os.path import basename, join, split
+from pathlib import Path
 
 EXPEDITION_DATA = Path('data') / 'raw' / 'expeditions'
 TEMP_DATA = Path('data') / 'temp'
 PROCESSED_DATA = Path('data') / 'processed'
 RAW_DATA = Path('data') / 'raw'
+INTERIM_DATA = Path('data') / 'interim'
 
 LOCAL_ID = re.compile(
     r'^.*? (nitfix|rosales|test) \D* (\d+) \D*$',
@@ -39,7 +39,6 @@ IMAGE_DIRS = [
     'Tingshuang_NY_nitfix_photos',
     'Tingshuang_TEX_nitfix_photos',
     'Tingshuang_US_nitfix_photos']
-# 'UFBI_sample_photos',
 
 
 class ReplaceDict(dict):
