@@ -194,6 +194,27 @@ def missing_location():
         # zip_images(split, name)
 
 
+def missing_country():
+    """Create expeditions of images returned from NfN without a country."""
+    size = 2500
+    sql = """
+        SELECT sample_id, i.image_file, subject_id
+          FROM images AS i
+          JOIN nfn_data AS n USING (sample_id)
+         WHERE sample_id IN (SELECT sample_id FROM nfn_data
+                              WHERE country = '')
+      ORDER BY image_file;
+        """
+    df = pd.read_sql(sql, CXN)
+    df['manifest_file'] = df.image_file.str.replace('/', '_')
+    steps = list(range(0, df.shape[0], size))
+    splits = [df.iloc[i:i+size, :] for i in steps]
+    for i, split in enumerate(splits, 1):
+        name = f'nitfix_missing_country_{i}_of_{len(splits)}'
+        split.to_csv(util.TEMP_DATA / (name + '.csv'), index=False)
+        zip_images(split, name)
+
+
 # def mobot():
 #     """Make a manifest."""
 #     taxonomy = pd.read_sql('SELECT * FROM taxa;', CXN)
@@ -228,13 +249,14 @@ def missing_location():
 #     missing_images = images[missing]
 #     len(missing_images)
 
+# sql = """select * from nfn_data"""
+# df = pd.read_sql(sql, CXN)
+# print('column,has_value')
+# for col in df.columns:
+#     count = df.loc[df[col] != ''].shape[0]
+#     print(f'{col},{count}')
+# print(df.columns)
+
 
 if __name__ == '__main__':
-    missing_location()
-    # sql = """select * from nfn_data"""
-    # df = pd.read_sql(sql, CXN)
-    # print('column,has_value')
-    # for col in df.columns:
-    #     count = df.loc[df[col] != ''].shape[0]
-    #     print(f'{col},{count}')
-    # print(df.columns)
+    missing_country()
