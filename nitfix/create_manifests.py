@@ -177,7 +177,9 @@ def missing_location():
     """Create expeditions of images returned from NfN without a location."""
     size = 2500
     sql = """
-        SELECT * FROM images
+        SELECT sample_id, i.image_file, subject_id
+          FROM images AS i
+          JOIN nfn_data AS n USING (sample_id)
          WHERE sample_id IN (SELECT sample_id FROM nfn_data
                               WHERE location = '')
       ORDER BY image_file;
@@ -189,7 +191,7 @@ def missing_location():
     for i, split in enumerate(splits, 1):
         name = f'nitfix_missing_location_{i}_of_{len(splits)}'
         split.to_csv(util.TEMP_DATA / (name + '.csv'), index=False)
-        zip_images(split, name)
+        # zip_images(split, name)
 
 
 # def mobot():
@@ -229,3 +231,10 @@ def missing_location():
 
 if __name__ == '__main__':
     missing_location()
+    # sql = """select * from nfn_data"""
+    # df = pd.read_sql(sql, CXN)
+    # print('column,has_value')
+    # for col in df.columns:
+    #     count = df.loc[df[col] != ''].shape[0]
+    #     print(f'{col},{count}')
+    # print(df.columns)
