@@ -3,16 +3,16 @@
 import re
 from collections import defaultdict
 import pandas as pd
-import lib.db as db
-import lib.util as util
-import lib.google as google
+from .db import connect
+from .util import TEMP_DATA, is_uuid
+from .google import sheet_to_csv
 
 
 def ingest_normal_plate_layout(google_sheet):
     """Extract, transform, and load samples sent to Rapid."""
     print(google_sheet)
 
-    cxn = db.connect()
+    cxn = connect()
 
     rapid_wells = get_rapid_wells(google_sheet)
     rapid_wells = assign_plate_ids(rapid_wells)
@@ -22,9 +22,9 @@ def ingest_normal_plate_layout(google_sheet):
 
 def get_rapid_wells(google_sheet):
     """Get data sent to Rapid from Google sheet."""
-    csv_path = util.TEMP_DATA / f'{google_sheet}.csv'
+    csv_path = TEMP_DATA / f'{google_sheet}.csv'
 
-    google.sheet_to_csv(google_sheet, csv_path)
+    sheet_to_csv(google_sheet, csv_path)
 
     names = [
         'row_sort', 'col_sort', 'rapid_id', 'sample_id', 'volume',
@@ -51,7 +51,7 @@ def get_rapid_wells(google_sheet):
 
 def merge_normal_plate_layouts(google_sheets, table):
     """Combine the input sheets into one table."""
-    cxn = db.connect()
+    cxn = connect()
 
     merged = None
     for sheet in google_sheets:
@@ -72,7 +72,7 @@ def assign_plate_ids(rapid_wells):
     If the sample has been plated more then once we need to figure out which
     sample plate well the Rapid well actually points too.
     """
-    cxn = db.connect()
+    cxn = connect()
     sample_ids = defaultdict(list)
 
     sql = """
@@ -128,7 +128,7 @@ def plate_id_heuristics(rapid_well, rapid_prints, sample_prints):
     rapid_key = (rapid_well['source_plate'], rapid_well['source_row'])
     fingerprint = rapid_prints.get(rapid_key)
 
-    if not fingerprint or not util.is_uuid(rapid_well['sample_id']):
+    if not fingerprint or not is_uuid(rapid_well['sample_id']):
         return None
 
     sample_row = sample_prints.get(fingerprint)
@@ -148,7 +148,7 @@ def _get_rapid_fingerprints(dfm):
     for _, well in dfm.iterrows():
         key = (well.source_plate, well.source_row)
         fingerprints.setdefault(key, [''] * 12)
-        if util.is_uuid(well.sample_id):
+        if is_uuid(well.sample_id):
             fingerprints[key][well.source_col - 1] = well.sample_id
     return {k: tuple(sorted(v)) for k, v in fingerprints.items() if any(v)}
 
@@ -158,7 +158,7 @@ def _get_sample_fingerprints(dfm):
     for _, well in dfm.iterrows():
         key = (well.plate_id, well.row)
         fingerprints.setdefault(key, [''] * 12)
-        if util.is_uuid(well.sample_id):
+        if is_uuid(well.sample_id):
             fingerprints[key][well.col - 1] = well.sample_id
     return {tuple(sorted(v)): {'plate_id': k[0], 'row': k[1], 'sample_ids': v}
             for k, v in fingerprints.items() if any(v)}

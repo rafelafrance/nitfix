@@ -3,7 +3,7 @@
 from os.path import exists
 from pathlib import Path
 import sqlite3
-import lib.util as util
+from .util import PROCESSED_DATA, is_uuid
 
 DB_NAME = 'nitfix.sqlite.db'
 
@@ -11,10 +11,10 @@ DB_NAME = 'nitfix.sqlite.db'
 def connect(path=None):
     """Connect to the SQLite3 DB."""
     if not path:
-        path = util.PROCESSED_DATA
+        path = PROCESSED_DATA
 
     if not exists(path):
-        path = Path('..') / util.PROCESSED_DATA
+        path = Path('..') / PROCESSED_DATA
 
     path = str(path / DB_NAME)
 
@@ -24,5 +24,5 @@ def connect(path=None):
     cxn.execute("PRAGMA busy_timeout = 10000")
     cxn.execute("PRAGMA journal_mode = WAL")
 
-    cxn.create_function('IS_UUID', 1, util.is_uuid)
+    cxn.create_function('IS_UUID', 1, is_uuid)
     return cxn

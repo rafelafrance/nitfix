@@ -1,6 +1,14 @@
 """Generate UUIDs for labels."""
 
+import sys
 import uuid
 
-for i in range(1):
+
+try:
+    N = int(sys.argv[1])
+except Exception:  # pylint: disable=broad-except
+    print('Enter the number of UUIDs to generate.')
+    sys.exit(1)
+
+for i in range(N):
     print(uuid.uuid4())

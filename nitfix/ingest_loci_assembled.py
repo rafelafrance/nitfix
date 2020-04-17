@@ -1,10 +1,10 @@
 """Extract, transform, & load Rapid sequencing loci assembled sheet."""
 
 import pandas as pd
+
 import lib.db as db
 import lib.google as google
 import lib.util as util
-
 
 GOOGLE_SHEETS = [
     'P002-P077_Phylo_loci_assembled']

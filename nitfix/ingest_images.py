@@ -7,10 +7,9 @@ from itertools import chain
 import multiprocessing
 from collections import namedtuple
 import pandas as pd
-from PIL import Image, ImageFilter
-import zbarlight    # pylint: disable=import-error
 import lib.db as db
 import lib.util as util
+import lib.image_util as i_util
 
 
 Dimensions = namedtuple('Dimensions', 'width height')
@@ -88,7 +87,7 @@ def get_old_images(cxn):
             util.normalize_file_name)
         old_errors.image_file = old_errors.image_file.apply(
             util.normalize_file_name)
-    except pd.io.sql.DatabaseError:
+    except pd.io.sql.DatabaseError:  # noqa
         old_images = pd.DataFrame(columns=['image_file', 'sample_id'])
         old_errors = pd.DataFrame(
             columns=['image_file', 'msg'])
@@ -110,7 +109,7 @@ def find_duplicate_uuids(images):
     if dupes.shape[0]:
         dupes['msg'] = dupes.apply(
             lambda dupe:
-            ('DUPLICATES: Files {} and {} have the same QR code').format(
+            'DUPLICATES: Files {} and {} have the same QR code'.format(
                 dupe.image_file,
                 images.loc[images.sample_id == dupe.sample_id, 'image_file']),
             axis=1)
@@ -124,7 +123,7 @@ def ingest_batch(image_batch):
     new_errors = []
 
     for image_file in image_batch:
-        sample_id = get_image_data(image_file)
+        sample_id = i_util.qr_value(image_file)
         if sample_id:
             new_images.append({
                 'image_file': image_file,
@@ -150,90 +149,6 @@ def get_images_to_process(old_images, old_errors):
         image_files += map(util.normalize_file_name, file_names)
     image_files = [f for f in image_files if f not in skip_images]
     return sorted(image_files)
-
-
-def get_image_data(image_file):
-    """Read and process image."""
-    with open(util.PHOTOS / image_file, 'rb') as image_fh:
-        try:
-            image = Image.open(image_fh)
-            image.load()
-        except OSError:
-            return None
-    return get_qr_code(image)
-
-
-def get_qr_code(image):
-    """
-    Extract QR code from image.
-
-    Try various methods to find the QR code in the image. Starting from
-    quickest and moving to the most unlikely method.
-    """
-    qr_code = zbarlight.scan_codes('qrcode', image)
-    if qr_code:
-        return qr_code[0].decode('utf-8')
-
-    qr_code = get_qr_code_using_slider(image)
-    if qr_code:
-        return qr_code
-
-    qr_code = get_qr_code_by_rotation(image)
-    if qr_code:
-        return qr_code
-
-    return get_qr_code_by_sharpening(image)
-
-
-def get_qr_code_using_slider(image):
-    """Try sliding a window over the image to search for the QR code."""
-    for box in window_slider(image):
-        cropped = image.crop(box)
-        qr_code = zbarlight.scan_codes('qrcode', cropped)
-        if qr_code:
-            return qr_code[0].decode('utf-8')
-    return None
-
-
-def get_qr_code_by_rotation(image):
-    """Try rotating the image to find the QR code *sigh*."""
-    for degrees in range(5, 85, 5):
-        rotated = image.rotate(degrees)
-        qr_code = zbarlight.scan_codes('qrcode', rotated)
-        if qr_code:
-            return qr_code[0].decode('utf-8')
-    return None
-
-
-def get_qr_code_by_sharpening(image):
-    """Try to sharpen the image to find the QR code."""
-    sharpened = image.filter(ImageFilter.SHARPEN)
-    qr_code = zbarlight.scan_codes('qrcode', sharpened)
-    if qr_code:
-        return qr_code[0].decode('utf-8')
-    return None
-
-
-def window_slider(image_size, window=None, stride=None):
-    """
-    Create slider window.
-
-    It helps with feature extraction by limiting the search area.
-    """
-    window = window if window else Dimensions(400, 400)
-    stride = stride if stride else Dimensions(200, 200)
-
-    for top in range(0, image_size.height, stride.height):
-        bottom = top + window.height
-        bottom = image_size.height if bottom > image_size.height else bottom
-
-        for left in range(0, image_size.width, stride.width):
-            right = left + window.width
-            right = image_size.width if right > image_size.width else right
-
-            box = (left, top, right, bottom)
-
-            yield box
 
 
 def resolve_errors(errors):

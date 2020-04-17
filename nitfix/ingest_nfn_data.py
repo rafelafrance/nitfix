@@ -3,10 +3,11 @@
 import os
 import re
 import string
+
 import pandas as pd
+
 import lib.db as db
 import lib.util as util
-
 
 EXPEDITIONS = [
     '5657_Nit_Fix_I.reconcile.0.4.3.csv',
@@ -21,7 +22,7 @@ def ingest_nfn_data():
     cxn = db.connect()
 
     exps = [get_expedition(e) for e in EXPEDITIONS]
-    nfn = pd.concat(exps, ignore_index=True, sort=False).fillna('')
+    nfn = pd.concat(exps, ignore_index=True).fillna('')
     nfn = fixup_data(nfn)
     nfn = update_collector_data(nfn)
 

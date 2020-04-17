@@ -6,11 +6,12 @@ import uuid
 from os.path import basename, join, split
 from pathlib import Path
 
-EXPEDITION_DATA = Path('data') / 'raw' / 'expeditions'
 TEMP_DATA = Path('data') / 'temp'
 PROCESSED_DATA = Path('data') / 'processed'
-RAW_DATA = Path('data') / 'raw'
 INTERIM_DATA = Path('data') / 'interim'
+RAW_DATA = Path('data') / 'raw'
+EXPEDITION_DATA = RAW_DATA / 'expeditions'
+SAMPLE_DATA = RAW_DATA / 'sampled_images'
 
 LOCAL_ID = re.compile(
     r'^.*? (nitfix|rosales|test) \D* (\d+) \D*$',
@@ -94,5 +95,9 @@ def build_local_no(local_id):
 
 
 def in_sub_dir():
-    """Determine if we in the root or sub dir."""
+    """Determine if we in the root or sub dir.
+
+    A hack for running scripts in the "nitfix" subdirectory vs running it from
+    the root directory.
+    """
     return os.getcwd().endswith('nitfix/nitfix')

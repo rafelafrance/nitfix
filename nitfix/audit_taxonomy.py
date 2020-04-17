@@ -1,6 +1,13 @@
-"""Audit problem taxonomy records in the database."""
+"""Audit problem taxonomy records in the database.
+
+Some simple sanity checks on the taxonomy table. Remove taxonomy records that
+will cause problems later in the analysis. As always, record any destructive
+action taken in an errors table for amy data that may be recovered later.
+However, pure garbage is excised without an error record.
+"""
 
 import pandas as pd
+
 import lib.db as db
 
 
@@ -16,7 +23,11 @@ def clean_taxonomy():
 
 
 def drop_errors(cxn):
-    """Remove duplicate taxonomy ids."""
+    """Remove duplicate taxonomy ids.
+
+    The problem taxonomy IDs are already in the taxonomy error table, we can
+    drop hem from the taxonomy table itself.
+    """
     cxn.execute("""
         DELETE FROM taxonomy_ids
          WHERE sample_id IN (SELECT sample_id FROM taxonomy_errors) ;""")
@@ -24,13 +35,22 @@ def drop_errors(cxn):
 
 
 def drop_bad_genera(cxn):
-    """Remove taxonomy records with a bad genus."""
+    """Remove taxonomy records with a bad genus.
+
+    A bad genus name is completely useless for any further analysis.
+    """
     cxn.execute("""DELETE FROM taxonomy WHERE genus LIKE '%.%';""")
     cxn.commit()
 
 
 def get_duplicate_sample_ids(taxonomy_ids):
-    """Get duplicate sample IDs from the taxonomy table."""
+    """Get duplicate sample IDs from the taxonomy table.
+
+    It happens that some sample IDs are associated with more than taxon. Which
+    means that the same sample is two different species. This is a data entry
+    error and should be removed. Conversely, having more than one sample for
+    a taxon is fine; it's just oversampling and will be handled later.
+    """
     taxonomy_ids['times'] = 0
     errors = taxonomy_ids.groupby('sample_id').agg(
         {'times': 'count', 'sci_name': ', '.join})

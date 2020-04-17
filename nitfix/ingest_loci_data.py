@@ -1,6 +1,7 @@
 """Extract, transform, and load data related to genbank loci."""
 
 import pandas as pd
+
 import lib.db as db
 import lib.google as google
 import lib.util as util
