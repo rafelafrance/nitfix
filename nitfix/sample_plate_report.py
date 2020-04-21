@@ -138,6 +138,7 @@ def generate_excel_report(cxn, sample_wells, plates, genera):
     sample_wells = sample_wells.reindex(
         """local_no well_no well family sci_name sample_id
             rapid_input_volume concentration total_dna
+            source_plate source_well
             dest_plate dest_well
             """.split(), axis=1)
     nfn_data = pd.read_sql('SELECT * FROM nfn_data;', cxn)
@@ -193,6 +194,8 @@ def generate_excel_report(cxn, sample_wells, plates, genera):
         'seq_returned': 'Sequence Returned?',
         'dest_plate': 'Destination Plate',
         'dest_well': 'Destination Well',
+        'source_plate': 'Source Plate',
+        'source_well': 'Source Well',
     }
     sample_wells = sample_wells.rename(columns=renames)
 
