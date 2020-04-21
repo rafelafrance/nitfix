@@ -7,7 +7,8 @@ import lib.google as google
 import lib.util as util
 
 
-COL_END = 1 + 12 + 1    # 1 Label column  + 12 plate columns + 1
+COLUMNS = 12
+COL_END = 1 + COLUMNS + 1    # 1 Label column  + 12 plate columns + 1
 
 
 def ingest_samples():
@@ -50,7 +51,10 @@ def ingest_samples():
 
 
 def build_headers(csv_row, reader):
-    """Build the well record header data."""
+    """Build the well record header data.
+
+    Plate header data is attached to every sample well record.
+    """
     header = {'plate_id': csv_row[0]}
 
     csv_row = next(reader)
@@ -73,14 +77,16 @@ def build_headers(csv_row, reader):
 
 
 def build_wells(header, reader, sample_wells):
-    """Build a well record for each sample ID."""
-    well_no = 0
-    for row in 'ABCDEFGH':
+    """Build a well record for each sample ID.
+
+    Plate header data is attached to every sample well record.
+    """
+    print(header)
+    for r, row in enumerate('ABCDEFGH'):
         csv_row = next(reader)
 
         for col in range(1, COL_END):
             sample_id = csv_row[col]
-            well_no += 1
 
             if util.is_uuid(sample_id):
                 sample_well = {
@@ -88,7 +94,7 @@ def build_wells(header, reader, sample_wells):
                     'col': col,
                     'sample_id': sample_id,
                     'well': f'{row}{col:02d}',
-                    'well_no': well_no,
+                    'well_no': (COLUMNS * r) + col,
                 }
                 sample_wells.append({**header, **sample_well})
 
