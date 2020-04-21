@@ -35,6 +35,11 @@ def get_reformatted_wells(sheet, names):
     wells['sample_id'] = wells['sample_id'].str.lower()
     wells = wells.drop_duplicates('sample_id', keep=False)
 
+    wells['source_plate'] = wells['source_plate'].str.replace(
+        r'^.*?(P\d+$)', r'\1')
+
+    wells['source_well'] = wells['source_well'].str[1:]
+
     return wells.loc[wells['source_plate'] != '', :].copy()
 
 
