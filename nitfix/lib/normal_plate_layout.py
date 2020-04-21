@@ -26,11 +26,18 @@ def get_rapid_wells(google_sheet):
 
     sheet_to_csv(google_sheet, csv_path)
 
-    names = [
-        'row_sort', 'col_sort', 'rapid_id', 'sample_id', 'volume',
-        'concentration', 'total_dna', 'status']
-
-    rapid_wells = pd.read_csv(csv_path, skiprows=1, header=0, names=names)
+    rapid_wells = pd.read_csv(csv_path)
+    rapid_wells = rapid_wells.rename(columns={
+        'Row Sort': 'row_sort',
+        'Column Sort': 'col_sort',
+        'RG_Sample_Code.submitted': 'rapid_id',
+        'UUID': 'sample_id',
+        'Volume (uL)': 'volume',
+        """RAPiD Genomics Lab Use ONLY\nConcentration (ng / uL)""":
+            'concentration',
+        """RAPiD Genomics Lab Use ONLY\nTotal DNA (ng)""": 'total_dna',
+        'Status': 'status',
+    })
 
     source_plate = re.compile(r'^[A-Za-z]+_\d+_(P\d+)_W\w+$')
     rapid_wells['source_plate'] = rapid_wells.rapid_id.str.extract(
