@@ -1,19 +1,11 @@
 """Extract, transform, and load data related to the samples."""
 
 import csv
-from collections import namedtuple
 import pandas as pd
 import lib.db as db
 import lib.google as google
 import lib.util as util
 
-
-PlateShape = namedtuple('PlateShape', 'rows cols')
-PlateRows = namedtuple(
-    'PlateRows', ('plate_id entry_date local_id rapid_plates notes results '
-                  'row_A row_B row_C row_D row_E row_F row_G row_H end'))
-PLATE_SHAPE = PlateShape(14, 13)
-PLATE_ROWS = PlateRows(*list(range(15)))
 
 COL_END = 1 + 12 + 1    # 1 Label column  + 12 plate columns + 1
 
