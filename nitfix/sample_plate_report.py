@@ -24,7 +24,7 @@ def get_wells(cxn):
     """Get well data from the database."""
     sql = """
         WITH sequenced AS (SELECT DISTINCT sample_id, 1 AS seq_returned
-                                FROM sequencing_metadata)
+                                FROM reformatting_templates)
         SELECT sample_wells.*,
                sci_name,
                family,

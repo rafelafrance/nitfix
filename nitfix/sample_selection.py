@@ -250,7 +250,7 @@ def get_sampled_species(cxn, taxonomy_errors):
     """Read from database and format the data for further processing."""
     sql = """
         WITH sequenced AS (SELECT DISTINCT sample_id, 1 AS seq_returned
-                                FROM sequencing_metadata)
+                             FROM reformatting_templates)
         SELECT family, genus, sci_name,
                normal_plate_layout.source_plate,
                normal_plate_layout.source_well,

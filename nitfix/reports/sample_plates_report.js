@@ -236,7 +236,7 @@ function buildWellHeader() {
 
 function buildWellData(well) {
   const sent2Rapid = well.concentration ? 'Yes' : '';
-  const seq_returned = '';
+  const seq_returned = well.seq_returned ? 'Yes' : '';
   var concentration = parseFloat(well.concentration).toFixed(2);
   concentration = concentration == 'NaN' ? '' : concentration;
   var totalDna = parseFloat(well.total_dna).toFixed(2);

@@ -81,7 +81,6 @@ def build_wells(header, reader, sample_wells):
 
     Plate header data is attached to every sample well record.
     """
-    print(header)
     for r, row in enumerate('ABCDEFGH'):
         csv_row = next(reader)
 
