@@ -27,7 +27,7 @@ def get_sequencing_sheet(google_sheet):
         csv_path,
         header=0,
         na_filter=False,
-        names=['rapid_seq_id', 'loci_assembled'])
+        names=['rapid_dest', 'loci_assembled'])
 
     return seq_sheet
 

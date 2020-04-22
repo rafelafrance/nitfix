@@ -30,7 +30,7 @@ def get_rapid_wells(google_sheet):
     rapid_wells = rapid_wells.rename(columns={
         'Row Sort': 'row_sort',
         'Column Sort': 'col_sort',
-        'RG_Sample_Code.submitted': 'rapid_id',
+        'RG_Sample_Code.submitted': 'rapid_source',
         'UUID': 'sample_id',
         'Volume (uL)': 'volume',
         """RAPiD Genomics Lab Use ONLY\nConcentration (ng / uL)""":
@@ -40,11 +40,11 @@ def get_rapid_wells(google_sheet):
     })
 
     source_plate = re.compile(r'^[A-Za-z]+_\d+_(P\d+)_W\w+$')
-    rapid_wells['source_plate'] = rapid_wells.rapid_id.str.extract(
+    rapid_wells['source_plate'] = rapid_wells.rapid_source.str.extract(
         source_plate, expand=False)
 
     source_well = re.compile(r'^[A-Za-z]+_\d+_P\d+_W(\w+)$')
-    rapid_wells['source_well'] = rapid_wells.rapid_id.str.extract(
+    rapid_wells['source_well'] = rapid_wells.rapid_source.str.extract(
         source_well, expand=False)
     rapid_wells['source_row'] = rapid_wells['source_well'].str[0]
     rapid_wells['source_col'] = rapid_wells['source_well'].str[1:].astype(int)

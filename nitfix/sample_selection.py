@@ -249,24 +249,19 @@ def get_genera(cxn, families):
 def get_sampled_species(cxn, taxonomy_errors):
     """Read from database and format the data for further processing."""
     sql = """
-        WITH sequenced AS (SELECT DISTINCT sample_id, 1 AS seq_returned
-                             FROM reformatting_templates)
         SELECT family, genus, sci_name,
-               normal_plate_layout.source_plate,
-               normal_plate_layout.source_well,
+               qc.source_plate, qc.source_well,
                sample_wells.sample_id,
-               qc_normal_plate_layout.total_dna,
-               seq_returned,
+               qc.total_dna,
+               rt.sample_id is not null as seq_returned,
                local_no, well, plate_id,
                NULL as status
           FROM sample_wells
-     LEFT JOIN taxonomy_ids           USING (sample_id)
-     LEFT JOIN taxonomy               USING (sci_name)
-     LEFT JOIN normal_plate_layout    USING (plate_id, well)
-     LEFT JOIN qc_normal_plate_layout USING (plate_id, well)
-     LEFT JOIN reformatting_templates USING (source_plate, source_well)
-     LEFT JOIN sequenced              USING (sample_id)
-      ORDER BY family, genus, normal_plate_layout.total_dna DESC, sci_name;
+     LEFT JOIN taxonomy_ids                 USING (sample_id)
+     LEFT JOIN taxonomy                     USING (sci_name)
+     LEFT JOIN qc_normal_plate_layout AS qc USING (plate_id, well)
+     LEFT JOIN reformatting_templates AS rt USING (rapid_source)
+      ORDER BY family, genus, qc.total_dna DESC, sci_name;
     """
     species = pd.read_sql(sql, cxn)
 

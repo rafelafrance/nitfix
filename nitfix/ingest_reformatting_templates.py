@@ -35,11 +35,6 @@ def get_reformatted_wells(sheet, names):
     wells['sample_id'] = wells['sample_id'].str.lower()
     wells = wells.drop_duplicates('sample_id', keep=False)
 
-    wells['source_plate'] = wells['source_plate'].str.replace(
-        r'^.*?(P\d+$)', r'\1')
-
-    wells['source_well'] = wells['source_well'].str[1:]
-
     return wells.loc[wells['source_plate'] != '', :].copy()
 
 
@@ -56,8 +51,10 @@ def merge_reformatting_templates():
         else:
             merged = merged.append(sheet, ignore_index=True)
 
-    merged['rapid_seq_id'] = merged['dest_plate'] + '_' + merged['dest_well']
-    merged['rapid_id'] = merged['source_plate'] + '_' + merged['source_well']
+    merged['rapid_source'] = (
+            merged['source_plate'] + '_' + merged['source_well'])
+
+    merged['rapid_dest'] = merged['dest_plate'] + '_' + merged['dest_well']
 
     merged.to_sql(
         'reformatting_templates', cxn, if_exists='replace', index=False)

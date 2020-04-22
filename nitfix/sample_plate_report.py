@@ -23,28 +23,18 @@ def generate_reports():
 def get_wells(cxn):
     """Get well data from the database."""
     sql = """
-        WITH sequenced AS (SELECT DISTINCT sample_id, 1 AS seq_returned
-                                FROM reformatting_templates)
         SELECT sample_wells.*,
-               sci_name,
-               family,
-               normal_plate_layout.volume    AS rapid_input_volume,
-               qc.concentration,
-               qc.total_dna,
-               rt.volume AS rapid_well_volume,
-               rt.dest_plate,
-               rt.dest_well,
-               qc.source_plate,
-               qc.source_well,
-               seq_returned
+               sci_name, family,
+               qc.concentration, qc.total_dna,
+               rt.volume, rt.rapid_source, rt.rapid_dest, rt.source_plate,
+               rt.sample_id is not null as seq_returned,
+               la.loci_assembled
           FROM sample_wells
-     LEFT JOIN taxonomy_ids           USING (sample_id)
-     LEFT JOIN taxonomy               USING (sci_name)
-     LEFT JOIN normal_plate_layout    USING (plate_id, well)
+     LEFT JOIN taxonomy_ids                 USING (sample_id)
+     LEFT JOIN taxonomy                     USING (sci_name)
      LEFT JOIN qc_normal_plate_layout AS qc USING (plate_id, well)
-     LEFT JOIN reformatting_templates AS rt ON (
-        qc.source_plate = rt.source_plate AND qc.source_well = rt.source_well)
-     LEFT JOIN sequenced              USING (sample_id)
+     LEFT JOIN reformatting_templates AS rt USING (rapid_source)
+     LEFT JOIN loci_assembled         AS la USING (rapid_dest)
          WHERE length(taxonomy_ids.sample_id) >= 5
       ORDER BY local_no, row, col;
     """
@@ -134,12 +124,10 @@ def generate_excel_report(cxn, sample_wells, plates, genera):
 
     sample_wells = sample_wells.drop(
         ['entry_date', 'local_id', 'rapid_plates', 'notes', 'plate_id',
-         'row', 'col', 'results', 'rapid_well_volume'], axis=1)
+         'row', 'col', 'results', 'volume'], axis=1)
     sample_wells = sample_wells.reindex(
-        """local_no well_no well family sci_name sample_id
-            rapid_input_volume concentration total_dna
-            source_plate source_well
-            dest_plate dest_well
+        """local_no well_no well family sci_name sample_id rapid_source
+            rapid_dest concentration total_dna loci_assembled
             """.split(), axis=1)
     nfn_data = pd.read_sql('SELECT * FROM nfn_data;', cxn)
     sample_wells = sample_wells.merge(
@@ -152,7 +140,6 @@ def generate_excel_report(cxn, sample_wells, plates, genera):
         'well': 'Well',
         'family': 'Family',
         'sci_name': 'Scientific Name',
-        'rapid_input_volume': 'Volume (uL)',
         'sample_id': 'Sample ID',
         'concentration':
             'Rapid Genomics Lab Use ONLY\nConcentration (ng / uL)',
@@ -192,10 +179,9 @@ def generate_excel_report(cxn, sample_wells, plates, genera):
         'collector_number': 'Collector Number',
         'collection_no': 'Collection Number',
         'seq_returned': 'Sequence Returned?',
-        'dest_plate': 'Destination Plate',
-        'dest_well': 'Destination Well',
-        'source_plate': 'Source Plate',
-        'source_well': 'Source Well',
+        'loci_assembled': 'Loci Assembled',
+        'rapid_source': 'Rapid Source ID',
+        'rapid_dest': 'Rapid Destination ID',
     }
     sample_wells = sample_wells.rename(columns=renames)
 
