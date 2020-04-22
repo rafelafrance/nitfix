@@ -94,7 +94,7 @@ def apply_rules_to_genus(samples, genus, taxonomy_errors):
 
 def rule_mark_already_sequenced(samples):
     """Identify samples sequenced by Rapid."""
-    samples.loc[samples.seq_returned.notna(), 'status'] = Status.sequenced
+    samples.loc[samples.seq_returned != 0, 'status'] = Status.sequenced
 
 
 def rule_mark_unprocessed(samples):
