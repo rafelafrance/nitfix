@@ -16,28 +16,29 @@ def generate_reports():
     plates = get_plates(sample_wells)
     genera = get_genus_coverage(cxn)
 
-    generate_html_report(now, sample_wells, plates, genera)
+    # generate_html_report(now, sample_wells, plates, genera)
     generate_excel_report(cxn, sample_wells, plates, genera)
 
 
 def get_wells(cxn):
     """Get well data from the database."""
     sql = """
-        SELECT sample_wells.*,
+        select rt.sample_id,
                sci_name, family,
                qc.concentration, qc.total_dna,
                rt.volume, rt.rapid_source, rt.rapid_dest, rt.source_plate,
                rt.sample_id is not null as seq_returned,
-               la.loci_assembled
-          FROM sample_wells
-     LEFT JOIN taxonomy_ids                 USING (sample_id)
-     LEFT JOIN taxonomy                     USING (sci_name)
-     LEFT JOIN qc_normal_plate_layout AS qc USING (plate_id, well)
-     LEFT JOIN reformatting_templates AS rt USING (rapid_source)
-     LEFT JOIN loci_assembled         AS la USING (rapid_dest)
-         WHERE length(taxonomy_ids.sample_id) >= 5
-      ORDER BY local_no, row, col;
-    """
+               la.loci_assembled,
+               sw.plate_id, sw.entry_date, sw.local_id, sw.local_no,
+               sw.rapid_plates, sw.notes, sw.results, sw.row, sw.col,
+               sw.well, sw.well_no
+        from reformatting_templates as rt
+        left join qc_normal_plate_layout as qc using (rapid_source)
+        left join taxonomy_ids as ti using (sample_id)
+        left join taxonomy as tx using (sci_name)
+        left join loci_assembled as la using (rapid_dest)
+        left join sample_wells as sw using (plate_id, well);
+        """
     sample_wells = pd.read_sql(sql, cxn)
     return sample_wells
 
@@ -141,9 +142,8 @@ def generate_excel_report(cxn, sample_wells, plates, genera):
         'family': 'Family',
         'sci_name': 'Scientific Name',
         'sample_id': 'Sample ID',
-        'concentration':
-            'Rapid Genomics Lab Use ONLY\nConcentration (ng / uL)',
-        'total_dna': 'Rapid Genomics Lab Use ONLY\nTotal DNA (ng)',
+        'concentration': 'Concentration (ng / uL)',
+        'total_dna': 'Total DNA (ng)',
         'country': 'Country',
         'state_province': 'State/Province',
         'county': 'County',

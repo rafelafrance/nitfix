@@ -33,7 +33,7 @@ def get_reformatted_wells(sheet, names):
 
     wells = pd.read_csv(csv_path, header=0, na_filter=False, names=names)
     wells['sample_id'] = wells['sample_id'].str.lower()
-    wells = wells.drop_duplicates('sample_id', keep=False)
+    # wells = wells.drop_duplicates('sample_id', keep=False)
 
     return wells.loc[wells['source_plate'] != '', :].copy()
 

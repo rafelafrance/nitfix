@@ -11,7 +11,6 @@ PROCESSED_DATA = Path('data') / 'processed'
 INTERIM_DATA = Path('data') / 'interim'
 RAW_DATA = Path('data') / 'raw'
 EXPEDITION_DATA = RAW_DATA / 'expeditions'
-SAMPLE_DATA = RAW_DATA / 'sampled_images'
 
 LOCAL_ID = re.compile(
     r'^.*? (nitfix|rosales|test) \D* (\d+) \D*$',
@@ -54,7 +53,7 @@ def is_uuid(guid):
     """Create a function to determine if a string is a valid UUID."""
     if not guid:
         guid = ''
-    guid = str(guid)
+    guid = str(guid).strip()
     try:
         uuid.UUID(guid)
         return True

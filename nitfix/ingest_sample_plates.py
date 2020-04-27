@@ -55,13 +55,13 @@ def build_headers(csv_row, reader):
 
     Plate header data is attached to every sample well record.
     """
-    header = {'plate_id': csv_row[0]}
+    header = {'plate_id': csv_row[0].strip()}
 
     csv_row = next(reader)
     header['entry_date'] = csv_row[0]
 
     csv_row = next(reader)
-    header['local_id'] = csv_row[0]
+    header['local_id'] = csv_row[0].strip()
     header['local_no'] = util.build_local_no(csv_row[0])
 
     csv_row = next(reader)
@@ -85,7 +85,7 @@ def build_wells(header, reader, sample_wells):
         csv_row = next(reader)
 
         for col in range(1, COL_END):
-            sample_id = csv_row[col]
+            sample_id = csv_row[col].strip()
 
             if util.is_uuid(sample_id):
                 sample_well = {
