@@ -11,6 +11,7 @@ PROCESSED_DATA = Path('data') / 'processed'
 INTERIM_DATA = Path('data') / 'interim'
 RAW_DATA = Path('data') / 'raw'
 EXPEDITION_DATA = RAW_DATA / 'expeditions'
+SAMPLED_DATA = RAW_DATA / 'sampled_images'
 
 LOCAL_ID = re.compile(
     r'^.*? (nitfix|rosales|test) \D* (\d+) \D*$',
