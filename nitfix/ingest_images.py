@@ -2,15 +2,16 @@
 
 import os
 from os.path import join
-from glob import glob
-from itertools import chain
 import multiprocessing
 from collections import namedtuple
-import pandas as pd
-import lib.db as db
-import lib.util as util
-import lib.image_util as i_util
+from glob import glob
+from itertools import chain
 
+import pandas as pd
+
+import lib.db as db
+import lib.image_util as i_util
+import lib.util as util
 
 Dimensions = namedtuple('Dimensions', 'width height')
 

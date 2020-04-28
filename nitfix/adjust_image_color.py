@@ -2,55 +2,106 @@
 
 """Adjust Image Colors to remove differences in photographic conditions."""
 
+import os
+import multiprocessing
+from random import shuffle
+
 import matplotlib
 from matplotlib import patches
 import matplotlib.pyplot as plt
 import numpy as np
-
-from tqdm import tqdm
 from PIL import Image
 
+import lib.db as db
 import lib.util as util
 import lib.image_util as i_util
 
 
-IN_DIR = util.SAMPLE_DATA / 'nitfix_sample_2400_2020-04-07a'
-OUT_DIR = util.SAMPLE_DATA / 'nitfix_sample_2400_2020-04-07c_adjusted'
-EXEMPLAR = str(IN_DIR / 'Tingshuang_TEX_nitfix_photos_L1040918.JPG')
+OUT_DIR = util.RAW_DATA / 'adjusted'
+EXEMPLAR = util.PHOTOS / 'Tingshuang_TEX_nitfix_photos' / 'L1040918.JPG'
+
+PROCESSES = max(1, min(10, os.cpu_count() - 4))
 
 
 def adjust_images():
-    """Adjust Image Colors."""
-    in_paths = list(IN_DIR.glob('*.[Jj][Pp][Gg]'))
+    """Adjust image colors."""
+    albums = get_albums()
 
-    # Get the exemplar image data
-    idx = get_image_index(in_paths, EXEMPLAR)
-    image = get_image(in_paths, idx)
+    for album in albums:
+        path = OUT_DIR / album[0]['album']
+        path.mkdir(exist_ok=True)
+
+    with multiprocessing.Pool(processes=PROCESSES) as pool:
+        results = [pool.apply_async(adjust_album, (a, )) for a in albums]
+        results = [r.get() for r in results]
+
+    found = sum(r for r in results)
+    total = sum(len(a) for a in albums)
+    print(f'Adjusted {found} / {total}')
+
+
+def adjust_album(album):
+    """Adjust one album of images."""
+    # Get exemplar image data
+    image = get_image(EXEMPLAR)
     inner, outer = get_image_rectangles(image)
     target = get_average_envelope_colors(image, inner, outer)
 
-    for idx, path in tqdm(enumerate(in_paths)):
-        name = path.name
-        out_path = OUT_DIR / name
-
+    found = 0
+    for photo in album:
+        out_path = OUT_DIR / photo['album'] / photo['photo']
         if not out_path.exists():
-            image = get_image(in_paths, idx)
-            output_images(image, target, out_path)
+            path = util.PHOTOS / photo['image_file']
+            image = get_image(path)
+            found += output_2_up(image, target, out_path)
+    return found
 
 
-def get_image(in_paths, idx):
-    """Get the image from the path index."""
-    path = str(in_paths[idx])
-    return Image.open(path)
+def get_image(path):
+    """Read in the image and rotate it if needed."""
+    original = Image.open(path)
+    transformed = original.resize((
+        int(original.size[0] * 0.75),
+        int(original.size[1] * 0.75)))
+
+    dir_name = str(path.parent)
+    if original.size[0] > original.size[1]:
+        if (dir_name.startswith('Tingshuang')
+            and dir_name != 'Tingshuang_US_nitfix_photos') \
+                or dir_name in (
+                'MO-DOE-nitfix_visit3', 'NY_DOE-nitfix_visit3',
+                'NY_DOE-nitfix_visit4', 'NY_DOE-nitfix_visit5'):
+            transformed = transformed.transpose(Image.ROTATE_90)
+        else:
+            transformed = transformed.transpose(Image.ROTATE_270)
+
+    return transformed
 
 
-def get_image_index(in_paths, image_path):
-    """get the index of the image from its name."""
-    for i, path in enumerate(in_paths):
-        path = str(path)
-        if path == image_path:
-            return i
-    return None
+def get_albums():
+    """Get all images from the database."""
+    step = 2000  # Basic set size
+    photos = []
+
+    with db.connect() as cxn:
+        cursor = cxn.execute('select * from images')
+        for image in cursor:
+            path = util.PHOTOS / image[0]
+            if path.exists():
+                photos.append({'image_file': image[0], 'sample_id': image[1]})
+
+    shuffle(photos)
+
+    *albums, residual = [photos[i:i+step] for i in range(0, len(photos), step)]
+    albums[-1] += residual
+
+    for i, album in enumerate(albums, 1):
+        out_dir = f'album_{i}'
+        for photo in album:
+            photo['album'] = out_dir
+            photo['photo'] = photo['image_file'].replace('/', '_')
+
+    return albums
 
 
 def expand_bbox(bbox):
@@ -76,7 +127,6 @@ def get_image_rectangles(image):
     """Get the inner and outer rectangles around the QR-code."""
     inner = i_util.locate_qr_code(image)
     if not inner:
-        print('Could not find the QR-code.')
         return None, None
     outer = expand_bbox(inner)
     return inner, outer
@@ -109,7 +159,7 @@ def adjust_image(image, diff):
     return Image.fromarray(data.astype(np.uint8))
 
 
-def output_images(image, target, out_path):
+def output_2_up(image, target, out_path):
     """Write images to output file."""
     dpi = matplotlib.rcParams['figure.dpi']
 
@@ -121,6 +171,7 @@ def output_images(image, target, out_path):
     fig, axes = plt.subplots(
         ncols=2, figsize=fig_size, constrained_layout=True)
 
+    found = 1
     if inner:
         avg = get_average_envelope_colors(image, inner, outer)
         diff = avg - target
@@ -128,6 +179,7 @@ def output_images(image, target, out_path):
         draw_rectangle(axes[0], inner, 'cyan')
         adjusted = adjust_image(image, diff)
     else:
+        found = 0
         adjusted = image
 
     axes[0].imshow(image)
@@ -137,6 +189,7 @@ def output_images(image, target, out_path):
     plt.savefig(out_path)
 
     plt.close('all')  # Memory leak
+    return found
 
 
 if __name__ == '__main__':

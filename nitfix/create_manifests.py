@@ -263,7 +263,7 @@ def image_zip():
     """Get images from a list and zip them.
 
     There was s request to get the images for a specific set of samples. This
-    isn't an actual expedtion.
+    isn't an actual expedition.
     """
     cxn = db.connect()
 

@@ -106,10 +106,7 @@ def window_slider(image_size, window=None, stride=None):
 
 
 def locate_qr_code(image):
-    """Find the location of a QR code in the image.
-
-    TODO: Only allow QR-code types. Also try to rotate & sharpen images
-    """
+    """Find the location of a QR code in the image."""
     scanner = zbar.Scanner()  # Memory leaks somewhere, so be careful here
     gray = image.convert('L')
 
