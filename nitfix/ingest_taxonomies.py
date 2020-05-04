@@ -30,7 +30,6 @@ def get_taxonomy(google_sheet):
             'column_a', 'family', 'sci_name', 'authority', 'synonyms',
             'sample_ids', 'provider_acronym', 'provider_id', 'quality_notes'])
     taxonomy = taxonomy[taxonomy.sci_name.notna()]
-    taxonomy = taxonomy.drop_duplicates('sci_name')
 
     taxonomy.sci_name = \
         taxonomy.sci_name.str.split().str.join(' ').str.capitalize()
@@ -74,40 +73,47 @@ def merge_taxonomies():
     """
     Merge Tingshuang taxonomy with the master taxonomy.
 
-    Note: The Tingshuang taxonomy currently has duplicate scientific names so
+    Note: The input taxonomies currently have duplicate scientific names so
     we need to make sure we don't propagate them.
     """
     cxn = db.connect()
 
-    taxonomy = pd.read_sql('SELECT * FROM NitFixMasterTaxonomy', cxn)
-    taxonomy.to_sql('taxonomy', cxn, if_exists='replace', index=False)
-    cxn.executescript("""
-        CREATE INDEX IF NOT EXISTS
-            taxonomy_sci_name ON taxonomy (sci_name);
+    # Create tables
+    tax_cols = db.get_columns(cxn, 'NitFixMasterTaxonomy')
+    tax_cols = ','.join(tax_cols)
+    id_cols = db.get_columns(cxn, 'NitFixMasterTaxonomy_ids')
+    id_cols = ','.join(id_cols)
 
-        CREATE INDEX IF NOT EXISTS
-            taxonomy_genus ON taxonomy (genus);
+    sql = f"""
+        drop table if exists taxonomy;
+        drop table if exists taxonomy_ids;
 
-        CREATE INDEX IF NOT EXISTS
-            taxonomy_family ON taxonomy (family);
-        """)
+        create table taxonomy ({tax_cols});
+        create table taxonomy_ids ({id_cols});
+    """
+    cxn.executescript(sql)
+    cxn.commit()
 
-    for i in range(1, 6):
-        cxn.execute(f"""
-            CREATE INDEX IF NOT EXISTS
-                taxonomy_sample_id_{i} ON taxonomy (sample_id_{i});
-        """)
+    # Add data from NitFixMasterTaxonomy
+    sql = """
+        INSERT INTO taxonomy
+        SELECT *
+          FROM NitFixMasterTaxonomy
+         WHERE sci_name NOT IN (SELECT sci_name FROM taxonomy)
+           AND rowid IN (SELECT rowid
+                           FROM NitFixMasterTaxonomy
+                       GROUP BY sci_name
+                         HAVING MIN(rowid));
 
-    taxonomy_ids = pd.read_sql('SELECT * FROM NitFixMasterTaxonomy_ids', cxn)
-    taxonomy_ids.to_sql('taxonomy_ids', cxn, if_exists='replace', index=False)
-    cxn.executescript(f"""
-        CREATE INDEX IF NOT EXISTS
-            taxonomy_ids_sci_name ON taxonomy_ids (sci_name);
+        INSERT INTO taxonomy_ids
+        SELECT *
+          FROM NitFixMasterTaxonomy_ids
+         WHERE sample_id NOT IN (SELECT sample_id FROM taxonomy_ids);
+        """
+    cxn.executescript(sql)
+    cxn.commit()
 
-        CREATE INDEX IF NOT EXISTS
-            taxonomy_ids_sample_id ON taxonomy_ids (sample_id);
-        """)
-
+    # Add data from Tingshuang_NitFixMasterTaxonomy
     sql = """
         INSERT INTO taxonomy
         SELECT *
@@ -125,6 +131,32 @@ def merge_taxonomies():
         """
     cxn.executescript(sql)
     cxn.commit()
+
+    # Create indices
+    cxn.executescript("""
+        CREATE INDEX IF NOT EXISTS
+            taxonomy_sci_name ON taxonomy (sci_name);
+
+        CREATE INDEX IF NOT EXISTS
+            taxonomy_genus ON taxonomy (genus);
+
+        CREATE INDEX IF NOT EXISTS
+            taxonomy_family ON taxonomy (family);
+        """)
+
+    for i in range(1, 6):
+        cxn.execute(f"""
+            CREATE INDEX IF NOT EXISTS
+                taxonomy_sample_id_{i} ON taxonomy (sample_id_{i});
+        """)
+
+    cxn.executescript(f"""
+        CREATE INDEX IF NOT EXISTS
+            taxonomy_ids_sci_name ON taxonomy_ids (sci_name);
+
+        CREATE INDEX IF NOT EXISTS
+            taxonomy_ids_sample_id ON taxonomy_ids (sample_id);
+        """)
 
 
 if __name__ == '__main__':

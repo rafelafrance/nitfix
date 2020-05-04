@@ -26,3 +26,11 @@ def connect(path=None):
 
     cxn.create_function('IS_UUID', 1, is_uuid)
     return cxn
+
+
+def get_columns(cxn, table):
+    """Get a list of columns from a table"""
+    sql = f'PRAGMA table_info({table});'
+    cxn.row_factory = sqlite3.Row
+    columns = [r[1] for r in cxn.execute(sql)]
+    return columns
