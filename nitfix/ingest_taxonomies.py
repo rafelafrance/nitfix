@@ -84,17 +84,15 @@ def merge_taxonomies():
     id_cols = db.get_columns(cxn, 'NitFixMasterTaxonomy_ids')
     id_cols = ','.join(id_cols)
 
-    sql = f"""
+    cxn.executescript(f"""
         drop table if exists taxonomy;
         drop table if exists taxonomy_ids;
 
         create table taxonomy ({tax_cols});
         create table taxonomy_ids ({id_cols});
-    """
-    cxn.executescript(sql)
-    cxn.commit()
+    """)
 
-    # SQL script template for building the taxonomy and taxonomy_ids tables
+    # SQL template for inserting into taxonomy & taxonomy_ids tables
     sql = """
         INSERT INTO taxonomy
         SELECT *
