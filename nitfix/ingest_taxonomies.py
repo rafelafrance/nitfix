@@ -94,42 +94,29 @@ def merge_taxonomies():
     cxn.executescript(sql)
     cxn.commit()
 
-    # Add data from NitFixMasterTaxonomy
+    # SQL script template for building the taxonomy and taxonomy_ids tables
     sql = """
         INSERT INTO taxonomy
         SELECT *
-          FROM NitFixMasterTaxonomy
+          FROM {0}
          WHERE sci_name NOT IN (SELECT sci_name FROM taxonomy)
            AND rowid IN (SELECT rowid
-                           FROM NitFixMasterTaxonomy
+                           FROM {0}
                        GROUP BY sci_name
                          HAVING MIN(rowid));
 
         INSERT INTO taxonomy_ids
         SELECT *
-          FROM NitFixMasterTaxonomy_ids
+          FROM {0}_ids
          WHERE sample_id NOT IN (SELECT sample_id FROM taxonomy_ids);
         """
-    cxn.executescript(sql)
+
+    # Add data from NitFixMasterTaxonomy
+    cxn.executescript(sql.format('NitFixMasterTaxonomy'))
     cxn.commit()
 
     # Add data from Tingshuang_NitFixMasterTaxonomy
-    sql = """
-        INSERT INTO taxonomy
-        SELECT *
-          FROM Tingshuang_NitFixMasterTaxonomy
-         WHERE sci_name NOT IN (SELECT sci_name FROM taxonomy)
-           AND rowid IN (SELECT rowid
-                           FROM Tingshuang_NitFixMasterTaxonomy
-                       GROUP BY sci_name
-                         HAVING MIN(rowid));
-
-        INSERT INTO taxonomy_ids
-        SELECT *
-          FROM Tingshuang_NitFixMasterTaxonomy_ids
-         WHERE sample_id NOT IN (SELECT sample_id FROM taxonomy_ids);
-        """
-    cxn.executescript(sql)
+    cxn.executescript(sql.format('Tingshuang_NitFixMasterTaxonomy'))
     cxn.commit()
 
     # Create indices
