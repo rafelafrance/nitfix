@@ -11,6 +11,7 @@ These expeditions tend to be ad hoc.
 import os
 import random
 import re
+import sqlite3
 import zipfile
 from os.path import basename, dirname
 
@@ -21,6 +22,7 @@ import lib.db as db
 import lib.util as util
 
 CXN = db.connect()
+CXN.row_factory = sqlite3.Row
 
 # A simple regex for checking if a string is a valid UUID
 IS_UUID = re.compile(
@@ -263,17 +265,22 @@ def get_a_genus(genus):
     """Create a zip file of images from one genus."""
     mask = genus.title() + '%'
     sql = """
-        select image_file, sample_id, sci_name
+        select *
           from taxonomy_ids
           join images using (sample_id)
+          left join nfn_data using (sample_id)
          where sci_name like ?
         """
+    cursor = CXN.execute(sql, (mask, ))
+    row = cursor.fetchone()
+    columns = row.keys()
+
     rows = list(CXN.execute(sql, (mask, )))
-    rows = [{'image_file': r[0], 'sample_id': r[1],
-             'manifest_file': r[0].replace('/', '_'),
-             'sci_name': r[2]} for r in rows]
-    name = f'genus_{genus}_2020-06-16a'
-    df = pd.DataFrame(rows)
+    name = f'genus_{genus}_2020-06-16b'
+
+    df = pd.DataFrame(rows, columns=columns)
+    df['manifest_file'] = df['image_file'].str.replace('/', '_')
+
     df.to_csv(util.TEMP_DATA / (name + '.csv'), index=False)
     zip_images(df, name)
 
