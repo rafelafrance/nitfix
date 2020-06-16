@@ -259,6 +259,25 @@ def random_subset():
     zip_images(df, name)
 
 
+def get_a_genus(genus):
+    """Create a zip file of images from one genus."""
+    mask = genus.title() + '%'
+    sql = """
+        select image_file, sample_id, sci_name
+          from taxonomy_ids
+          join images using (sample_id)
+         where sci_name like ?
+        """
+    rows = list(CXN.execute(sql, (mask, )))
+    rows = [{'image_file': r[0], 'sample_id': r[1],
+             'manifest_file': r[0].replace('/', '_'),
+             'sci_name': r[2]} for r in rows]
+    name = f'genus_{genus}_2020-06-16a'
+    df = pd.DataFrame(rows)
+    df.to_csv(util.TEMP_DATA / (name + '.csv'), index=False)
+    zip_images(df, name)
+
+
 def image_zip():
     """Get images from a list and zip them.
 
@@ -434,4 +453,5 @@ def _get_sample_ids():
 
 
 if __name__ == '__main__':
-    random_subset()
+    # random_subset()
+    get_a_genus('Inga')
