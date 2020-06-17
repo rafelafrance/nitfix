@@ -8,6 +8,7 @@ zip files of the photos and manifests of what's in them for these projects.
 These expeditions tend to be ad hoc.
 """
 
+import datetime
 import os
 import random
 import re
@@ -50,10 +51,10 @@ def zip_images(images, image_dir):
         dir_name = dirname(image_file)
         if original.size[0] > original.size[1]:
             if (dir_name.startswith('Tingshuang')
-                    and dir_name != 'Tingshuang_US_nitfix_photos') \
+                and dir_name != 'Tingshuang_US_nitfix_photos') \
                     or dir_name in (
-                        'MO-DOE-nitfix_visit3', 'NY_DOE-nitfix_visit3',
-                        'NY_DOE-nitfix_visit4', 'NY_DOE-nitfix_visit5'):
+                    'MO-DOE-nitfix_visit3', 'NY_DOE-nitfix_visit3',
+                    'NY_DOE-nitfix_visit4', 'NY_DOE-nitfix_visit5'):
                 transformed = transformed.transpose(Image.ROTATE_90)
             else:
                 transformed = transformed.transpose(Image.ROTATE_270)
@@ -261,22 +262,22 @@ def random_subset():
     zip_images(df, name)
 
 
-def get_a_genus(genus):
+def get_genera(name, genera):
     """Create a zip file of images from one genus."""
-    mask = genus.title() + '%'
-    sql = """
+    sql = f"""
         select *
           from taxonomy_ids
+          join taxonomy using (sci_name)
           join images using (sample_id)
           left join nfn_data using (sample_id)
-         where sci_name like ?
+         where genus in {tuple(genera)};
         """
-    cursor = CXN.execute(sql, (mask, ))
+    cursor = CXN.execute(sql)
     row = cursor.fetchone()
     columns = row.keys()
 
-    rows = list(CXN.execute(sql, (mask, )))
-    name = f'genus_{genus}_2020-06-16b'
+    rows = list(CXN.execute(sql))
+    name = f'{name}_{datetime.date.today().strftime("%Y-%m-%d")}'
 
     df = pd.DataFrame(rows, columns=columns)
     df['manifest_file'] = df['image_file'].str.replace('/', '_')
@@ -460,5 +461,11 @@ def _get_sample_ids():
 
 
 if __name__ == '__main__':
-    # random_subset()
-    get_a_genus('Inga')
+    # get_genera('Dialioideae', """
+    #     Androcalymma Apuleia Baudouinia Dialium Dicorynia Distemonanthus
+    #     Eligmocarpus Kalappia Koompassia Labichea Martiodendron Mendoravia
+    #     Petalostylis Poeppigia Storckiella Uittienia Zenia """.split())
+    get_genera('Cercidoideae', """
+        Adenolobus Cercis Griffonia Barklya Bauhinia Brenierea Gigasiphon
+        Lasiobema Lysiphyllum Phanera Piliostigma Schnella
+        Tylosema """.split())
