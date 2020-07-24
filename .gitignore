@@ -40,4 +40,4 @@ dependencies
 .env.production.local
 .~lock*
 
-npm-debug.log*
+docs/workflow_paper/

@@ -465,7 +465,16 @@ if __name__ == '__main__':
     #     Androcalymma Apuleia Baudouinia Dialium Dicorynia Distemonanthus
     #     Eligmocarpus Kalappia Koompassia Labichea Martiodendron Mendoravia
     #     Petalostylis Poeppigia Storckiella Uittienia Zenia """.split())
-    get_genera('Cercidoideae', """
-        Adenolobus Cercis Griffonia Barklya Bauhinia Brenierea Gigasiphon
-        Lasiobema Lysiphyllum Phanera Piliostigma Schnella
-        Tylosema """.split())
+    # get_genera('Cercidoideae', """
+    #     Adenolobus Cercis Griffonia Barklya Bauhinia Brenierea Gigasiphon
+    #     Lasiobema Lysiphyllum Phanera Piliostigma Schnella
+    #     Tylosema """.split())
+    get_genera('Dalbergiod', """ Acosmium Adesmia Aeschynomene Amicia
+        Apoplanesia Arachis Brya Bryaspis Cascaronia Centrolobium Chaetocalyx
+        Chapmannia Cranocarpus Cyclocarpa Dalbergia Diphysa Discolobium
+        Etaballia Fiebrigiella Fissicalyx Geissaspis Geoffroea Grazielodendron
+        Humularia Inocarpus Kotschya Machaerium Maraniona Nissolia
+        Ormocarpopsis Ormocarpum Paramachaerium Peltiera Pictetia Platymiscium
+        Platypodium Poiretia Pterocarpus Ramorinoa Riedeliella Smithia
+        Soemmeringia Stylosanthes Tipuana Weberbauerella Zornia Zygocarpum
+        """.split())
