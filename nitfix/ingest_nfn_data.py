@@ -10,11 +10,16 @@ import lib.db as db
 import lib.util as util
 
 EXPEDITIONS = [
-    '5657_Nit_Fix_I.reconcile.0.4.3.csv',
+    '5657_Nit_Fix_I.reconcile.4.3.csv',
     '5857_Nit_Fix_II.reconcile.0.4.4.csv',
-    '6415_Nit_Fix_III.reconcile.0.4.3.csv',
+    '6415_Nit_Fix_III.reconcile.4.3.csv',
     '6779_Nit_Fix_IV.reconcile.0.4.4.csv',
-    '6801_nitrogen_fixing_plants_v_east_coast.reconcile.0.4.4.csv']
+    '6801_nitrogen_fixing_plants_v_east_coast.reconcile.0.4.4.csv',
+    '12077_nitfix-the-return.reconciled.0.4.7.csv',
+
+    ('10651_understanding-a-critical-symbiosis-nitrogen-fixing-in-'
+     'plants-missouri-botanical-gardens.reconciled.0.4.5.csv'),
+]
 
 
 def ingest_nfn_data():
@@ -82,9 +87,13 @@ def update_collector_data(nfn):
 def get_last_name(collected_by):
     """Extract the last name from the collected by field."""
     if not collected_by:
-        return collected_by
+        return ''
 
-    last_name = collected_by.split(',')[0]
+    collected_by = collected_by.split(',')
+    if not collected_by or not collected_by[0]:
+        return ''
+
+    last_name = collected_by[0]
 
     while (last_name[-1] in string.punctuation
            or (len(last_name) > 4 and last_name[-2] == ' ')):
@@ -112,8 +121,7 @@ def create_nfn_table(cxn, nfn):
     nfn.to_sql('nfn_data', cxn, if_exists='replace')
 
     cxn.execute("""
-        CREATE UNIQUE INDEX IF NOT EXISTS
-            nfn_data_sample_id ON nfn_data (sample_id);
+        CREATE UNIQUE INDEX nfn_data_sample_id ON nfn_data (sample_id);
         """)
 
 
