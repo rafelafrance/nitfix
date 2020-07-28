@@ -2,47 +2,57 @@
 
 """Fill in the nodulation Excel file."""
 
-import re
-
 import pandas as pd
+import camelot
 
+import lib.db as db
 from lib.util import RAW_DATA
 
 
 NOD_DIR = RAW_DATA / 'nodulation'
 NOD_EXCEL = NOD_DIR / 'Nitfix_Nodulation_Data_Sheets.v2.xlsx'
 
-SPRENT_2009 = NOD_DIR / 'Sprent_2009_chrome.txt'
+NOD_CSV = str(NOD_DIR / 'Nitfix_Nodulation_Data_Sheets.v2.')
+
+SPRENT89 = NOD_DIR / 'Sprent_1989_Table_1.pdf'
 
 
 def sprent_sheet():
     """Fill in the full species names for the Sprent sheet."""
-    df = pd.read_excel(NOD_EXCEL, 'Sprent', header=1, usecols=[0, 1, 2])
+    sheet = 'Sprent'
+    df = pd.read_excel(NOD_EXCEL, sheet, header=1, usecols=[0, 1, 2])
+    df['sci_name'] = ''
     df = df.fillna('')
+
     genus = ''
     for _, row in df.iterrows():
         words = row['Genus_species'].split()
         if len(words) == 1:
             genus = words[0]
-        else:
+        elif words[0][0] == genus[0]:
             sci_name = f'{genus} {words[1]}'
-            row['Genus_species'] = sci_name
+            row['sci_name'] = sci_name
 
-    genus_only = df['Genus_species'].str.count(' ') == 1
-    # print(genus_only[100:120])
-    df = df[genus_only]
-
-    print(df[100:120])
+    save(df, sheet)
 
 
-def sprent_2009_ingest():
-    """See if we can cleanly import the Sprent data."""
-    with open(SPRENT_2009) as in_file:
-        text = in_file.read()
+def sprent_counts_sheet():
+    """Get the counts from the Sprent 1989 PDF."""
+    tables = camelot.read_pdf(str(SPRENT89), pages='1-end')
+    print(f'tables: {tables.n}')
+    for table in tables:
+        print(table.df.head())
 
-    text = 1
+
+def save(df, sheet):
+    """Convert the dataframe/Excel sheet into a CSV file."""
+    name = NOD_CSV + sheet + '.csv'
+    df.to_csv(name, index=False)
+
+    table = 'nodulation_' + sheet
+    df.to_sql(table, db.connect(), if_exists='replace', index=False)
 
 
 if __name__ == '__main__':
-    sprent_2009_ingest()
     # sprent_sheet()
+    sprent_counts_sheet()
