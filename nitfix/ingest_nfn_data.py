@@ -71,7 +71,8 @@ def fixup_data(nfn):
 
 def agg_concat(group):
     """Concatenate the group into a string of unique values."""
-    return ', '.join(set(group))
+    group = [g for g in group if g]
+    return '|'.join(set(group))
 
 
 def update_collector_data(nfn):

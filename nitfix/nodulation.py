@@ -3,11 +3,9 @@
 """Fill in the nodulation Excel file."""
 
 import pandas as pd
-import camelot
 
 import lib.db as db
 from lib.util import RAW_DATA
-
 
 NOD_DIR = RAW_DATA / 'nodulation'
 NOD_EXCEL = NOD_DIR / 'Nitfix_Nodulation_Data_Sheets.v2.xlsx'
@@ -38,10 +36,10 @@ def sprent_sheet():
 
 def sprent_counts_sheet():
     """Get the counts from the Sprent 1989 PDF."""
-    tables = camelot.read_pdf(str(SPRENT89), pages='1-end')
-    print(f'tables: {tables.n}')
-    for table in tables:
-        print(table.df.head())
+    sheet = 'Sprent_counts'
+    csv_file = NOD_DIR / 'Sprent_1989_Table_1.csv'
+    df = pd.read_csv(csv_file)
+    save(df, sheet)
 
 
 def save(df, sheet):

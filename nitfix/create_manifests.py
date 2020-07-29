@@ -35,7 +35,7 @@ IS_UUID = re.compile(
 MISSING = '<missing/>'
 
 
-def zip_images(images, image_dir):
+def zip_images(images, image_dir, factor=0.75):
     """Shrink and rotate images and then put them into a zip file."""
     image_zip_dir = util.TEMP_DATA / image_dir
     os.makedirs(image_zip_dir, exist_ok=True)
@@ -46,8 +46,8 @@ def zip_images(images, image_dir):
         dst = image_zip_dir / image_file.replace('/', '_')
         original = Image.open(src)
         transformed = original.resize((
-            int(original.size[0] * 0.75),
-            int(original.size[1] * 0.75)))
+            int(original.size[0] * factor),
+            int(original.size[1] * factor)))
         dir_name = dirname(image_file)
         if original.size[0] > original.size[1]:
             if (dir_name.startswith('Tingshuang')
@@ -59,6 +59,20 @@ def zip_images(images, image_dir):
             else:
                 transformed = transformed.transpose(Image.ROTATE_270)
         transformed.save(dst)
+
+
+def doe_nitfix():
+    """Make a manifest."""
+    sql = """
+          SELECT image_file, images.sample_id, sci_name
+            FROM images
+            JOIN taxonomy_ids USING (sample_id)
+           WHERE image_file LIKE 'DOE-nitfix_specimen_photos/%';
+          """
+    images = pd.read_sql(sql, CXN)
+    images['manifest_file'] = images.image_file.str.replace('/', '_')
+    images.to_csv(util.TEMP_DATA / 'doe_manifest.csv', index=False)
+    zip_images(images, 'doe', factor=0.25)
 
 
 def remaining_1_of_3():
@@ -469,12 +483,4 @@ if __name__ == '__main__':
     #     Adenolobus Cercis Griffonia Barklya Bauhinia Brenierea Gigasiphon
     #     Lasiobema Lysiphyllum Phanera Piliostigma Schnella
     #     Tylosema """.split())
-    get_genera('Dalbergiod', """ Acosmium Adesmia Aeschynomene Amicia
-        Apoplanesia Arachis Brya Bryaspis Cascaronia Centrolobium Chaetocalyx
-        Chapmannia Cranocarpus Cyclocarpa Dalbergia Diphysa Discolobium
-        Etaballia Fiebrigiella Fissicalyx Geissaspis Geoffroea Grazielodendron
-        Humularia Inocarpus Kotschya Machaerium Maraniona Nissolia
-        Ormocarpopsis Ormocarpum Paramachaerium Peltiera Pictetia Platymiscium
-        Platypodium Poiretia Pterocarpus Ramorinoa Riedeliella Smithia
-        Soemmeringia Stylosanthes Tipuana Weberbauerella Zornia Zygocarpum
-        """.split())
+    doe_nitfix()
