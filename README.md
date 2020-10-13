@@ -74,7 +74,7 @@ We gather physical samples from the herbarium specimens. We print UUIDs on sampl
 2. `python nitfix/audit_taxonomy.py` will look for errors in the merged taxonomies. When it finds an error it will log the error to a separate table and either fix the error if possible or remove the offending sample from the rest of the workflow. Errors include:
     - Duplicate sample IDs (UUIDs).
     - Bad genera.
-    
+
 ### Ingest Miscellaneous Data
 `make other` Will run a series of scripts that collect data for reporting and other purposes.
 1. `python nitfix/ingest_loci_data.py` ingests data that contains genbank loci that are important for nodulation.
@@ -86,18 +86,18 @@ We gather physical samples from the herbarium specimens. We print UUIDs on sampl
 
 ### Repair Sample IDs
 `make repair` ties to fix sample IDs.
- 1. There are various sources of bad sample IDs. Some of which we can fix and
+- There are various sources of bad sample IDs. Some of which we can fix and
 others we cannot or at least cannot without a great deal of effort.
-    1. Bar reader machines sometimes read a QR-Code or barcode incorrectly for whatever reason. This is fixable if we can trace the code back to what it is supposed to be.
-    1. Double printing of QR-code envelopes. Without meaningful codes -- vs. the UUIDs we're using now -- fixing them will be extremely difficult. One possible improvement here would be to add information about the museum, date, and who took the pictures to the sample ID. Hindsight being 20/20. This would make back tracing the issues a little bit easier. FYI: I did add checks to Google sheets to combat this particular error but they slowed data entry and people turned off or ignored these safeguards.
-   1. Missing sample IDs. We fix them when possible. Someone forgets to log the
+    - Bar reader machines sometimes read a QR-Code or barcode incorrectly for whatever reason. This is fixable if we can trace the code back to what it is supposed to be.
+    - Double printing of QR-code envelopes. Without meaningful codes -- vs. the UUIDs we're using now -- fixing them will be extremely difficult. One possible improvement here would be to add information about the museum, date, and who took the pictures to the sample ID. Hindsight being 20/20. This would make back tracing the issues a little bit easier. FYI: I did add checks to Google sheets to combat this particular error but they slowed data entry and people turned off or ignored these safeguards.
+- Missing sample IDs. We fix them when possible. Someone forgets to log the
    sample ID into the master taxonomy.
-   1. Sample IDs in the master taxonomy without a corresponding picture. The
+- Sample IDs in the master taxonomy without a corresponding picture. The
    actual sample may still exist.
-1. Actions, given a manual set of corrections:
-    1. Add them to the taxonomy_ids table as if the "bad" sample ID was
+- Actions, given a manual set of corrections:
+    - Add them to the taxonomy_ids table as if the "bad" sample ID was
        already entered into the taxonomy table manually.
-    1. Adjust the images table to use the new "bad" sample ID.
+    - Adjust the images table to use the new "bad" sample ID.
     
 ### Ingest Sequencing Data
 `make sequencing` runs a series of scripts that track the samples through the wet lab and sequencing pipelines.
@@ -111,12 +111,11 @@ others we cannot or at least cannot without a great deal of effort.
 1. `python nitfix/ingest_loci_assembled.py` ingest assembled loci data.
 
 ### Sample Selection Report
-`make select_samples` create the sample selection report.
-
-1. `python nitfix/sample_selection.py` creates the report.
+`make select_samples` create the sample selection report. It runs a single script, `python nitfix/sample_selection.py`.
 
 The sample selection reports in the [reports](reports) directory have gotten rather large and now have to be downloaded from GutHub before they can be viewed. I have provided a smaller version of the report so that you can see what the [report](assets/sample_selection.html) looks like.
-- Create a list of samples to select given the criteria below. The heuristics are like so:
+
+Create a list of samples to select given the criteria below. The heuristics:
 - Remove samples associated with more than one scientific name.
 - Toss every sample with a total DNA < 10 ng.
 - All out-groups are high priority. An out-group will have a ":" in its
