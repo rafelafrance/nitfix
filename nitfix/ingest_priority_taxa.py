@@ -11,7 +11,7 @@ def ingest_priority_taxa_list():
     csv_path = util.TEMP_DATA / 'priority_taxa.csv'
     cxn = db.connect()
 
-    google.sheet_to_csv('Priority_Taxa_List', csv_path)
+    google.sheet_to_csv(util.PRIORITY_TAXA_SHEET, csv_path)
 
     taxa = pd.read_csv(
         csv_path,

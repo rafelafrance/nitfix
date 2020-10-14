@@ -7,7 +7,7 @@ import lib.util as util
 
 def ingest_non_fabales_data():
     """Read the non-Fabales nodulataion."""
-    csv_path = util.RAW_DATA / 'non-fabales_nodulation.csv'
+    csv_path = util.NON_FABALES_CSV
     cxn = db.connect()
 
     data = pd.read_csv(

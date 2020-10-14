@@ -4,11 +4,7 @@ import pandas as pd
 import lib.db as db
 import lib.google as google
 import lib.util as util
-
-
-GOOGLE_SHEETS = [
-    'FMN_131001_Sequencing_Metadata']
-# 'KIB_135802_Sequencing_Metadata']
+from lib.util import SEQ_METADATA_SHEETS
 
 
 def ingest_sequencing_sheet(google_sheet):
@@ -43,7 +39,7 @@ def merge_sequencing_sheets():
     cxn = db.connect()
 
     merged = None
-    for sheet in GOOGLE_SHEETS:
+    for sheet in SEQ_METADATA_SHEETS:
         sheet = pd.read_sql(f'SELECT * from {sheet};', cxn)
         if merged is None:
             merged = sheet
@@ -55,6 +51,6 @@ def merge_sequencing_sheets():
 
 
 if __name__ == '__main__':
-    for SHEET in GOOGLE_SHEETS:
+    for SHEET in SEQ_METADATA_SHEETS:
         ingest_sequencing_sheet(SHEET)
     merge_sequencing_sheets()

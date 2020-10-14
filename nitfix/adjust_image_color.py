@@ -2,25 +2,19 @@
 
 """Adjust Image Colors to remove differences in photographic conditions."""
 
-import os
 import multiprocessing
 from random import shuffle
 
 import matplotlib
-from matplotlib import patches
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
+from matplotlib import patches
 
 import lib.db as db
-import lib.util as util
 import lib.image_util as i_util
-
-
-OUT_DIR = util.RAW_DATA / 'adjusted'
-EXEMPLAR = util.PHOTOS / 'Tingshuang_TEX_nitfix_photos' / 'L1040918.JPG'
-
-PROCESSES = max(1, min(10, os.cpu_count() - 4))
+import lib.util as util
+from lib.util import ADJUSTED_DIR, EXEMPLAR, PROCESSES
 
 
 def adjust_images():
@@ -28,11 +22,11 @@ def adjust_images():
     albums = get_albums()
 
     for album in albums:
-        path = OUT_DIR / album[0]['album']
+        path = ADJUSTED_DIR / album[0]['album']
         path.mkdir(exist_ok=True)
 
     with multiprocessing.Pool(processes=PROCESSES) as pool:
-        results = [pool.apply_async(adjust_album, (a, )) for a in albums]
+        results = [pool.apply_async(adjust_album, (a,)) for a in albums]
         results = [r.get() for r in results]
 
     found = sum(r for r in results)
@@ -49,7 +43,7 @@ def adjust_album(album):
 
     found = 0
     for photo in album:
-        out_path = OUT_DIR / photo['album'] / photo['photo']
+        out_path = ADJUSTED_DIR / photo['album'] / photo['photo']
         if not out_path.exists():
             path = util.PHOTOS / photo['image_file']
             image = get_image(path)
@@ -92,7 +86,8 @@ def get_albums():
 
     shuffle(photos)
 
-    *albums, residual = [photos[i:i+step] for i in range(0, len(photos), step)]
+    *albums, residual = [photos[i:i + step] for i in
+                         range(0, len(photos), step)]
     albums[-1] += residual
 
     for i, album in enumerate(albums, 1):

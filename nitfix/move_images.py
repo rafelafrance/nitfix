@@ -13,7 +13,7 @@ import lib.db as db
 import lib.util as util
 
 
-OUT_DIR = util.RAW_DATA / 'adjusted'
+OUT_DIR = util.ADJUSTED_DIR
 
 
 def move_2400():

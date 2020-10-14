@@ -5,20 +5,13 @@
 import pandas as pd
 
 import lib.db as db
-from lib.util import RAW_DATA
-
-NOD_DIR = RAW_DATA / 'nodulation'
-NOD_EXCEL = NOD_DIR / 'Nitfix_Nodulation_Data_Sheets.v2.xlsx'
-
-NOD_CSV = str(NOD_DIR / 'Nitfix_Nodulation_Data_Sheets.v2.')
-
-SPRENT89 = NOD_DIR / 'Sprent_1989_Table_1.pdf'
+import lib.util as util
 
 
 def sprent_sheet():
     """Fill in the full species names for the Sprent sheet."""
-    sheet = 'Sprent'
-    df = pd.read_excel(NOD_EXCEL, sheet, header=1, usecols=[0, 1, 2])
+    sheet = util.SPRENT_SHEET
+    df = pd.read_excel(util.NOD_EXCEL, sheet, header=1, usecols=[0, 1, 2])
     df['sci_name'] = ''
     df = df.fillna('')
 
@@ -36,15 +29,13 @@ def sprent_sheet():
 
 def sprent_counts_sheet():
     """Get the counts from the Sprent 1989 PDF."""
-    sheet = 'Sprent_counts'
-    csv_file = NOD_DIR / 'Sprent_1989_Table_1.csv'
-    df = pd.read_csv(csv_file)
-    save(df, sheet)
+    df = pd.read_csv(util.SPRENT_COUNTS_CSV)
+    save(df, util.SPRENT_COUNTS_SHEET)
 
 
 def save(df, sheet):
     """Convert the dataframe/Excel sheet into a CSV file."""
-    name = NOD_CSV + sheet + '.csv'
+    name = util.NOD_CSV + sheet + '.csv'
     df.to_csv(name, index=False)
 
     table = 'nodulation_' + sheet

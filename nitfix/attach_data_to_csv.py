@@ -1,24 +1,20 @@
 """Attach information from the database into the CSV file."""
 
-import re
 import datetime
+import re
 
 import pandas as pd
 
 import lib.db as db
 from lib.util import RAW_DATA, TEMP_DATA
 
-
-# IN_CSV = RAW_DATA / 'proportion_ontarget_renamed_renamed.csv'
-# OUT_CSV = TEMP_DATA / 'proportion_ontarget_renamed_renamed_renamed.csv'
-# IN_CSV = RAW_DATA / 'Greenness_data_update.csv'
-IN_CSV = RAW_DATA / 'Greenness_data_update_4rafe.csv'
-OUT_CSV = TEMP_DATA / 'Greenness_data_update_2020-07-29b.csv'
+GREENNESS_IN_CSV = RAW_DATA / 'Greenness_data_update_4rafe.csv'
+GREENNESS_OUT_CSV = TEMP_DATA / 'Greenness_data_update_2020-07-29b.csv'
 
 
 def attach_sample_ids():
     """Get the sample ID from the species if we can."""
-    df = pd.read_csv(IN_CSV)
+    df = pd.read_csv(GREENNESS_IN_CSV)
 
     sql = """
         with singles as (select sci_name from taxonomy_ids
@@ -35,12 +31,12 @@ def attach_sample_ids():
 
     df['sample_id'] = df['sci_name'].map(name_map)
 
-    df.to_csv(OUT_CSV, index=False)
+    df.to_csv(GREENNESS_OUT_CSV, index=False)
 
 
 def attach_families():
     """Get the family from the sci_name."""
-    df = pd.read_csv(IN_CSV)
+    df = pd.read_csv(GREENNESS_IN_CSV)
     sql = """ select sci_name, family from taxonomy;"""
 
     with db.connect() as cxn:
@@ -50,12 +46,12 @@ def attach_families():
 
     df['family'] = df['sci_name'].map(name_map)
 
-    df.to_csv(OUT_CSV, index=False)
+    df.to_csv(GREENNESS_OUT_CSV, index=False)
 
 
 def attach_nfn_data():
     """Attach NfN data from to the records."""
-    df = pd.read_csv(IN_CSV, index_col='sample_id').fillna('NA')
+    df = pd.read_csv(GREENNESS_IN_CSV, index_col='sample_id').fillna('NA')
     df['state_province'] = 'NA'
     df['county'] = 'NA'
     df['family'] = 'NA'
@@ -94,12 +90,11 @@ def attach_nfn_data():
             if row['yr.bp'] == 'NA' and year_1 not in ('NA', 'Not Shown', ''):
                 df.at[sample_id, 'yr.bp'] = now.year - int(year_1)
 
-
     df['family'] = df['sci_name'].map(fam_map)
     df['herbarium'] = df.index.map(img_map)
     df['herbarium'] = df['herbarium'].apply(herbarium)
 
-    df.to_csv(OUT_CSV)
+    df.to_csv(GREENNESS_OUT_CSV)
 
 
 def herbarium(image_file):

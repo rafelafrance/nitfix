@@ -1,16 +1,12 @@
 """Extract, transform, & load Rapid reformatting templates."""
 
 from os.path import splitext
+
 import pandas as pd
+
 import lib.db as db
 import lib.google as google
 import lib.util as util
-
-
-GOOGLE_SHEETS = [
-    'FMN_131001_Reformatting_Template',
-    'KIB_135802_Reformatting_template',
-    'UFBI_Reformatting_Template']
 
 NAMES = ['row_sort', 'source_plate', 'source_well', 'source_well_no',
          'dest_plate', 'dest_well', 'dest_well_no', 'volume', 'sample_id',
@@ -43,7 +39,7 @@ def merge_reformatting_templates():
     cxn = db.connect()
 
     merged = None
-    for sheet in GOOGLE_SHEETS:
+    for sheet in util.REFORMATTING_TEMPLATE_SHEETS:
         table, _ = splitext(sheet)
         sheet = pd.read_sql(f'SELECT * from {table};', cxn)
         if merged is None:
@@ -61,6 +57,6 @@ def merge_reformatting_templates():
 
 
 if __name__ == '__main__':
-    for SHEET in GOOGLE_SHEETS:
+    for SHEET in util.REFORMATTING_TEMPLATE_SHEETS:
         ingest_reformatting_template(SHEET)
     merge_reformatting_templates()

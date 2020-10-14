@@ -4,11 +4,7 @@ import pandas as pd
 import lib.db as db
 import lib.google as google
 import lib.util as util
-
-
-GOOGLE_SHEETS = [
-    'FMN_131001_SampleSheet']
-# 'KIB_135802_SampleSheet']
+from lib.util import SAMPLE_SHEETS
 
 
 def ingest_sample_sheet(google_sheet):
@@ -40,7 +36,7 @@ def merge_sample_sheets():
     cxn = db.connect()
 
     merged = None
-    for sheet in GOOGLE_SHEETS:
+    for sheet in SAMPLE_SHEETS:
         sheet = pd.read_sql(f'SELECT * from {sheet};', cxn)
         if merged is None:
             merged = sheet
@@ -51,6 +47,6 @@ def merge_sample_sheets():
 
 
 if __name__ == '__main__':
-    for SHEET in GOOGLE_SHEETS:
+    for SHEET in SAMPLE_SHEETS:
         ingest_sample_sheet(SHEET)
     merge_sample_sheets()

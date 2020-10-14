@@ -48,7 +48,7 @@ def create_werner_data_table(cxn, werner):
 
 def read_werner_data():
     """Read the Werner Excel spreadsheet data."""
-    excel_path = util.RAW_DATA / 'werner' / 'NitFixWernerEtAl2014.xlsx'
+    excel_path = util.WERNER_DATA_XLS
 
     drops = """Legume Likelihood_non-precursor
         Likelihood_precursor Likelihood_fixer Likelihood_stable_fixer

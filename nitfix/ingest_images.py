@@ -15,7 +15,6 @@ import lib.util as util
 
 Dimensions = namedtuple('Dimensions', 'width height')
 
-PROCESSES = max(1, min(10, os.cpu_count() - 4))
 BATCH_SIZE = 100
 
 
@@ -32,7 +31,7 @@ def ingest_images():
     batches = [image_files[i:i + BATCH_SIZE]
                for i in range(0, len(image_files), BATCH_SIZE)]
 
-    with multiprocessing.Pool(processes=PROCESSES) as pool:
+    with multiprocessing.Pool(processes=util.PROCESSES) as pool:
         results = [pool.apply_async(ingest_batch, (b, )) for b in batches]
         results = [r.get() for r in results]
 

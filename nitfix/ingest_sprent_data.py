@@ -7,7 +7,7 @@ import lib.util as util
 
 def ingest_sprent_data():
     """Read the Sprent nodulataion."""
-    csv_path = util.RAW_DATA / 'sprent' / 'Nodulation_clade.csv'
+    csv_path = util.SPRENT_DATA_CSV
     cxn = db.connect()
 
     data = pd.read_csv(

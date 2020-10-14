@@ -145,6 +145,6 @@ def merge_taxonomies():
 
 
 if __name__ == '__main__':
-    ingest_taxonomy('NitFixMasterTaxonomy')
-    ingest_taxonomy('Tingshuang_NitFixMasterTaxonomy')
+    ingest_taxonomy(util.TAXONOMY_SHEETS['uf'])
+    ingest_taxonomy(util.TAXONOMY_SHEETS['tingshuang'])
     merge_taxonomies()

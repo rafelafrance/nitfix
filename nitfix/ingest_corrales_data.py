@@ -11,7 +11,7 @@ def ingest_corrales_data():
     csv_path = util.TEMP_DATA / 'corrales.csv'
     cxn = db.connect()
 
-    google.sheet_to_csv('corrales_data', csv_path)
+    google.sheet_to_csv(util.CORRALES_SHEET, csv_path)
     corrales = pd.read_csv(csv_path)
     corrales.corrales_id = corrales.corrales_id.str.lower()
     corrales.image_file = corrales.image_file.apply(util.normalize_file_name)

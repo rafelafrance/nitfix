@@ -34,7 +34,7 @@ def ingest_samples():
     2) We then take that row and the next n rows.
     """
     csv_path = util.TEMP_DATA / 'sample_plates.csv'
-    google.sheet_to_csv('sample_plates', csv_path)
+    google.sheet_to_csv(util.SAMPLE_PLATES_SHEET, csv_path)
 
     sample_wells = []
 

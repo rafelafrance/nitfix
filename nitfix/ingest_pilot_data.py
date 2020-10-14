@@ -11,12 +11,12 @@ def ingest_pilot_data():
     csv_path = util.TEMP_DATA / 'pilot.csv'
     cxn = db.connect()
 
-    google.sheet_to_csv('UFBI_identifiers_photos', csv_path)
+    google.sheet_to_csv(util.PILOT_DATA_SHEET, csv_path)
     pilot = pd.read_csv(csv_path)
 
     # Create a fake path for the file name
     pilot['image_file'] = pilot['File'].apply(
-        lambda x: f'UFBI_sample_photos/{x}')
+        lambda x: f'{util.PILOT_DATA_DIR}/{x}')
 
     pilot = (pilot.drop(['File'], axis=1)
              .rename(columns={'Identifier': 'pilot_id'}))

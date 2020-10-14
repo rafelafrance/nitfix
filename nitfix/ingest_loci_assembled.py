@@ -5,9 +5,7 @@ import pandas as pd
 import lib.db as db
 import lib.google as google
 import lib.util as util
-
-GOOGLE_SHEETS = [
-    'P002-P077_Phylo_loci_assembled']
+from lib.util import LOCI_SHEETS
 
 
 def ingest_loci_sheet(google_sheet):
@@ -33,5 +31,5 @@ def get_sequencing_sheet(google_sheet):
 
 
 if __name__ == '__main__':
-    for SHEET in GOOGLE_SHEETS:
+    for SHEET in LOCI_SHEETS:
         ingest_loci_sheet(SHEET)

@@ -12,7 +12,7 @@ def ingest_loci_data():
     csv_path = util.TEMP_DATA / 'genbank_loci.csv'
     cxn = db.connect()
 
-    google.sheet_to_csv('genbank_loci', csv_path)
+    google.sheet_to_csv(util.GENBANK_LOCI_SHEET, csv_path)
 
     loci = pd.read_csv(
         csv_path,
