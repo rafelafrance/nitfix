@@ -1,5 +1,7 @@
 # Phylogenomic discovery and engineering of nitrogen fixation into the bioenergy woody crop poplar
 
+### The Specimen to Laboratory Information Management System (SLIMS)
+
 - [Background](#Background)
 - [Installation](#Installation)
 - [Important Notes and TODOs](#Important-Notes-and-TODOs)
