@@ -170,7 +170,7 @@ others we cannot or at least cannot without a great deal of effort.
 
 `make select_samples` create the sample selection report. It runs a single script, `python nitfix/sample_selection.py`.
 
-The sample selection reports in the [reports](reports) directory have gotten rather large and now have to be downloaded from GutHub before they can be viewed. I have provided a smaller version of the report so that you can see what the [report](assets/sample_selection.html) looks like.
+The sample selection reports in the [reports](reports) directory have gotten rather large and now have to be downloaded from GutHub before they can be viewed. I have provided a smaller version of the report so that you can see what the [report](https://rafelafrance.github.io/nitfix/assets/sample_selection.html) looks like.
 
 Create a list of samples to select given the criteria below. The heuristics:
 
