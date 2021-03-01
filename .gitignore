@@ -40,4 +40,4 @@ dependencies
 .env.production.local
 .~lock*
 
-docs/workflow_paper/
+docs/submitted/

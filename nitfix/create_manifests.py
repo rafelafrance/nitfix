@@ -286,6 +286,8 @@ def get_genera(name, genera):
           left join nfn_data using (sample_id)
          where genus in {tuple(genera)};
         """
+    sql = sql.replace(',);', ');')  # Handle a single item tuple
+
     cursor = CXN.execute(sql)
     row = cursor.fetchone()
     columns = row.keys()
@@ -475,12 +477,4 @@ def _get_sample_ids():
 
 
 if __name__ == '__main__':
-    # get_genera('Dialioideae', """
-    #     Androcalymma Apuleia Baudouinia Dialium Dicorynia Distemonanthus
-    #     Eligmocarpus Kalappia Koompassia Labichea Martiodendron Mendoravia
-    #     Petalostylis Poeppigia Storckiella Uittienia Zenia """.split())
-    # get_genera('Cercidoideae', """
-    #     Adenolobus Cercis Griffonia Barklya Bauhinia Brenierea Gigasiphon
-    #     Lasiobema Lysiphyllum Phanera Piliostigma Schnella
-    #     Tylosema """.split())
-    doe_nitfix()
+    get_genera('Astragalus', ['Astragalus'])
