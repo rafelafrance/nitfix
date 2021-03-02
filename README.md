@@ -14,6 +14,7 @@
     - [Ingest Sequencing Data](#Ingest-Sequencing-Data)
     - [Sample Selection Report](#Sample-Selection-Report)
     - [Maintenance Functions](#Maintenance-Functions)
+- [Database Schema](docs/database_schema.md)
 
 # Background
 

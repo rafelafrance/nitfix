@@ -12,6 +12,7 @@ b) Double printing of QR-code envelopes. Without meaningful codes -- vs. the
    possible improvement here would be to add information about the museum,
    date, and who took the pictures to the sample ID. Hindsight being 20/20.
    This would make back tracing the issues a little bit easier.
+
    FYI: I did add checks to Google sheets to combat this particular error but
         people never used these safeguards.
 
@@ -22,6 +23,9 @@ d) Sample IDs in the master taxonomy without a corresponding picture. The
    actual sample may still exist.
 
 Actions:
+    Because the bad sample ID has already been propagated through the system
+    we are forced to track the "bad ID" and link it to a good one, if one exists.
+
     Given a manual set of corrections:
 
     1) Add them to the taxonomy_ids table as if the "bad" sample ID was
