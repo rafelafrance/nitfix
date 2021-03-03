@@ -111,9 +111,9 @@ plate_id|entry_date|local_id|local_no|rapid_plates|notes|results|row|col|sample_
 031fc196-3587-477d-8bd2-4a9f5167be4d|2018-01-18|Local identifier:NITFIX_3|Nitfix_0003|FMN_131002_P082-G-H|Notes: OSU SAMPLES, Row C unsent|Quantification 3/5|A|4|af311575-c54f-4069-98bf-95c99c6796c3|A04|4
 031fc196-3587-477d-8bd2-4a9f5167be4d|2018-01-18|Local identifier:NITFIX_3|Nitfix_0003|FMN_131002_P082-G-H|Notes: OSU SAMPLES, Row C unsent|Quantification 3/5|A|5|afc68f65-f826-4710-8e76-1427cb958ab4|A05|5
 
-### ghost_table (A cautionary tale.)
+### ghost_table
 
-There are many good reasons for not submitting the entire original 96-well plate (in sample_wells) for sequencing. DNA yield, or species coverage are just two. However, the lab technicians replated the sample_wells without tracking that information. There is some very incomplete tracking in the sample_wells.rapid_plates column. You will see some extreme hacking in [normal_plate_layout.py](../nitfix/lib/normal_plate_layout.py) of me trying to figure out what samples went where. I was able to use the fact that the technicians always used multi-pipetters to transfer the samples, and so I could use sequences of UUIDs to figure out where the samples came from.
+There are many good reasons for not submitting the entire original 96-well plate (in sample_wells) for sequencing. DNA yield, or species coverage are just two. However, the lab technicians replated the sample_wells without tracking that information. I tried to figure out the replating in [normal_plate_layout.py](../nitfix/lib/normal_plate_layout.py). I was able to use the fact that the technicians always used multipipettors to transfer the samples, and so I could use sequences of UUIDs to figure out where the samples came from.
 
 ## RAPiD Genomics tables
 
