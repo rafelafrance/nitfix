@@ -23,7 +23,7 @@ temp/
 # Data files
 data/
 
-dependencies
+# dependencies
 /node_modules
 
 # testing
