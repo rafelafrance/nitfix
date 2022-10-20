@@ -1,6 +1,5 @@
 # Environment data
-venv/
-.env
+.venv/
 
 # Output
 output/

@@ -1,6 +1,5 @@
 """Extract, transform, and load data related to Notes from Nature data."""
 
-import os
 import re
 import string
 
@@ -14,7 +13,7 @@ def ingest_nfn_data():
     """Ingest data related to the taxonomy."""
     cxn = db.connect()
 
-    exps = [get_expedition(e) for e in util.EXPEDITIONS]
+    exps = [get_expedition(e) for e in util.EXPEDITION_DATA.glob('*.csv')]
     nfn = pd.concat(exps, ignore_index=True).fillna('')
     nfn = fixup_data(nfn)
     nfn = update_collector_data(nfn)
@@ -22,11 +21,10 @@ def ingest_nfn_data():
     create_nfn_table(cxn, nfn)
 
 
-def get_expedition(file_name):
+def get_expedition(csv_path):
     """Get NitFix expedition data."""
-    csv_path = os.fspath(util.EXPEDITION_DATA / file_name)
     nfn = pd.read_csv(csv_path, dtype=str).fillna('')
-    nfn['workflow_id'] = file_name[:4]
+    nfn['workflow_id'] = csv_path.stem.split('_')[0]
 
     columns = {}
     for old in nfn.columns:
@@ -84,7 +82,7 @@ def get_last_name(collected_by):
 
     last_name = collected_by[0]
 
-    while (last_name[-1] in string.punctuation
+    while (len(last_name) >= 1 and last_name[-1] in string.punctuation
            or (len(last_name) > 4 and last_name[-2] == ' ')):
         if last_name[-1] in string.punctuation:
             last_name = last_name[:-1]
